@@ -6,8 +6,24 @@ const app = express()
 const PORT = process.env.PORT ?? 3001
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(cors({ 
+  origin: [
+    'http://localhost:5173',
+    'https://latexume.vercel.app',
+    /\.vercel\.app$/,  // Allow all Vercel preview deployments
+  ],
+  credentials: true
+}))
 app.use(express.json({ limit: '1mb' }))
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'LaTexume API is running',
+    timestamp: new Date().toISOString()
+  })
+})
 
 // Routes
 app.use('/api/generate-resume', generateResumeRouter)

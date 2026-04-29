@@ -139,8 +139,11 @@ const Builder = () => {
     e.preventDefault()
     setLoading(true)
 
+    // Use environment variable for API URL
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
     try {
-      const response = await fetch('http://localhost:3001/api/generate-resume', {
+      const response = await fetch(`${API_URL}/api/generate-resume`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
