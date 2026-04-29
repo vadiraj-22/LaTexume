@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎓 LaTexume
+#  LaTexume
 
 ### LaTeX-Powered ATS Resume Builder
 
@@ -11,9 +11,11 @@
 [![LaTeX](https://img.shields.io/badge/LaTeX-Powered-47A141?style=for-the-badge&logo=latex&logoColor=white)](https://www.latex-project.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-[🚀 Live Demo](#) • [📖 Documentation](#usage) • [🐛 Report Bug](../../issues) • [✨ Request Feature](../../issues)
+[🚀 Live Site](https://latexume.vercel.app/) • [📖 Documentation](#usage) • [🐛 Report Bug](../../issues) • [✨ Request Feature](../../issues)
 
-![LaTexume Banner](./Client/public/resume-preview.png)
+<img src="./Client/public/myResume.png" alt="LaTexume Banner" width="100%" />
+
+
 
 </div>
 
@@ -61,7 +63,7 @@
 | ⚡ **Instant Export** | Generate publication-quality PDFs in seconds |
 | 🔗 **Smart Links** | All URLs are clickable in the generated PDF |
 | 📱 **Responsive UI** | Beautiful interface that works on all devices |
-| 🎯 **Structured Sections** | Organized format: Header, Objective, Skills, Experience, Projects, Education, Certifications |
+| 🎯 **Structured Sections** | Organized format with all essential resume sections |
 | 🌐 **Professional Links** | Add Portfolio, LinkedIn, GitHub, LeetCode profiles |
 | 💼 **Project Showcase** | Include live site and GitHub repository links |
 | 🏆 **Achievements** | Dedicated section for certifications and awards |
@@ -75,20 +77,30 @@
 <div align="center">
 
 ### 🏠 Home Page
-![Home Page](./screenshots/home.png)
+<img src="./Client/public/Home.png" alt="Home Page" width="800px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
+
 *Modern landing page with resume structure preview*
 
+---
+
 ### 📝 Resume Builder
-![Resume Builder](./screenshots/builder.png)
+<img src="./Client/public/Builder.png" alt="Resume Builder" width="800px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
+
 *Intuitive form-based interface for entering your information*
 
-### 📄 Generated Resume
-![Resume Preview](./Client/public/resume-preview.png)
-*Professional LaTeX-formatted resume output*
+---
 
 ### ℹ️ About Page
-![About Page](./screenshots/about.png)
+<img src="./Client/public/About.png" alt="About Page" width="800px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
+
 *Learn about LaTexume and Jake's Resume template*
+
+---
+
+### 📄 Generated Resume Preview
+<img src="./Client/public/myResume.png" alt="Resume Preview" width="600px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
+
+*Professional LaTeX-formatted resume output*
 
 </div>
 
