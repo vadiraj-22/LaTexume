@@ -13,7 +13,7 @@
 
 [🚀 Live Site](https://latexume.vercel.app/) • [📖 Documentation](#usage) • [🐛 Report Bug](../../issues) • [✨ Request Feature](../../issues)
 
-<img src="./Client/public/myResume.png" alt="LaTexume Banner" width="100%" />
+
 
 
 
