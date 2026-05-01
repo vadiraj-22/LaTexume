@@ -61,7 +61,7 @@ const Features = () => {
   return (
     <section className="py-20 px-4 md:px-16 lg:px-24 xl:px-32 bg-gray-900/50">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
             Why LaTeX for your resume?
           </h2>
@@ -74,9 +74,9 @@ const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/50 transition-all duration-300 hover:transform hover:scale-105"
+              className={`bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/50 transition-all duration-300 hover:transform hover:scale-105 hover-lift animate-fade-in-up animate-delay-${(index + 1) * 100}`}
             >
-              <div className="text-primary mb-4">{feature.icon}</div>
+              <div className="text-primary mb-4 transition-transform duration-300 hover:scale-110">{feature.icon}</div>
               <h3 className="text-xl font-semibold text-white mb-2">
                 {feature.title}
               </h3>

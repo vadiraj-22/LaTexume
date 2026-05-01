@@ -70,7 +70,7 @@ const ResumePreview = () => {
   return (
     <section className="py-20 px-4 md:px-16 lg:px-24 xl:px-32 bg-gray-900/30">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 animate-fade-in-up">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
             Your Resume Structure
           </h2>
@@ -85,9 +85,9 @@ const ResumePreview = () => {
             {sections.map((section, index) => (
               <div
                 key={index}
-                className="flex gap-4 bg-white/5 backdrop-blur p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300"
+                className={`flex gap-4 bg-white/5 backdrop-blur p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300 hover-lift animate-fade-in-left animate-delay-${(index + 1) * 100}`}
               >
-                <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary transition-transform duration-300 hover:scale-110 hover:rotate-6">
                   {section.icon}
                 </div>
                 <div>
@@ -103,11 +103,11 @@ const ResumePreview = () => {
           </div>
 
           {/* Right Side - Resume Preview */}
-          <div className="sticky top-8">
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+          <div className="sticky top-8 animate-fade-in-right animate-delay-200">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-500 hover-lift">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-white">Preview</h3>
-                <span className="text-xs text-primary bg-primary/10 px-3 py-1 rounded-full">
+                <span className="text-xs text-primary bg-primary/10 px-3 py-1 rounded-full animate-pulse-slow">
                   LaTeX Format
                 </span>
               </div>

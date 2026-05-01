@@ -95,6 +95,11 @@ const Builder = () => {
     setFormData({ ...formData, skills: [...formData.skills, { label: '', skills: '' }] })
   }
 
+  const removeSkill = (index) => {
+    const newSkills = formData.skills.filter((_, i) => i !== index)
+    setFormData({ ...formData, skills: newSkills.length > 0 ? newSkills : [{ label: '', skills: '' }] })
+  }
+
   const addExperience = () => {
     setFormData({
       ...formData,
@@ -102,9 +107,23 @@ const Builder = () => {
     })
   }
 
+  const removeExperience = (index) => {
+    const newExperience = formData.experience.filter((_, i) => i !== index)
+    setFormData({ ...formData, experience: newExperience.length > 0 ? newExperience : [{ title: '', company: '', location: '', startDate: '', endDate: '', bullets: [''] }] })
+  }
+
   const addExperienceBullet = (index) => {
     const newExperience = [...formData.experience]
     newExperience[index].bullets.push('')
+    setFormData({ ...formData, experience: newExperience })
+  }
+
+  const removeExperienceBullet = (expIndex, bulletIndex) => {
+    const newExperience = [...formData.experience]
+    newExperience[expIndex].bullets = newExperience[expIndex].bullets.filter((_, i) => i !== bulletIndex)
+    if (newExperience[expIndex].bullets.length === 0) {
+      newExperience[expIndex].bullets = ['']
+    }
     setFormData({ ...formData, experience: newExperience })
   }
 
@@ -115,9 +134,23 @@ const Builder = () => {
     })
   }
 
+  const removeProject = (index) => {
+    const newProjects = formData.projects.filter((_, i) => i !== index)
+    setFormData({ ...formData, projects: newProjects.length > 0 ? newProjects : [{ name: '', technologies: '', date: '', bullets: [''], liveLink: '', githubLink: '' }] })
+  }
+
   const addProjectBullet = (index) => {
     const newProjects = [...formData.projects]
     newProjects[index].bullets.push('')
+    setFormData({ ...formData, projects: newProjects })
+  }
+
+  const removeProjectBullet = (projIndex, bulletIndex) => {
+    const newProjects = [...formData.projects]
+    newProjects[projIndex].bullets = newProjects[projIndex].bullets.filter((_, i) => i !== bulletIndex)
+    if (newProjects[projIndex].bullets.length === 0) {
+      newProjects[projIndex].bullets = ['']
+    }
     setFormData({ ...formData, projects: newProjects })
   }
 
@@ -128,11 +161,21 @@ const Builder = () => {
     })
   }
 
+  const removeEducation = (index) => {
+    const newEducation = formData.education.filter((_, i) => i !== index)
+    setFormData({ ...formData, education: newEducation.length > 0 ? newEducation : [{ institution: '', location: '', degree: '', field: '', startDate: '', endDate: '' }] })
+  }
+
   const addCertification = () => {
     setFormData({
       ...formData,
       certifications: [...formData.certifications, '']
     })
+  }
+
+  const removeCertification = (index) => {
+    const newCertifications = formData.certifications.filter((_, i) => i !== index)
+    setFormData({ ...formData, certifications: newCertifications.length > 0 ? newCertifications : [''] })
   }
 
   const handleSubmit = async (e) => {
@@ -179,9 +222,70 @@ const Builder = () => {
         <Navbar />
       </header>
 
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-6 animate-fade-in">
+            {/* Document with Pen Animation */}
+            <div className="relative">
+              {/* Document */}
+              <div className="w-48 h-64 bg-white rounded-lg shadow-2xl relative overflow-hidden">
+                {/* Document Lines */}
+                <div className="absolute top-8 left-6 right-6 space-y-3">
+                  <div className="h-2 bg-gray-300 rounded animate-pulse"></div>
+                  <div className="h-2 bg-gray-300 rounded animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="h-2 bg-gray-300 rounded w-3/4 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="h-2 bg-gray-300 rounded animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                  <div className="h-2 bg-gray-300 rounded w-5/6 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  <div className="h-2 bg-gray-300 rounded animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                  <div className="h-2 bg-gray-300 rounded w-2/3 animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                </div>
+
+                {/* Animated Pen/Typewriter */}
+                <div className="absolute bottom-20 right-8 animate-bounce" style={{ animationDuration: '1s' }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z" fill="#A6FF5D"/>
+                    <path d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z" fill="#A6FF5D"/>
+                  </svg>
+                </div>
+
+                {/* Writing Effect Line */}
+                <div className="absolute bottom-24 left-6 right-12">
+                  <div className="h-2 bg-primary rounded animate-pulse"></div>
+                </div>
+              </div>
+
+              {/* Glow Effect */}
+              <div className="absolute inset-0 bg-primary/20 blur-3xl -z-10 animate-pulse"></div>
+            </div>
+
+            {/* Loading Text */}
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-semibold text-white">Generating Your Resume</h3>
+              <p className="text-gray-400 text-sm">Compiling LaTeX and creating PDF...</p>
+              
+              {/* Progress Dots */}
+              <div className="flex items-center justify-center gap-2 pt-4">
+                <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+            </div>
+
+            {/* LaTeX Logo */}
+            <div className="mt-4 flex items-center gap-2 text-gray-500 text-xs">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+              </svg>
+              <span>Powered by LaTeX</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="py-12 px-4 md:px-16 lg:px-24 xl:px-32">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
+          <div className="mb-8 animate-fade-in-down">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               Build Your LaTeX Resume
             </h1>
@@ -192,7 +296,7 @@ const Builder = () => {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Header Information */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-100">
               <h2 className="text-2xl font-semibold text-white mb-6">Personal Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
@@ -201,7 +305,7 @@ const Builder = () => {
                   value={formData.header.name}
                   onChange={(e) => handleHeaderChange('name', e.target.value)}
                   required
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none transition-all duration-300 focus:scale-[1.02]"
                 />
                 <input
                   type="email"
@@ -250,37 +354,51 @@ const Builder = () => {
             </div>
 
             {/* Objective */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-200">
               <h2 className="text-2xl font-semibold text-white mb-6">Objective</h2>
               <textarea
                 placeholder="Career objective or professional summary"
                 value={formData.objective}
                 onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
                 rows="4"
-                className="w-full bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                className="w-full bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none transition-all duration-300 focus:scale-[1.01]"
               />
             </div>
 
             {/* Skills */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-300">
               <h2 className="text-2xl font-semibold text-white mb-6">Technical Skills</h2>
               {formData.skills.map((skill, index) => (
                 <div key={index} className="mb-4 pb-4 border-b border-white/10 last:border-0">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input
-                      type="text"
-                      placeholder="Category (e.g., Languages)"
-                      value={skill.label}
-                      onChange={(e) => handleSkillChange(index, 'label', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Skills (e.g., JavaScript, Python, Java)"
-                      value={skill.skills}
-                      onChange={(e) => handleSkillChange(index, 'skills', e.target.value)}
-                      className="md:col-span-2 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <input
+                        type="text"
+                        placeholder="Category (e.g., Languages)"
+                        value={skill.label}
+                        onChange={(e) => handleSkillChange(index, 'label', e.target.value)}
+                        className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Skills (e.g., JavaScript, Python, Java)"
+                        value={skill.skills}
+                        onChange={(e) => handleSkillChange(index, 'skills', e.target.value)}
+                        className="md:col-span-2 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                    {formData.skills.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSkill(index)}
+                        className="text-red-400 hover:text-red-300 transition p-3 hover:bg-red-500/10 rounded-lg"
+                        title="Delete skill category"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -294,10 +412,25 @@ const Builder = () => {
             </div>
 
             {/* Experience */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-400">
               <h2 className="text-2xl font-semibold text-white mb-6">Experience</h2>
               {formData.experience.map((exp, expIndex) => (
                 <div key={expIndex} className="mb-6 pb-6 border-b border-white/10 last:border-0">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg text-gray-300 font-medium">Experience {expIndex + 1}</h3>
+                    {formData.experience.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeExperience(expIndex)}
+                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
+                        title="Delete experience"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <input
                       type="text"
@@ -340,14 +473,27 @@ const Builder = () => {
                   <div className="space-y-2">
                     <label className="text-sm text-gray-400">Responsibilities & Achievements:</label>
                     {exp.bullets.map((bullet, bulletIndex) => (
-                      <input
-                        key={bulletIndex}
-                        type="text"
-                        placeholder={`Bullet point ${bulletIndex + 1}`}
-                        value={bullet}
-                        onChange={(e) => handleExperienceBulletChange(expIndex, bulletIndex, e.target.value)}
-                        className="w-full bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                      />
+                      <div key={bulletIndex} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder={`Bullet point ${bulletIndex + 1}`}
+                          value={bullet}
+                          onChange={(e) => handleExperienceBulletChange(expIndex, bulletIndex, e.target.value)}
+                          className="flex-1 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                        />
+                        {exp.bullets.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeExperienceBullet(expIndex, bulletIndex)}
+                            className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
+                            title="Delete bullet point"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     ))}
                     <button
                       type="button"
@@ -369,10 +515,25 @@ const Builder = () => {
             </div>
 
             {/* Projects */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-500">
               <h2 className="text-2xl font-semibold text-white mb-6">Projects</h2>
               {formData.projects.map((proj, projIndex) => (
                 <div key={projIndex} className="mb-6 pb-6 border-b border-white/10 last:border-0">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg text-gray-300 font-medium">Project {projIndex + 1}</h3>
+                    {formData.projects.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeProject(projIndex)}
+                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
+                        title="Delete project"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <input
                       type="text"
@@ -399,14 +560,27 @@ const Builder = () => {
                   <div className="space-y-2 mb-4">
                     <label className="text-sm text-gray-400">Project Details:</label>
                     {proj.bullets.map((bullet, bulletIndex) => (
-                      <input
-                        key={bulletIndex}
-                        type="text"
-                        placeholder={`Detail ${bulletIndex + 1}`}
-                        value={bullet}
-                        onChange={(e) => handleProjectBulletChange(projIndex, bulletIndex, e.target.value)}
-                        className="w-full bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                      />
+                      <div key={bulletIndex} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder={`Detail ${bulletIndex + 1}`}
+                          value={bullet}
+                          onChange={(e) => handleProjectBulletChange(projIndex, bulletIndex, e.target.value)}
+                          className="flex-1 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                        />
+                        {proj.bullets.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeProjectBullet(projIndex, bulletIndex)}
+                            className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
+                            title="Delete detail"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     ))}
                     <button
                       type="button"
@@ -444,10 +618,25 @@ const Builder = () => {
             </div>
 
             {/* Education */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-600">
               <h2 className="text-2xl font-semibold text-white mb-6">Education</h2>
               {formData.education.map((edu, index) => (
                 <div key={index} className="mb-6 pb-6 border-b border-white/10 last:border-0">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg text-gray-300 font-medium">Education {index + 1}</h3>
+                    {formData.education.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeEducation(index)}
+                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
+                        title="Delete education"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
@@ -504,19 +693,32 @@ const Builder = () => {
             </div>
 
             {/* Certifications */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10">
+            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-700">
               <h2 className="text-2xl font-semibold text-white mb-6">Certifications & Achievements</h2>
               <p className="text-sm text-gray-400 mb-4">Add your certifications, achievements, or awards as bullet points</p>
               <div className="space-y-3">
                 {formData.certifications.map((cert, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    placeholder={`Certification or Achievement ${index + 1}`}
-                    value={cert}
-                    onChange={(e) => handleCertificationChange(index, e.target.value)}
-                    className="w-full bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                  />
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder={`Certification or Achievement ${index + 1}`}
+                      value={cert}
+                      onChange={(e) => handleCertificationChange(index, e.target.value)}
+                      className="flex-1 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                    />
+                    {formData.certifications.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeCertification(index)}
+                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
+                        title="Delete certification"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
               <button
@@ -529,11 +731,11 @@ const Builder = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-center">
+            <div className="flex justify-center animate-fade-in-up">
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-800 font-semibold px-8 py-4 rounded-full text-lg transition"
+                className="bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-800 font-semibold px-8 py-4 rounded-full text-lg transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30"
               >
                 {loading ? 'Generating PDF...' : 'Generate Resume PDF'}
               </button>

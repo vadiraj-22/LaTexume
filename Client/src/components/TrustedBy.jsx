@@ -10,7 +10,7 @@ const TrustedBy = () => {
   ]
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 mx-auto mt-8 px-4">
+    <div className="flex flex-col items-center justify-center gap-6 mx-auto mt-8 px-4 animate-fade-in-up animate-delay-400">
       <div className="text-white/50 text-sm font-medium">
         Trusted by professionals at top companies
       </div>
@@ -19,7 +19,7 @@ const TrustedBy = () => {
         {companies.map((company, index) => (
           <div
             key={index}
-            className="text-white/70 hover:text-white/90 font-semibold text-lg transition-all duration-300 hover:scale-110 cursor-default"
+            className={`text-white/70 hover:text-white/90 font-semibold text-lg transition-all duration-300 hover:scale-110 cursor-default animate-fade-in animate-delay-${(index + 5) * 100}`}
             style={{ textShadow: `0 0 20px ${company.color}40` }}
           >
             {company.name}
