@@ -26,16 +26,23 @@ export function templateEngine(data) {
 
 function buildHeader(header = {}) {
   const name = escapeLatex(header.name) || 'Your Name'
-  const phone = escapeLatex(header.phone)
+  const phone = escapeLatex(header.phone)?.replace(/ /g, '~') // Replace spaces with ~ for LaTeX
   const email = escapeLatex(header.email)
-  const portfolio = header.portfolio ? `\\href{${header.portfolio}}{\\underline{Portfolio}}` : ''
-  const linkedin = header.linkedin ? `\\href{${header.linkedin}}{\\underline{LinkedIn}}` : ''
-  const github = header.github ? `\\href{${header.github}}{\\underline{GitHub}}` : ''
-  const leetcode = header.leetcode ? `\\href{${header.leetcode}}{\\underline{LeetCode}}` : ''
+  
+  // Extract display URLs from full URLs (remove https://, www., trailing slashes)
+  const getDisplayUrl = (url) => {
+    if (!url) return ''
+    return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')
+  }
+  
+  const portfolio = header.portfolio ? `\\href{${header.portfolio}}{${getDisplayUrl(header.portfolio)}}` : ''
+  const linkedin = header.linkedin ? `\\href{${header.linkedin}}{${getDisplayUrl(header.linkedin)}}` : ''
+  const github = header.github ? `\\href{${header.github}}{${getDisplayUrl(header.github)}}` : ''
+  const leetcode = header.leetcode ? `\\href{${header.leetcode}}{${getDisplayUrl(header.leetcode)}}` : ''
 
   const links = [
-    phone ? `\\small ${phone}` : '',
-    email ? `\\href{mailto:${email}}{\\underline{${email}}}` : '',
+    phone || '',
+    email ? `\\href{mailto:${email}}{${email}}` : '',
     portfolio,
     linkedin,
     github,
@@ -43,13 +50,20 @@ function buildHeader(header = {}) {
   ].filter(Boolean).join(' $|$ ')
 
   return `\\begin{center}
-  \\textbf{\\Huge \\scshape ${name}} \\\\ \\vspace{1pt}
-  ${links}
+  \\textbf{\\Huge \\scshape ${name}} \\\\ \\vspace{6pt}
+  \\normalsize ${links}
 \\end{center}`
 }
 
 function buildObjective(objective = '') {
-  if (!objective?.trim()) return ''
+  // Objective is REQUIRED - must be provided
+  if (!objective?.trim()) {
+    return `%-----------OBJECTIVE-----------
+\\section{Objective}
+\\begin{itemize}[leftmargin=0.15in, label={}]
+  \\small{\\item{Career objective or professional summary}}
+\\end{itemize}`
+  }
   return `%-----------OBJECTIVE-----------
 \\section{Objective}
 \\begin{itemize}[leftmargin=0.15in, label={}]
@@ -58,14 +72,31 @@ function buildObjective(objective = '') {
 }
 
 function buildSkills(skills = []) {
-  if (!skills?.length) return ''
+  // Technical Skills is REQUIRED - at least one skill category must be provided
+  if (!skills?.length) {
+    return `%-----------TECHNICAL SKILLS-----------
+\\section{Technical Skills}
+\\begin{itemize}[leftmargin=0.15in, label={}]
+  \\small{\\item{
+    \\textbf{Category:} Skills list
+  }}
+\\end{itemize}`
+  }
 
   const rows = skills
     .filter(s => s.label?.trim())
     .map(s => `    \\textbf{${escapeLatex(s.label)}:} ${escapeLatex(s.skills)}`)
     .join(' \\\\\n')
 
-  if (!rows) return ''
+  if (!rows) {
+    return `%-----------TECHNICAL SKILLS-----------
+\\section{Technical Skills}
+\\begin{itemize}[leftmargin=0.15in, label={}]
+  \\small{\\item{
+    \\textbf{Category:} Skills list
+  }}
+\\end{itemize}`
+  }
 
   return `%-----------TECHNICAL SKILLS-----------
 \\section{Technical Skills}
@@ -77,6 +108,7 @@ ${rows}
 }
 
 function buildExperience(experience = []) {
+  // Experience/Internship is OPTIONAL - only show if provided
   if (!experience?.length) return ''
 
   const entries = experience.map(exp => {
@@ -103,7 +135,19 @@ ${entries}
 }
 
 function buildProjects(projects = []) {
-  if (!projects?.length) return ''
+  // Projects section is REQUIRED - at least one project must be provided
+  // If no projects provided, show placeholder
+  if (!projects?.length) {
+    return `%-----------PROJECTS-----------
+\\section{Projects}
+\\resumeSubHeadingListStart
+  \\resumeProjectHeading
+    {\\textbf{Project Name} $|$ \\emph{\\small Technologies Used}}{Date}
+  \\resumeItemListStart
+    \\resumeItem{Project description and key achievements}
+  \\resumeItemListEnd
+\\resumeSubHeadingListEnd`
+  }
 
   const entries = projects.map(proj => {
     const bullets = (proj.bullets || [])
@@ -143,7 +187,17 @@ ${entries}
 }
 
 function buildEducation(education = []) {
-  if (!education?.length) return ''
+  // Education section is REQUIRED - at least one education entry must be provided
+  // If no education provided, show placeholder
+  if (!education?.length) {
+    return `%-----------EDUCATION-----------
+\\section{Education}
+\\resumeSubHeadingListStart
+  \\resumeSubheading
+    {Institution Name}{Location}
+    {Degree in Field of Study}{Start Date -- End Date}
+\\resumeSubHeadingListEnd`
+  }
 
   const entries = education.map(edu => {
     const dates = [edu.startDate, edu.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
@@ -162,14 +216,28 @@ ${entries}
 }
 
 function buildCertifications(certifications = []) {
-  if (!certifications?.length) return ''
+  // Certifications section is REQUIRED - at least one certification must be provided
+  // If no certifications provided, show placeholder
+  if (!certifications?.length) {
+    return `%-----------CERTIFICATIONS-----------
+\\section{Certifications and Achievements}
+\\resumeSubHeadingListStart
+  \\resumeItem{Certification or Achievement Name}
+\\resumeSubHeadingListEnd`
+  }
 
   const entries = certifications
     .filter(c => c?.trim())
     .map(c => `  \\resumeItem{${escapeLatex(c)}}`)
     .join('\n')
 
-  if (!entries) return ''
+  if (!entries) {
+    return `%-----------CERTIFICATIONS-----------
+\\section{Certifications and Achievements}
+\\resumeSubHeadingListStart
+  \\resumeItem{Certification or Achievement Name}
+\\resumeSubHeadingListEnd`
+  }
 
   return `%-----------CERTIFICATIONS-----------
 \\section{Certifications and Achievements}

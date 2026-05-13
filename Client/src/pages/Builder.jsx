@@ -297,7 +297,9 @@ const Builder = () => {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Header Information */}
             <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-100">
-              <h2 className="text-2xl font-semibold text-white mb-6">Personal Information</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Personal Information <span className="text-red-400">*</span>
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
@@ -355,19 +357,24 @@ const Builder = () => {
 
             {/* Objective */}
             <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-200">
-              <h2 className="text-2xl font-semibold text-white mb-6">Objective</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Objective <span className="text-red-400">*</span>
+              </h2>
               <textarea
                 placeholder="Career objective or professional summary"
                 value={formData.objective}
                 onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
                 rows="4"
+                required
                 className="w-full bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none transition-all duration-300 focus:scale-[1.01]"
               />
             </div>
 
             {/* Skills */}
             <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-300">
-              <h2 className="text-2xl font-semibold text-white mb-6">Technical Skills</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Technical Skills <span className="text-red-400">*</span>
+              </h2>
               {formData.skills.map((skill, index) => (
                 <div key={index} className="mb-4 pb-4 border-b border-white/10 last:border-0">
                   <div className="flex items-start gap-3">
@@ -413,7 +420,9 @@ const Builder = () => {
 
             {/* Experience */}
             <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-400">
-              <h2 className="text-2xl font-semibold text-white mb-6">Experience</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Experience <span className="text-gray-400 text-sm font-normal">(Optional)</span>
+              </h2>
               {formData.experience.map((exp, expIndex) => (
                 <div key={expIndex} className="mb-6 pb-6 border-b border-white/10 last:border-0">
                   <div className="flex justify-between items-start mb-4">
@@ -516,7 +525,9 @@ const Builder = () => {
 
             {/* Projects */}
             <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-500">
-              <h2 className="text-2xl font-semibold text-white mb-6">Projects</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Projects <span className="text-red-400">*</span>
+              </h2>
               {formData.projects.map((proj, projIndex) => (
                 <div key={projIndex} className="mb-6 pb-6 border-b border-white/10 last:border-0">
                   <div className="flex justify-between items-start mb-4">
@@ -619,7 +630,9 @@ const Builder = () => {
 
             {/* Education */}
             <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-600">
-              <h2 className="text-2xl font-semibold text-white mb-6">Education</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Education <span className="text-red-400">*</span>
+              </h2>
               {formData.education.map((edu, index) => (
                 <div key={index} className="mb-6 pb-6 border-b border-white/10 last:border-0">
                   <div className="flex justify-between items-start mb-4">
@@ -694,7 +707,9 @@ const Builder = () => {
 
             {/* Certifications */}
             <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-700">
-              <h2 className="text-2xl font-semibold text-white mb-6">Certifications & Achievements</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Certifications & Achievements <span className="text-red-400">*</span>
+              </h2>
               <p className="text-sm text-gray-400 mb-4">Add your certifications, achievements, or awards as bullet points</p>
               <div className="space-y-3">
                 {formData.certifications.map((cert, index) => (
