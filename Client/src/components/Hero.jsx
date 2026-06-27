@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 const Hero = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full px-4 py-8 md:py-12">
-      <div className="rainbow relative z-0 bg-white/15 overflow-hidden p-px flex items-center justify-center rounded-full transition duration-300 active:scale-100 mt-8 md:mt-8 animate-fade-in-down">
+      <div className="rainbow relative z-0 bg-white/15 overflow-hidden p-px flex items-center justify-center rounded-full transition duration-300 active:scale-100 mt-4 md:mt-4 animate-fade-in-down">
         <button className="flex items-center justify-center gap-3 pl-4 pr-6 py-3 text-white rounded-full font-medium bg-gray-900/80 backdrop-blur">
           <div className="relative flex size-3.5 items-center justify-center">
             <span className="absolute inline-flex h-full w-full rounded-full bg-[#A6FF5D] opacity-75 animate-ping duration-300"></span>
@@ -18,8 +18,9 @@ const Hero = () => {
         LaTeX-powered resumes that pass ATS & impress recruiters
       </h1>
 
-      <p className="text-sm md:text-base text-gray-300 bg-clip-text text-center max-w-lg mt-6 md:mt-4 px-4 animate-fade-in-up animate-delay-200">
-        Professional LaTeX resume builder using the industry-standard Jake's Resume template. ATS-optimized, recruiter-approved, and trusted by top tech professionals.
+      <p className="text-sm md:text-base text-gray-300 text-center max-w-lg mt-6 md:mt-4 px-4 animate-fade-in-up animate-delay-200">
+        Professional LaTeX resume builder using Jake's Resume template..
+        ATS-optimized, recruiter-approved, and trusted by top tech professionals.
       </p>
 
       <div className="flex flex-col sm:flex-row gap-3 mt-8 md:mt-5 animate-fade-in-up animate-delay-300">

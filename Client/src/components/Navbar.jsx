@@ -104,6 +104,7 @@ const Navbar = () => {
           }}
         >
         <GlassEffect
+          scrolled={scrolled}
           className={`transition-all duration-500 ${
             expanded
               ? 'rounded-none backdrop-blur-3xl bg-black/80 md:rounded-2xl'
@@ -127,7 +128,7 @@ const Navbar = () => {
 
             {/* CENTER — Nav links, absolutely centered so they're always in the true middle */}
             <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
-              <NavLink to="/" active={isActive('/')}>Home</NavLink>
+              {/* <NavLink to="/" active={isActive('/')}>Home</NavLink> */}
               <NavLink to="/builder" active={isActive('/builder')}>Builder</NavLink>
               <NavLink to="/about" active={isActive('/about')}>About</NavLink>
             </div>
@@ -339,7 +340,7 @@ const Navbar = () => {
                   <Link to="/signin">
                     <button
                       id="mobile-signin-btn"
-                      className="w-full text-white/70 hover:text-white border border-white/10 hover:border-white/25 text-sm font-medium py-2 rounded-xl transition-all duration-300"
+                      className="w-full text-white/70 hover:text-white border border-white/50 hover:border-white/25 text-sm font-medium py-2 rounded-xl transition-all duration-300"
                     >
                       Sign In
                     </button>
