@@ -71,10 +71,12 @@ const Features = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
+          {features.map((feature, index) => {
+            const delays = ['animate-delay-100', 'animate-delay-200', 'animate-delay-300', 'animate-delay-400', 'animate-delay-500', 'animate-delay-600']
+            return (
             <div
               key={index}
-              className={`bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/50 transition-all duration-300 hover:transform hover:scale-105 hover-lift animate-fade-in-up animate-delay-${(index + 1) * 100}`}
+              className={`bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/50 transition-all duration-300 hover:transform hover:scale-105 hover-lift animate-fade-in-up ${delays[index] || ''}`}
             >
               <div className="text-primary mb-4 transition-transform duration-300 hover:scale-110">{feature.icon}</div>
               <h3 className="text-xl font-semibold text-white mb-2">
@@ -82,7 +84,7 @@ const Features = () => {
               </h3>
               <p className="text-gray-400">{feature.description}</p>
             </div>
-          ))}
+          )})}
         </div>
       </div>
     </section>

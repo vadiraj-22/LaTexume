@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const Hero = () => {
   return (
-    <div className="flex flex-col items-center justify-center w-full px-4 ">
+    <div className="flex flex-col items-center justify-center w-full px-4 py-8 md:py-12">
       <div className="rainbow relative z-0 bg-white/15 overflow-hidden p-px flex items-center justify-center rounded-full transition duration-300 active:scale-100 mt-8 md:mt-8 animate-fade-in-down">
         <button className="flex items-center justify-center gap-3 pl-4 pr-6 py-3 text-white rounded-full font-medium bg-gray-900/80 backdrop-blur">
           <div className="relative flex size-3.5 items-center justify-center">

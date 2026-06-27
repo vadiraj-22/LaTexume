@@ -82,10 +82,12 @@ const ResumePreview = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left Side - Resume Sections */}
           <div className="space-y-6">
-            {sections.map((section, index) => (
+            {sections.map((section, index) => {
+              const delays = ['animate-delay-100', 'animate-delay-200', 'animate-delay-300', 'animate-delay-400', 'animate-delay-500', 'animate-delay-600', 'animate-delay-700']
+              return (
               <div
                 key={index}
-                className={`flex gap-4 bg-white/5 backdrop-blur p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300 hover-lift animate-fade-in-left animate-delay-${(index + 1) * 100}`}
+                className={`flex gap-4 bg-white/5 backdrop-blur p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300 hover-lift animate-fade-in-left ${delays[index] || ''}`}
               >
                 <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary transition-transform duration-300 hover:scale-110 hover:rotate-6">
                   {section.icon}
@@ -99,7 +101,7 @@ const ResumePreview = () => {
                   </p>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
 
           {/* Right Side - Resume Preview */}
