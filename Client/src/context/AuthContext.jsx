@@ -94,8 +94,30 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  /**
+   * Update the user profile.
+   * @param {{ fullName, avatar?: File }} payload
+   */
+  const updateProfile = async (payload) => {
+    const formData = new FormData()
+    formData.append('fullName', payload.fullName)
+    if (payload.avatar) formData.append('avatar', payload.avatar)
+
+    const res = await fetch(`${API_BASE}/api/v1/users/update-account`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: formData,
+    })
+
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || 'Failed to update profile')
+
+    setUser(data.data) // Assuming backend returns the updated user object
+    return data
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, register, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, register, login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

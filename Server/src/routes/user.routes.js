@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { loginUser, logoutUser, registerUser, getCurrentUser } from '../controllers/user.controller.js'
+import { loginUser, logoutUser, registerUser, getCurrentUser, updateAccountDetails } from '../controllers/user.controller.js'
 import { upload } from '../middlewares/multer.middleware.js'
 import { verifyJWT } from '../middlewares/auth.middleware.js'
 
@@ -16,5 +16,6 @@ router.route('/login').post(loginUser)
 // Protected routes (require valid JWT)
 router.route('/logout').post(verifyJWT, logoutUser)
 router.route('/me').get(verifyJWT, getCurrentUser)
+router.route('/update-account').patch(verifyJWT, upload.single('avatar'), updateAccountDetails)
 
 export default router

@@ -6,6 +6,7 @@ import Builder from './pages/Builder'
 import About from './pages/About'
 import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
+import Profile from './pages/Profile'
 
 /** Redirects unauthenticated users to /signin, preserving the intended destination */
 const ProtectedRoute = ({ children }) => {
@@ -49,6 +50,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Builder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

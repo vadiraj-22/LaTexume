@@ -136,5 +136,36 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, req.user, 'Current user fetched successfully'))
 })
+// ─── PATCH /api/v1/users/update-account ──────────────────────────────────────
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { fullName } = req.body
 
-export { registerUser, loginUser, logoutUser, getCurrentUser }
+  if (!fullName) {
+    throw new ApiError(400, 'Full name is required')
+  }
+
+  let avatarUrl
+  if (req.file) {
+    const uploaded = await uploadOnCloudinary(req.file.path)
+    if (uploaded) avatarUrl = uploaded.url
+  }
+
+  const updateData = { fullName }
+  if (avatarUrl) {
+    updateData.avatar = avatarUrl
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: updateData,
+    },
+    { new: true }
+  ).select('-password -refreshToken')
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, 'Account details updated successfully'))
+})
+
+export { registerUser, loginUser, logoutUser, getCurrentUser, updateAccountDetails }
