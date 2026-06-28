@@ -23,7 +23,7 @@ const Hero = () => {
         ATS-optimized, recruiter-approved, and trusted by top tech professionals.
       </p>
 
-      <div className="flex flex-col sm:flex-row gap-3 mt-8 md:mt-5 animate-fade-in-up animate-delay-300">
+      <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 md:mt-5 animate-fade-in-up animate-delay-300">
         <Link to="/builder">
           <button className="bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-800 px-6 py-2.5 rounded-full text-sm transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30 cursor-pointer group whitespace-nowrap">
             <div className="relative overflow-hidden">
@@ -37,13 +37,11 @@ const Hero = () => {
           </button>
         </Link>
 
-        <div className="bg-white/15 hover:bg-white/10 p-px flex items-center justify-center rounded-full hover:scale-105 transition-smooth active:scale-100">
-          <Link to="/about">
-            <button className="px-6 text-sm py-3 text-white rounded-full bg-white/5 cursor-pointer hover:bg-white/10 transition-smooth whitespace-nowrap">
-              Learn More
-            </button>
-          </Link>
-        </div>
+        <Link to="/about">
+          <button className="px-6 text-sm py-3 text-white rounded-full border border-white/25 bg-transparent cursor-pointer hover:bg-white/10 hover:scale-105 transition-smooth active:scale-100 whitespace-nowrap">
+            Learn More
+          </button>
+        </Link>
       </div>
     </div>
   )
