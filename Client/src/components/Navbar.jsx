@@ -142,20 +142,23 @@ const Navbar = () => {
                 <button
                   id="user-avatar-btn"
                   onClick={() => setUserMenuOpen((v) => !v)}
-                  className="flex items-center gap-2 group"
+                  className="flex items-center gap-2.5 px-2.5 py-1 rounded-full group hover:bg-white/10 border border-transparent hover:border-white/10 transition-all duration-200 hover:scale-[1.03] active:scale-95"
                   aria-label="User menu"
                 >
                   {user?.avatar ? (
                     <img
                       src={user.avatar}
                       alt={user.fullName}
-                      className="w-9 h-9 rounded-full object-cover border border-white/20 group-hover:border-[#A6FF5D] transition-colors duration-200"
+                      className="w-8 h-8 rounded-full object-cover border border-white/20 group-hover:border-[#A6FF5D] group-hover:shadow-[0_0_12px_rgba(166,255,93,0.35)] transition-all duration-200"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-[#A6FF5D]/20 border border-[#A6FF5D]/40 group-hover:border-[#A6FF5D] flex items-center justify-center text-[#A6FF5D] font-semibold text-sm transition-colors duration-200">
+                    <div className="w-8 h-8 rounded-full bg-[#A6FF5D]/20 border border-[#A6FF5D]/40 group-hover:border-[#A6FF5D] group-hover:shadow-[0_0_12px_rgba(166,255,93,0.35)] flex items-center justify-center text-[#A6FF5D] font-semibold text-sm transition-all duration-200">
                       {userInitial}
                     </div>
                   )}
+                  <span className="text-white/80 group-hover:text-[#A6FF5D] text-sm font-medium transition-colors duration-200 max-w-[120px] truncate">
+                    @{user?.username}
+                  </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="12"
@@ -164,7 +167,7 @@ const Navbar = () => {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth={2.5}
-                    className={`text-white/40 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
+                    className={`text-white/40 group-hover:text-[#A6FF5D] transition-all duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>

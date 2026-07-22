@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ResumeImporter from '../components/ResumeImporter'
+import SEO from '../components/SEO'
 
-const inputCls = "w-full bg-white/[0.04] text-white placeholder-white/30 text-sm sm:text-base px-4 py-3 rounded-xl border border-white/20 hover:bg-white/[0.08] hover:border-white/40 focus:bg-black/70 focus:border-[#A6FF5D] focus:ring-2 focus:ring-[#A6FF5D]/30 focus:shadow-[0_0_20px_rgba(166,255,93,0.15)] focus:outline-none transition-all duration-200"
+const inputCls = "w-full bg-white/[0.04] text-white placeholder-white/15 text-sm sm:text-base px-4 py-3 rounded-xl border border-white/20 hover:bg-white/[0.08] hover:border-white/40 focus:bg-black/70 focus:border-[#A6FF5D] focus:ring-2 focus:ring-[#A6FF5D]/30 focus:shadow-[0_0_20px_rgba(166,255,93,0.15)] focus:outline-none transition-all duration-200"
 const cardCls = "bg-gray-950/70 backdrop-blur-xl p-5 sm:p-7 md:p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-2xl"
 const labelCls = "block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider"
 const addBtnCls = "inline-flex items-center gap-2 text-sm font-semibold text-[#A6FF5D] bg-[#A6FF5D]/10 hover:bg-[#A6FF5D]/20 border border-[#A6FF5D]/30 px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-pointer mt-3"
@@ -254,6 +255,12 @@ const Builder = () => {
 
   return (
     <div className="min-h-screen bg-black">
+      <SEO 
+        title="Interactive LaTeX Resume Builder & Editor"
+        description="Build and customize your LaTeX resume online with real-time preview and instant PDF export using Jake's Resume template."
+        keywords="online latex resume editor, build latex resume, resume generator app, ATS resume creator"
+        canonicalPath="/builder"
+      />
       <header className="bg-black text-white border-b border-white/10 pt-20">
         <Navbar />
       </header>
@@ -372,7 +379,7 @@ const Builder = () => {
                   <label className={labelCls}>Full Name <span className="text-red-400">*</span></label>
                   <input
                     type="text"
-                    placeholder="Jane Doe"
+                    placeholder="Aarav Sharma"
                     value={formData.header.name}
                     onChange={(e) => handleHeaderChange('name', e.target.value)}
                     required
@@ -383,7 +390,7 @@ const Builder = () => {
                   <label className={labelCls}>Email Address <span className="text-red-400">*</span></label>
                   <input
                     type="email"
-                    placeholder="jane@example.com"
+                    placeholder="aarav.sharma@gmail.com"
                     value={formData.header.email}
                     onChange={(e) => handleHeaderChange('email', e.target.value)}
                     required
@@ -394,7 +401,7 @@ const Builder = () => {
                   <label className={labelCls}>Phone Number</label>
                   <input
                     type="tel"
-                    placeholder="+1 (555) 019-2834"
+                    placeholder="+91 98765 43210"
                     value={formData.header.phone}
                     onChange={(e) => handleHeaderChange('phone', e.target.value)}
                     className={inputCls}
@@ -404,7 +411,7 @@ const Builder = () => {
                   <label className={labelCls}>Portfolio Link</label>
                   <input
                     type="text"
-                    placeholder="https://janedoe.dev"
+                    placeholder="https://aaravsharma.dev"
                     value={formData.header.portfolio}
                     onChange={(e) => handleHeaderChange('portfolio', e.target.value)}
                     className={inputCls}
@@ -414,7 +421,7 @@ const Builder = () => {
                   <label className={labelCls}>LinkedIn URL</label>
                   <input
                     type="text"
-                    placeholder="https://linkedin.com/in/janedoe"
+                    placeholder="https://linkedin.com/in/aaravsharma"
                     value={formData.header.linkedin}
                     onChange={(e) => handleHeaderChange('linkedin', e.target.value)}
                     className={inputCls}
@@ -424,7 +431,7 @@ const Builder = () => {
                   <label className={labelCls}>GitHub URL</label>
                   <input
                     type="text"
-                    placeholder="https://github.com/janedoe"
+                    placeholder="https://github.com/aaravsharma"
                     value={formData.header.github}
                     onChange={(e) => handleHeaderChange('github', e.target.value)}
                     className={inputCls}
@@ -434,7 +441,7 @@ const Builder = () => {
                   <label className={labelCls}>LeetCode URL</label>
                   <input
                     type="text"
-                    placeholder="https://leetcode.com/janedoe"
+                    placeholder="https://leetcode.com/aaravsharma"
                     value={formData.header.leetcode}
                     onChange={(e) => handleHeaderChange('leetcode', e.target.value)}
                     className={inputCls}
@@ -454,7 +461,7 @@ const Builder = () => {
               <div>
                 <label className={labelCls}>Career Summary / Objective Statement</label>
                 <textarea
-                  placeholder="Results-driven Software Engineer with 4+ years of experience developing high-performance web applications and cloud microservices..."
+                  placeholder="Results-driven Software Development Engineer with 3+ years of experience building high-performance web applications and scalable cloud microservices..."
                   value={formData.objective}
                   onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
                   rows="4"
@@ -480,7 +487,7 @@ const Builder = () => {
                           <label className={labelCls}>Category Label</label>
                           <input
                             type="text"
-                            placeholder="Languages"
+                            placeholder="Languages & Frameworks"
                             value={skill.label}
                             onChange={(e) => handleSkillChange(index, 'label', e.target.value)}
                             className={inputCls}
@@ -490,7 +497,7 @@ const Builder = () => {
                           <label className={labelCls}>Skills List (Comma-separated)</label>
                           <input
                             type="text"
-                            placeholder="JavaScript, TypeScript, Python, C++, Go"
+                            placeholder="JavaScript, TypeScript, Python, C++, Java, React, Node.js"
                             value={skill.skills}
                             onChange={(e) => handleSkillChange(index, 'skills', e.target.value)}
                             className={inputCls}
@@ -545,20 +552,20 @@ const Builder = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={labelCls}>Job Title</label>
-                      <input type="text" placeholder="Software Engineer" value={exp.title} onChange={(e) => handleExperienceChange(expIndex, 'title', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Software Development Engineer" value={exp.title} onChange={(e) => handleExperienceChange(expIndex, 'title', e.target.value)} className={inputCls} />
                     </div>
                     <div>
                       <label className={labelCls}>Company</label>
-                      <input type="text" placeholder="Google" value={exp.company} onChange={(e) => handleExperienceChange(expIndex, 'company', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Flipkart" value={exp.company} onChange={(e) => handleExperienceChange(expIndex, 'company', e.target.value)} className={inputCls} />
                     </div>
                     <div>
                       <label className={labelCls}>Location</label>
-                      <input type="text" placeholder="Mountain View, CA" value={exp.location} onChange={(e) => handleExperienceChange(expIndex, 'location', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Bengaluru, Karnataka" value={exp.location} onChange={(e) => handleExperienceChange(expIndex, 'location', e.target.value)} className={inputCls} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className={labelCls}>Start Date</label>
-                        <input type="text" placeholder="Jan 2022" value={exp.startDate} onChange={(e) => handleExperienceChange(expIndex, 'startDate', e.target.value)} className={inputCls} />
+                        <input type="text" placeholder="July 2022" value={exp.startDate} onChange={(e) => handleExperienceChange(expIndex, 'startDate', e.target.value)} className={inputCls} />
                       </div>
                       <div>
                         <label className={labelCls}>End Date</label>
@@ -573,7 +580,7 @@ const Builder = () => {
                         <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
                         <input
                           type="text"
-                          placeholder={`Achievement bullet point ${bulletIndex + 1}`}
+                          placeholder={`Architected microservices handling 1.5M+ daily requests using Node.js & Redis`}
                           value={bullet}
                           onChange={(e) => handleExperienceBulletChange(expIndex, bulletIndex, e.target.value)}
                           className={inputCls}
@@ -625,12 +632,12 @@ const Builder = () => {
                     </div>
                     <div>
                       <label className={labelCls}>Date / Duration</label>
-                      <input type="text" placeholder="Fall 2023" value={proj.date} onChange={(e) => handleProjectChange(projIndex, 'date', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Jan 2024" value={proj.date} onChange={(e) => handleProjectChange(projIndex, 'date', e.target.value)} className={inputCls} />
                     </div>
                   </div>
                   <div>
                     <label className={labelCls}>Technologies Used</label>
-                    <input type="text" placeholder="React, Node.js, Express, Tailwind CSS" value={proj.technologies} onChange={(e) => handleProjectChange(projIndex, 'technologies', e.target.value)} className={inputCls} />
+                    <input type="text" placeholder="React.js, Node.js, Express, MongoDB, Tailwind CSS" value={proj.technologies} onChange={(e) => handleProjectChange(projIndex, 'technologies', e.target.value)} className={inputCls} />
                   </div>
                   <div className="space-y-3 pt-2">
                     <label className={labelCls}>Project Highlights / Bullet Points</label>
@@ -639,7 +646,7 @@ const Builder = () => {
                         <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
                         <input
                           type="text"
-                          placeholder={`Highlight detail ${bulletIndex + 1}`}
+                          placeholder={`Developed responsive UI using React & Tailwind with 99.8% test coverage`}
                           value={bullet}
                           onChange={(e) => handleProjectBulletChange(projIndex, bulletIndex, e.target.value)}
                           className={inputCls}
@@ -660,11 +667,11 @@ const Builder = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={labelCls}>Live Site Link</label>
-                      <input type="text" placeholder="https://myproject.com" value={proj.liveLink} onChange={(e) => handleProjectChange(projIndex, 'liveLink', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="https://latexume.vercel.app" value={proj.liveLink} onChange={(e) => handleProjectChange(projIndex, 'liveLink', e.target.value)} className={inputCls} />
                     </div>
                     <div>
                       <label className={labelCls}>GitHub Link</label>
-                      <input type="text" placeholder="https://github.com/user/project" value={proj.githubLink} onChange={(e) => handleProjectChange(projIndex, 'githubLink', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="https://github.com/aaravsharma/latexume" value={proj.githubLink} onChange={(e) => handleProjectChange(projIndex, 'githubLink', e.target.value)} className={inputCls} />
                     </div>
                   </div>
                 </div>
@@ -697,19 +704,19 @@ const Builder = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={labelCls}>Institution Name</label>
-                      <input type="text" placeholder="University of California, Berkeley" value={edu.institution} onChange={(e) => handleEducationChange(index, 'institution', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Indian Institute of Technology (IIT), Bombay" value={edu.institution} onChange={(e) => handleEducationChange(index, 'institution', e.target.value)} className={inputCls} />
                     </div>
                     <div>
                       <label className={labelCls}>Location</label>
-                      <input type="text" placeholder="Berkeley, CA" value={edu.location} onChange={(e) => handleEducationChange(index, 'location', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Mumbai, Maharashtra" value={edu.location} onChange={(e) => handleEducationChange(index, 'location', e.target.value)} className={inputCls} />
                     </div>
                     <div>
                       <label className={labelCls}>Degree</label>
-                      <input type="text" placeholder="Bachelor of Science" value={edu.degree} onChange={(e) => handleEducationChange(index, 'degree', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Bachelor of Technology (B.Tech)" value={edu.degree} onChange={(e) => handleEducationChange(index, 'degree', e.target.value)} className={inputCls} />
                     </div>
                     <div>
                       <label className={labelCls}>Field of Study</label>
-                      <input type="text" placeholder="Computer Science" value={edu.field} onChange={(e) => handleEducationChange(index, 'field', e.target.value)} className={inputCls} />
+                      <input type="text" placeholder="Computer Science and Engineering" value={edu.field} onChange={(e) => handleEducationChange(index, 'field', e.target.value)} className={inputCls} />
                     </div>
                     <div>
                       <label className={labelCls}>Start Date</label>
@@ -742,7 +749,7 @@ const Builder = () => {
                     <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
                     <input
                       type="text"
-                      placeholder={`Certification or Achievement ${index + 1}`}
+                      placeholder="AWS Certified Solutions Architect – Associate (2023)"
                       value={cert}
                       onChange={(e) => handleCertificationChange(index, e.target.value)}
                       className={inputCls}

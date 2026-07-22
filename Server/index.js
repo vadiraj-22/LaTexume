@@ -43,7 +43,10 @@ app.use('/api/v1/users', userRouter)                  // Auth (register / login 
 // ─── Global error handler ────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
   const statusCode = err.statusCode || 500
-  console.error(`[${statusCode}] ${err.message}`)
+  // Log unexpected internal server errors (5xx), omit expected client operational responses (4xx)
+  if (statusCode >= 500) {
+    console.error(`[${statusCode}] ${err.message}`, err)
+  }
   res.status(statusCode).json({
     success: false,
     message: err.message || 'Internal Server Error',

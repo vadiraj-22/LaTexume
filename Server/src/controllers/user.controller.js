@@ -140,17 +140,20 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullName } = req.body
 
-  if (!fullName) {
+  if (!fullName || !fullName.trim()) {
     throw new ApiError(400, 'Full name is required')
   }
 
   let avatarUrl
   if (req.file) {
     const uploaded = await uploadOnCloudinary(req.file.path)
-    if (uploaded) avatarUrl = uploaded.url
+    if (!uploaded) {
+      throw new ApiError(500, 'Failed to upload avatar image')
+    }
+    avatarUrl = uploaded.url
   }
 
-  const updateData = { fullName }
+  const updateData = { fullName: fullName.trim() }
   if (avatarUrl) {
     updateData.avatar = avatarUrl
   }
@@ -162,6 +165,10 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     },
     { new: true }
   ).select('-password -refreshToken')
+
+  if (!user) {
+    throw new ApiError(404, 'User not found')
+  }
 
   return res
     .status(200)

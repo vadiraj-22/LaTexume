@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Logo from '../components/Logo'
+import SEO from '../components/SEO'
 
 const EyeIcon = ({ open }) =>
   open ? (
@@ -80,6 +81,11 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
+      <SEO 
+        title="Create Account"
+        description="Create a free LaTexume account to build, edit, and download ATS-friendly LaTeX resumes."
+        canonicalPath="/signup"
+      />
       {/* Background glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#A6FF5D]/5 blur-[120px]" />
@@ -130,9 +136,9 @@ export default function SignUp() {
               <label htmlFor="fullName" className="block text-white/70 text-sm font-medium mb-1.5">Full Name</label>
               <input
                 id="fullName" name="fullName" type="text"
-                placeholder="Jane Doe"
+                placeholder="Aarav Sharma"
                 value={form.fullName} onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/30 rounded-xl px-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
+                className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl px-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
               />
             </div>
 
@@ -143,9 +149,9 @@ export default function SignUp() {
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm">@</span>
                 <input
                   id="username" name="username" type="text"
-                  placeholder="janedoe"
+                  placeholder="aaravsharma"
                   value={form.username} onChange={handleChange}
-                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/30 rounded-xl pl-8 pr-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
+                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl pl-8 pr-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
                 />
               </div>
             </div>
@@ -155,9 +161,9 @@ export default function SignUp() {
               <label htmlFor="reg-email" className="block text-white/70 text-sm font-medium mb-1.5">Email</label>
               <input
                 id="reg-email" name="email" type="email"
-                placeholder="jane@example.com"
+                placeholder="aarav@example.com"
                 value={form.email} onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/30 rounded-xl px-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
+                className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl px-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
               />
             </div>
 
@@ -170,7 +176,7 @@ export default function SignUp() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Min. 6 characters"
                   value={form.password} onChange={handleChange}
-                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/30 rounded-xl px-4 py-3 pr-12 text-sm transition-all duration-200 focus:bg-white/[0.07]"
+                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl px-4 py-3 pr-12 text-sm transition-all duration-200 focus:bg-white/[0.07]"
                 />
                 <button type="button" onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-[#A6FF5D] transition-colors p-1">
@@ -188,7 +194,7 @@ export default function SignUp() {
                   type={showConfirm ? 'text' : 'password'}
                   placeholder="Repeat password"
                   value={form.confirmPassword} onChange={handleChange}
-                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/30 rounded-xl px-4 py-3 pr-12 text-sm transition-all duration-200 focus:bg-white/[0.07]"
+                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl px-4 py-3 pr-12 text-sm transition-all duration-200 focus:bg-white/[0.07]"
                 />
                 <button type="button" onClick={() => setShowConfirm((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-[#A6FF5D] transition-colors p-1">

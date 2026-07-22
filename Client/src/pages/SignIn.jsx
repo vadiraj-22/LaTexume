@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Logo from '../components/Logo'
+import SEO from '../components/SEO'
 
 const EyeIcon = ({ open }) =>
   open ? (
@@ -50,6 +51,11 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
+      <SEO 
+        title="Sign In"
+        description="Sign in to your LaTexume account to save, edit, and export your LaTeX ATS resumes."
+        canonicalPath="/signin"
+      />
       {/* Background glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#A6FF5D]/5 blur-[120px]" />
@@ -89,9 +95,9 @@ export default function SignIn() {
                 id="usernameOrEmail" name="usernameOrEmail"
                 type="text"
                 autoComplete="username"
-                placeholder="jane@example.com or @janedoe"
+                placeholder="aarav@example.com or @aaravsharma"
                 value={form.usernameOrEmail} onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/30 rounded-xl px-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
+                className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl px-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
               />
             </div>
 
@@ -107,7 +113,7 @@ export default function SignIn() {
                   autoComplete="current-password"
                   placeholder="Your password"
                   value={form.password} onChange={handleChange}
-                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/30 rounded-xl px-4 py-3 pr-12 text-sm transition-all duration-200 focus:bg-white/[0.07]"
+                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl px-4 py-3 pr-12 text-sm transition-all duration-200 focus:bg-white/[0.07]"
                 />
                 <button
                   type="button"

@@ -1,0 +1,11 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /builder
+Allow: /signin
+Allow: /signup
+
+# Host & Sitemap Location
+Host: https://latexume.vercel.app
+Sitemap: https://latexume.vercel.app/sitemap.xml

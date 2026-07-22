@@ -119,7 +119,8 @@ const ResumePreview = () => {
                 <div className="aspect-[8.5/11] bg-white rounded overflow-hidden border border-gray-200">
                   <img 
                     src="/myResume.png" 
-                    alt="Resume Preview - LaTeX Format" 
+                    alt="Resume Preview - LaTeX ATS Format" 
+                    loading="lazy"
                     className="w-full h-full object-cover object-top"
                     onError={(e) => {
                       // Fallback to placeholder if image fails to load

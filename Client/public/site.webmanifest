@@ -1,0 +1,17 @@
+{
+  "name": "LaTexume - LaTeX ATS Resume Builder",
+  "short_name": "LaTexume",
+  "description": "Free online LaTeX ATS resume builder powered by Jake's Resume template for software engineers and tech professionals.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#A6FF5D",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

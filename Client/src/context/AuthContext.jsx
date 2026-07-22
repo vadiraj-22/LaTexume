@@ -100,8 +100,12 @@ export const AuthProvider = ({ children }) => {
    */
   const updateProfile = async (payload) => {
     const formData = new FormData()
-    formData.append('fullName', payload.fullName)
-    if (payload.avatar) formData.append('avatar', payload.avatar)
+    if (payload.fullName !== undefined) {
+      formData.append('fullName', payload.fullName)
+    }
+    if (payload.avatar) {
+      formData.append('avatar', payload.avatar)
+    }
 
     const res = await fetch(`${API_BASE}/api/v1/users/update-account`, {
       method: 'PATCH',
@@ -112,7 +116,9 @@ export const AuthProvider = ({ children }) => {
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Failed to update profile')
 
-    setUser(data.data) // Assuming backend returns the updated user object
+    if (data.data) {
+      setUser(data.data)
+    }
     return data
   }
 
