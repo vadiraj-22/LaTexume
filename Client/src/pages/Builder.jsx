@@ -2,6 +2,13 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import ResumeImporter from '../components/ResumeImporter'
+
+const inputCls = "w-full bg-white/[0.04] text-white placeholder-white/30 text-sm sm:text-base px-4 py-3 rounded-xl border border-white/20 hover:bg-white/[0.08] hover:border-white/40 focus:bg-black/70 focus:border-[#A6FF5D] focus:ring-2 focus:ring-[#A6FF5D]/30 focus:shadow-[0_0_20px_rgba(166,255,93,0.15)] focus:outline-none transition-all duration-200"
+const cardCls = "bg-gray-950/70 backdrop-blur-xl p-5 sm:p-7 md:p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-2xl"
+const labelCls = "block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider"
+const addBtnCls = "inline-flex items-center gap-2 text-sm font-semibold text-[#A6FF5D] bg-[#A6FF5D]/10 hover:bg-[#A6FF5D]/20 border border-[#A6FF5D]/30 px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-pointer mt-3"
+const removeBtnCls = "text-red-400 hover:text-red-300 hover:bg-red-500/15 border border-transparent hover:border-red-500/30 p-2.5 rounded-xl transition-all duration-200 shrink-0"
 
 const Builder = () => {
   const [formData, setFormData] = useState({
@@ -44,6 +51,35 @@ const Builder = () => {
   })
 
   const [loading, setLoading] = useState(false)
+  const [isImporterOpen, setIsImporterOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+
+  const handleImportData = (parsedData, mode = 'replace') => {
+    if (mode === 'replace') {
+      setFormData(parsedData)
+    } else {
+      setFormData((prev) => ({
+        header: {
+          name: parsedData.header.name || prev.header.name,
+          phone: parsedData.header.phone || prev.header.phone,
+          email: parsedData.header.email || prev.header.email,
+          portfolio: parsedData.header.portfolio || prev.header.portfolio,
+          linkedin: parsedData.header.linkedin || prev.header.linkedin,
+          github: parsedData.header.github || prev.header.github,
+          leetcode: parsedData.header.leetcode || prev.header.leetcode,
+        },
+        objective: parsedData.objective || prev.objective,
+        skills: [...prev.skills.filter((s) => s.label || s.skills), ...(parsedData.skills || [])],
+        experience: [...prev.experience.filter((e) => e.title || e.company), ...(parsedData.experience || [])],
+        projects: [...prev.projects.filter((p) => p.name), ...(parsedData.projects || [])],
+        education: [...prev.education.filter((ed) => ed.institution || ed.degree), ...(parsedData.education || [])],
+        certifications: [...prev.certifications.filter(Boolean), ...(parsedData.certifications || [])],
+      }))
+    }
+
+    setToastMessage(`Resume auto-filled successfully (${mode === 'replace' ? 'replaced draft' : 'merged data'})!`)
+    setTimeout(() => setToastMessage(''), 5000)
+  }
 
   const handleHeaderChange = (field, value) => {
     setFormData({ ...formData, header: { ...formData.header, [field]: value } })
@@ -283,220 +319,267 @@ const Builder = () => {
         </div>
       )}
 
-      <main className="py-12 px-4 md:px-16 lg:px-24 xl:px-32">
+      <main className="py-8 sm:py-12 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8 animate-fade-in-down">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Build Your LaTeX Resume
-            </h1>
-            <p className="text-gray-400 text-lg">
-              Using Jake's Resume template - the industry-standard LaTeX format trusted by FAANG engineers and top tech professionals
-            </p>
+          {/* Toast Notification */}
+          {toastMessage && (
+            <div className="mb-6 p-4 bg-primary/10 border border-primary/40 rounded-2xl text-primary flex items-center justify-between animate-fade-in-down shadow-lg shadow-primary/10">
+              <div className="flex items-center gap-3 font-medium text-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{toastMessage}</span>
+              </div>
+              <button onClick={() => setToastMessage('')} className="text-primary/70 hover:text-primary">
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Page Heading & Auto-fill Action */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 animate-fade-in-down">
+            <div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
+                Build Your LaTeX Resume
+              </h1>
+              <p className="text-gray-400 text-sm sm:text-lg">
+                Using Jake's Resume template - industry-standard LaTeX format trusted by tech professionals
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsImporterOpen(true)}
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-gray-900 font-semibold px-5 py-3 rounded-2xl transition flex items-center justify-center gap-2 hover:scale-105 shadow-xl shadow-primary/20 whitespace-nowrap cursor-pointer"
+            >
+              <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>✨ Auto-Fill from Old Resume</span>
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Header Information */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-100">
-              <h2 className="text-2xl font-semibold text-white mb-6">
-                Personal Information <span className="text-red-400">*</span>
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Full Name *"
-                  value={formData.header.name}
-                  onChange={(e) => handleHeaderChange('name', e.target.value)}
-                  required
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none transition-all duration-300 focus:scale-[1.02]"
-                />
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  value={formData.header.email}
-                  onChange={(e) => handleHeaderChange('email', e.target.value)}
-                  required
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone"
-                  value={formData.header.phone}
-                  onChange={(e) => handleHeaderChange('phone', e.target.value)}
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="url"
-                  placeholder="Portfolio URL"
-                  value={formData.header.portfolio}
-                  onChange={(e) => handleHeaderChange('portfolio', e.target.value)}
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="url"
-                  placeholder="LinkedIn URL"
-                  value={formData.header.linkedin}
-                  onChange={(e) => handleHeaderChange('linkedin', e.target.value)}
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="url"
-                  placeholder="GitHub URL"
-                  value={formData.header.github}
-                  onChange={(e) => handleHeaderChange('github', e.target.value)}
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="url"
-                  placeholder="LeetCode URL"
-                  value={formData.header.leetcode}
-                  onChange={(e) => handleHeaderChange('leetcode', e.target.value)}
-                  className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                />
+            <div className={cardCls + " animate-fade-in-up animate-delay-100"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Personal Information <span className="text-red-400">*</span></h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Full Name <span className="text-red-400">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Jane Doe"
+                    value={formData.header.name}
+                    onChange={(e) => handleHeaderChange('name', e.target.value)}
+                    required
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Email Address <span className="text-red-400">*</span></label>
+                  <input
+                    type="email"
+                    placeholder="jane@example.com"
+                    value={formData.header.email}
+                    onChange={(e) => handleHeaderChange('email', e.target.value)}
+                    required
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="+1 (555) 019-2834"
+                    value={formData.header.phone}
+                    onChange={(e) => handleHeaderChange('phone', e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Portfolio Link</label>
+                  <input
+                    type="text"
+                    placeholder="https://janedoe.dev"
+                    value={formData.header.portfolio}
+                    onChange={(e) => handleHeaderChange('portfolio', e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>LinkedIn URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://linkedin.com/in/janedoe"
+                    value={formData.header.linkedin}
+                    onChange={(e) => handleHeaderChange('linkedin', e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>GitHub URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://github.com/janedoe"
+                    value={formData.header.github}
+                    onChange={(e) => handleHeaderChange('github', e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelCls}>LeetCode URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://leetcode.com/janedoe"
+                    value={formData.header.leetcode}
+                    onChange={(e) => handleHeaderChange('leetcode', e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Objective */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-200">
-              <h2 className="text-2xl font-semibold text-white mb-6">
-                Objective <span className="text-red-400">*</span>
-              </h2>
-              <textarea
-                placeholder="Career objective or professional summary"
-                value={formData.objective}
-                onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
-                rows="4"
-                required
-                className="w-full bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none transition-all duration-300 focus:scale-[1.01]"
-              />
+            <div className={cardCls + " animate-fade-in-up animate-delay-200"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Objective <span className="text-sm font-normal text-gray-400">(Optional)</span></h2>
+              </div>
+              <div>
+                <label className={labelCls}>Career Summary / Objective Statement</label>
+                <textarea
+                  placeholder="Results-driven Software Engineer with 4+ years of experience developing high-performance web applications and cloud microservices..."
+                  value={formData.objective}
+                  onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
+                  rows="4"
+                  className={inputCls + " resize-y min-h-[110px]"}
+                />
+              </div>
             </div>
 
             {/* Skills */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-300">
-              <h2 className="text-2xl font-semibold text-white mb-6">
-                Technical Skills <span className="text-red-400">*</span>
-              </h2>
-              {formData.skills.map((skill, index) => (
-                <div key={index} className="mb-4 pb-4 border-b border-white/10 last:border-0">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <input
-                        type="text"
-                        placeholder="Category (e.g., Languages)"
-                        value={skill.label}
-                        onChange={(e) => handleSkillChange(index, 'label', e.target.value)}
-                        className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Skills (e.g., JavaScript, Python, Java)"
-                        value={skill.skills}
-                        onChange={(e) => handleSkillChange(index, 'skills', e.target.value)}
-                        className="md:col-span-2 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                      />
-                    </div>
-                    {formData.skills.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeSkill(index)}
-                        className="text-red-400 hover:text-red-300 transition p-3 hover:bg-red-500/10 rounded-lg"
-                        title="Delete skill category"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+            <div className={cardCls + " animate-fade-in-up animate-delay-300"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                 </div>
-              ))}
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Technical Skills <span className="text-red-400">*</span></h2>
+              </div>
+              <div className="space-y-4">
+                {formData.skills.map((skill, index) => (
+                  <div key={index} className="p-4 bg-white/[0.02] border border-white/10 rounded-2xl">
+                    <div className="flex items-end gap-3">
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className={labelCls}>Category Label</label>
+                          <input
+                            type="text"
+                            placeholder="Languages"
+                            value={skill.label}
+                            onChange={(e) => handleSkillChange(index, 'label', e.target.value)}
+                            className={inputCls}
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className={labelCls}>Skills List (Comma-separated)</label>
+                          <input
+                            type="text"
+                            placeholder="JavaScript, TypeScript, Python, C++, Go"
+                            value={skill.skills}
+                            onChange={(e) => handleSkillChange(index, 'skills', e.target.value)}
+                            className={inputCls}
+                          />
+                        </div>
+                      </div>
+                      {formData.skills.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSkill(index)}
+                          className={removeBtnCls}
+                          title="Delete skill category"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={addSkill}
-                className="text-primary hover:text-primary/80 font-medium transition"
+                className={addBtnCls}
               >
-                + Add Skill Category
+                <span>+ Add Skill Category</span>
               </button>
             </div>
 
             {/* Experience */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-400">
-              <h2 className="text-2xl font-semibold text-white mb-6">
-                Experience <span className="text-gray-400 text-sm font-normal">(Optional)</span>
-              </h2>
+            <div className={cardCls + " animate-fade-in-up animate-delay-400"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Experience <span className="text-gray-400 text-sm font-normal">(Optional)</span></h2>
+              </div>
               {formData.experience.map((exp, expIndex) => (
-                <div key={expIndex} className="mb-6 pb-6 border-b border-white/10 last:border-0">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg text-gray-300 font-medium">Experience {expIndex + 1}</h3>
+                <div key={expIndex} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                    <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Position #{expIndex + 1}</span>
                     {formData.experience.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeExperience(expIndex)}
-                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
-                        title="Delete experience"
-                      >
+                      <button type="button" onClick={() => removeExperience(expIndex)} className={removeBtnCls} title="Delete experience">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <input
-                      type="text"
-                      placeholder="Job Title"
-                      value={exp.title}
-                      onChange={(e) => handleExperienceChange(expIndex, 'title', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Company"
-                      value={exp.company}
-                      onChange={(e) => handleExperienceChange(expIndex, 'company', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Location"
-                      value={exp.location}
-                      onChange={(e) => handleExperienceChange(expIndex, 'location', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        placeholder="Start Date"
-                        value={exp.startDate}
-                        onChange={(e) => handleExperienceChange(expIndex, 'startDate', e.target.value)}
-                        className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        placeholder="End Date"
-                        value={exp.endDate}
-                        onChange={(e) => handleExperienceChange(expIndex, 'endDate', e.target.value)}
-                        className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                      />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Job Title</label>
+                      <input type="text" placeholder="Software Engineer" value={exp.title} onChange={(e) => handleExperienceChange(expIndex, 'title', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Company</label>
+                      <input type="text" placeholder="Google" value={exp.company} onChange={(e) => handleExperienceChange(expIndex, 'company', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Location</label>
+                      <input type="text" placeholder="Mountain View, CA" value={exp.location} onChange={(e) => handleExperienceChange(expIndex, 'location', e.target.value)} className={inputCls} />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Start Date</label>
+                        <input type="text" placeholder="Jan 2022" value={exp.startDate} onChange={(e) => handleExperienceChange(expIndex, 'startDate', e.target.value)} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>End Date</label>
+                        <input type="text" placeholder="Present" value={exp.endDate} onChange={(e) => handleExperienceChange(expIndex, 'endDate', e.target.value)} className={inputCls} />
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Responsibilities & Achievements:</label>
+                  <div className="space-y-3 pt-2">
+                    <label className={labelCls}>Key Responsibilities & Achievements</label>
                     {exp.bullets.map((bullet, bulletIndex) => (
                       <div key={bulletIndex} className="flex items-center gap-2">
+                        <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
                         <input
                           type="text"
-                          placeholder={`Bullet point ${bulletIndex + 1}`}
+                          placeholder={`Achievement bullet point ${bulletIndex + 1}`}
                           value={bullet}
                           onChange={(e) => handleExperienceBulletChange(expIndex, bulletIndex, e.target.value)}
-                          className="flex-1 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                          className={inputCls}
                         />
                         {exp.bullets.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeExperienceBullet(expIndex, bulletIndex)}
-                            className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
-                            title="Delete bullet point"
-                          >
+                          <button type="button" onClick={() => removeExperienceBullet(expIndex, bulletIndex)} className={removeBtnCls}>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
@@ -504,88 +587,65 @@ const Builder = () => {
                         )}
                       </div>
                     ))}
-                    <button
-                      type="button"
-                      onClick={() => addExperienceBullet(expIndex)}
-                      className="text-sm text-primary/80 hover:text-primary transition"
-                    >
+                    <button type="button" onClick={() => addExperienceBullet(expIndex)} className="text-xs font-semibold text-[#A6FF5D] hover:underline transition flex items-center gap-1">
                       + Add Bullet Point
                     </button>
                   </div>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={addExperience}
-                className="text-primary hover:text-primary/80 font-medium transition"
-              >
-                + Add Experience
+              <button type="button" onClick={addExperience} className={addBtnCls}>
+                <span>+ Add Experience Position</span>
               </button>
             </div>
 
             {/* Projects */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-500">
-              <h2 className="text-2xl font-semibold text-white mb-6">
-                Projects <span className="text-red-400">*</span>
-              </h2>
+            <div className={cardCls + " animate-fade-in-up animate-delay-500"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Projects <span className="text-red-400">*</span></h2>
+              </div>
               {formData.projects.map((proj, projIndex) => (
-                <div key={projIndex} className="mb-6 pb-6 border-b border-white/10 last:border-0">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg text-gray-300 font-medium">Project {projIndex + 1}</h3>
+                <div key={projIndex} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                    <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Project #{projIndex + 1}</span>
                     {formData.projects.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeProject(projIndex)}
-                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
-                        title="Delete project"
-                      >
+                      <button type="button" onClick={() => removeProject(projIndex)} className={removeBtnCls} title="Delete project">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <input
-                      type="text"
-                      placeholder="Project Name"
-                      value={proj.name}
-                      onChange={(e) => handleProjectChange(projIndex, 'name', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Date"
-                      value={proj.date}
-                      onChange={(e) => handleProjectChange(projIndex, 'date', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Project Name</label>
+                      <input type="text" placeholder="LaTexume Website" value={proj.name} onChange={(e) => handleProjectChange(projIndex, 'name', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Date / Duration</label>
+                      <input type="text" placeholder="Fall 2023" value={proj.date} onChange={(e) => handleProjectChange(projIndex, 'date', e.target.value)} className={inputCls} />
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Technologies Used (e.g., React, Node.js, MongoDB)"
-                    value={proj.technologies}
-                    onChange={(e) => handleProjectChange(projIndex, 'technologies', e.target.value)}
-                    className="w-full mb-4 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                  />
-                  <div className="space-y-2 mb-4">
-                    <label className="text-sm text-gray-400">Project Details:</label>
+                  <div>
+                    <label className={labelCls}>Technologies Used</label>
+                    <input type="text" placeholder="React, Node.js, Express, Tailwind CSS" value={proj.technologies} onChange={(e) => handleProjectChange(projIndex, 'technologies', e.target.value)} className={inputCls} />
+                  </div>
+                  <div className="space-y-3 pt-2">
+                    <label className={labelCls}>Project Highlights / Bullet Points</label>
                     {proj.bullets.map((bullet, bulletIndex) => (
                       <div key={bulletIndex} className="flex items-center gap-2">
+                        <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
                         <input
                           type="text"
-                          placeholder={`Detail ${bulletIndex + 1}`}
+                          placeholder={`Highlight detail ${bulletIndex + 1}`}
                           value={bullet}
                           onChange={(e) => handleProjectBulletChange(projIndex, bulletIndex, e.target.value)}
-                          className="flex-1 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                          className={inputCls}
                         />
                         {proj.bullets.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeProjectBullet(projIndex, bulletIndex)}
-                            className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
-                            title="Delete detail"
-                          >
+                          <button type="button" onClick={() => removeProjectBullet(projIndex, bulletIndex)} className={removeBtnCls}>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
@@ -593,141 +653,102 @@ const Builder = () => {
                         )}
                       </div>
                     ))}
-                    <button
-                      type="button"
-                      onClick={() => addProjectBullet(projIndex)}
-                      className="text-sm text-primary/80 hover:text-primary transition"
-                    >
+                    <button type="button" onClick={() => addProjectBullet(projIndex)} className="text-xs font-semibold text-[#A6FF5D] hover:underline transition flex items-center gap-1">
                       + Add Detail
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                      type="url"
-                      placeholder="Live Site Link (optional)"
-                      value={proj.liveLink}
-                      onChange={(e) => handleProjectChange(projIndex, 'liveLink', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="url"
-                      placeholder="GitHub Link (optional)"
-                      value={proj.githubLink}
-                      onChange={(e) => handleProjectChange(projIndex, 'githubLink', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Live Site Link</label>
+                      <input type="text" placeholder="https://myproject.com" value={proj.liveLink} onChange={(e) => handleProjectChange(projIndex, 'liveLink', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>GitHub Link</label>
+                      <input type="text" placeholder="https://github.com/user/project" value={proj.githubLink} onChange={(e) => handleProjectChange(projIndex, 'githubLink', e.target.value)} className={inputCls} />
+                    </div>
                   </div>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={addProject}
-                className="text-primary hover:text-primary/80 font-medium transition"
-              >
-                + Add Project
+              <button type="button" onClick={addProject} className={addBtnCls}>
+                <span>+ Add Project</span>
               </button>
             </div>
 
             {/* Education */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-600">
-              <h2 className="text-2xl font-semibold text-white mb-6">
-                Education <span className="text-red-400">*</span>
-              </h2>
+            <div className={cardCls + " animate-fade-in-up animate-delay-600"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Education <span className="text-red-400">*</span></h2>
+              </div>
               {formData.education.map((edu, index) => (
-                <div key={index} className="mb-6 pb-6 border-b border-white/10 last:border-0">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg text-gray-300 font-medium">Education {index + 1}</h3>
+                <div key={index} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                    <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Education #{index + 1}</span>
                     {formData.education.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeEducation(index)}
-                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
-                        title="Delete education"
-                      >
+                      <button type="button" onClick={() => removeEducation(index)} className={removeBtnCls} title="Delete education">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      placeholder="Institution"
-                      value={edu.institution}
-                      onChange={(e) => handleEducationChange(index, 'institution', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Location"
-                      value={edu.location}
-                      onChange={(e) => handleEducationChange(index, 'location', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Degree (e.g., Bachelor of Science)"
-                      value={edu.degree}
-                      onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Field (e.g., Computer Science)"
-                      value={edu.field}
-                      onChange={(e) => handleEducationChange(index, 'field', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Start Date"
-                      value={edu.startDate}
-                      onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="End Date"
-                      value={edu.endDate}
-                      onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
-                      className="bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Institution Name</label>
+                      <input type="text" placeholder="University of California, Berkeley" value={edu.institution} onChange={(e) => handleEducationChange(index, 'institution', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Location</label>
+                      <input type="text" placeholder="Berkeley, CA" value={edu.location} onChange={(e) => handleEducationChange(index, 'location', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Degree</label>
+                      <input type="text" placeholder="Bachelor of Science" value={edu.degree} onChange={(e) => handleEducationChange(index, 'degree', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Field of Study</label>
+                      <input type="text" placeholder="Computer Science" value={edu.field} onChange={(e) => handleEducationChange(index, 'field', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Start Date</label>
+                      <input type="text" placeholder="Aug 2020" value={edu.startDate} onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>End Date</label>
+                      <input type="text" placeholder="May 2024" value={edu.endDate} onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)} className={inputCls} />
+                    </div>
                   </div>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={addEducation}
-                className="text-primary hover:text-primary/80 font-medium transition"
-              >
-                + Add Education
+              <button type="button" onClick={addEducation} className={addBtnCls}>
+                <span>+ Add Education</span>
               </button>
             </div>
 
             {/* Certifications */}
-            <div className="bg-white/5 backdrop-blur p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 animate-fade-in-up animate-delay-700">
-              <h2 className="text-2xl font-semibold text-white mb-6">
-                Certifications & Achievements <span className="text-red-400">*</span>
-              </h2>
-              <p className="text-sm text-gray-400 mb-4">Add your certifications, achievements, or awards as bullet points</p>
+            <div className={cardCls + " animate-fade-in-up animate-delay-700"}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Certifications & Achievements <span className="text-red-400">*</span></h2>
+              </div>
+              <p className="text-xs sm:text-sm text-gray-400 mb-4">Add your certifications, honors, awards, or achievements as bullet points</p>
               <div className="space-y-3">
                 {formData.certifications.map((cert, index) => (
                   <div key={index} className="flex items-center gap-2">
+                    <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
                     <input
                       type="text"
                       placeholder={`Certification or Achievement ${index + 1}`}
                       value={cert}
                       onChange={(e) => handleCertificationChange(index, e.target.value)}
-                      className="flex-1 bg-white/10 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-white/20 focus:border-primary focus:outline-none"
+                      className={inputCls}
                     />
                     {formData.certifications.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeCertification(index)}
-                        className="text-red-400 hover:text-red-300 transition p-2 hover:bg-red-500/10 rounded-lg"
-                        title="Delete certification"
-                      >
+                      <button type="button" onClick={() => removeCertification(index)} className={removeBtnCls} title="Delete certification">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
@@ -736,23 +757,29 @@ const Builder = () => {
                   </div>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={addCertification}
-                className="mt-4 text-primary hover:text-primary/80 font-medium transition"
-              >
-                + Add Certification/Achievement
+              <button type="button" onClick={addCertification} className={addBtnCls}>
+                <span>+ Add Certification / Achievement</span>
               </button>
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-center animate-fade-in-up">
+            <div className="flex justify-center animate-fade-in-up pt-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-800 font-semibold px-8 py-4 rounded-full text-lg transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30"
+                className="w-full sm:w-auto bg-[#A6FF5D] hover:bg-[#b8ff7a] disabled:bg-gray-700 disabled:cursor-not-allowed text-gray-950 font-bold px-10 py-4 rounded-full text-lg shadow-xl shadow-[#A6FF5D]/25 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
               >
-                {loading ? 'Generating PDF...' : 'Generate Resume PDF'}
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-gray-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Compiling LaTeX PDF...</span>
+                  </>
+                ) : (
+                  <span>🚀 Generate Resume PDF</span>
+                )}
               </button>
             </div>
           </form>
@@ -760,6 +787,12 @@ const Builder = () => {
       </main>
 
       <Footer />
+
+      <ResumeImporter
+        isOpen={isImporterOpen}
+        onClose={() => setIsImporterOpen(false)}
+        onImportData={handleImportData}
+      />
     </div>
   )
 }

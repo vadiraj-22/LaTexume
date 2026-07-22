@@ -22,13 +22,13 @@ const NavLink = ({ to, children, onClick, active }) => (
   <Link
     to={to}
     onClick={onClick}
-    className={`relative text-sm font-medium transition-all duration-300 px-1 py-0.5 group ${
-      active ? 'text-white' : 'text-white/60 hover:text-white'
+    className={`relative text-sm font-medium transition-colors duration-200 px-1 py-0.5 group ${
+      active ? 'text-white font-semibold' : 'text-white/70 hover:text-white'
     }`}
   >
     {children}
     <span
-      className={`absolute -bottom-0.5 left-0 h-[1.5px] bg-[#A6FF5D] rounded-full transition-all duration-300 ${
+      className={`absolute -bottom-0.5 left-0 h-[2px] bg-[#A6FF5D] rounded-full transition-all duration-200 ${
         active ? 'w-full' : 'w-0 group-hover:w-full'
       }`}
     />
@@ -74,6 +74,18 @@ const Navbar = () => {
     setUserMenuOpen(false)
   }, [location])
 
+  /* ── Scroll lock body when mobile menu is expanded ── */
+  useEffect(() => {
+    if (expanded && window.innerWidth < 768) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [expanded])
+
   const handleLogout = async () => {
     setUserMenuOpen(false)
     setExpanded(false)
@@ -88,47 +100,38 @@ const Navbar = () => {
       {/* Backdrop overlay for mobile menu */}
       {expanded && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-200"
           onClick={() => setExpanded(false)}
-          style={{ animation: 'fadeIn 0.3s ease-out forwards' }}
         />
       )}
       
-      {/* Floating island fixed to top-center */}
-      <div className="fixed top-3 left-0 right-0 z-50 flex  justify-center pointer-events-none transition-all duration-500" style={{ padding: expanded ? '0' : '0 1rem' }}>
+      {/* Top navbar container */}
+      <div className="fixed top-3 left-0 right-0 z-50 flex justify-center pointer-events-none px-4">
         <div
           ref={islandRef}
-          className={`pointer-events-auto transition-all duration-500 ${expanded ? 'w-full' : 'w-full max-w-3xl'}`}
-          style={{
-            animation: 'islandIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 2.2) forwards',
-          }}
+          className={`pointer-events-auto transition-all duration-200 ${expanded ? 'w-full' : 'w-full max-w-4xl'}`}
         >
         <GlassEffect
           scrolled={scrolled}
-          className={`transition-all duration-500 ${
+          className={`transition-all duration-200 ${
             expanded
-              ? 'rounded-none backdrop-blur-3xl bg-black/80 md:rounded-2xl'
-              : 'rounded-full md:rounded-full'
+              ? 'rounded-2xl backdrop-blur-xl bg-black/90'
+              : 'rounded-full'
           }`}
-          style={{
-            transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
-          }}
         >
-          {/* ── Collapsed pill (always visible) ── */}
+          {/* ── Collapsed bar content ── */}
           <div
-            className={`relative flex items-center justify-between transition-all duration-500 ${
-              expanded ? 'px-4 pt-3 pb-2 md:px-5 md:pt-4' : 'px-4 py-2 md:px-5 md:py-2.5'
+            className={`relative flex items-center justify-between px-5 ${
+              expanded ? 'py-3' : 'py-2.5'
             }`}
-            style={{ transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)' }}
           >
             {/* LEFT — Logo */}
-            <Link to="/" className="shrink-0 transition-transform duration-300 hover:scale-105 z-10">
+            <Link to="/" className="shrink-0 transition-opacity duration-200 hover:opacity-80 z-10">
               <Logo />
             </Link>
 
-            {/* CENTER — Nav links, absolutely centered so they're always in the true middle */}
-            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
-              {/* <NavLink to="/" active={isActive('/')}>Home</NavLink> */}
+            {/* CENTER — Nav links, centered */}
+            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8">
               <NavLink to="/builder" active={isActive('/builder')}>Builder</NavLink>
               <NavLink to="/about" active={isActive('/about')}>About</NavLink>
             </div>
@@ -146,10 +149,10 @@ const Navbar = () => {
                     <img
                       src={user.avatar}
                       alt={user.fullName}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-white/20 group-hover:border-[#A6FF5D]/70 transition-all duration-300"
+                      className="w-9 h-9 rounded-full object-cover border border-white/20 group-hover:border-[#A6FF5D] transition-colors duration-200"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-[#A6FF5D]/20 border border-[#A6FF5D]/40 group-hover:border-[#A6FF5D] flex items-center justify-center text-[#A6FF5D] font-semibold text-sm transition-all duration-300">
+                    <div className="w-9 h-9 rounded-full bg-[#A6FF5D]/20 border border-[#A6FF5D]/40 group-hover:border-[#A6FF5D] flex items-center justify-center text-[#A6FF5D] font-semibold text-sm transition-colors duration-200">
                       {userInitial}
                     </div>
                   )}
@@ -161,7 +164,7 @@ const Navbar = () => {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth={2.5}
-                    className={`text-white/40 transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`}
+                    className={`text-white/40 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -169,20 +172,17 @@ const Navbar = () => {
 
                 {/* User dropdown */}
                 {userMenuOpen && (
-                  <div
-                    className="absolute right-0 top-full mt-3 w-52 overflow-hidden z-50"
-                    style={{ animation: 'islandIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 2.2) forwards' }}
-                  >
-                    <div className="bg-black/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.8)]">
-                      <div className="px-4 py-3 border-b border-white/20">
-                        <p className="text-white font-semibold text-sm truncate">{user?.fullName}</p>
+                  <div className="absolute right-0 top-full mt-2 w-52 overflow-hidden z-50 transition-all duration-150">
+                    <div className="bg-black/95 backdrop-blur-xl rounded-xl border border-white/15 shadow-xl">
+                      <div className="px-4 py-3 border-b border-white/10">
+                        <p className="text-white font-medium text-sm truncate">{user?.fullName}</p>
                         <p className="text-white/50 text-xs truncate">@{user?.username}</p>
                       </div>
                       <div className="py-1">
                         <Link
                           to="/profile"
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2.5 text-white/80 hover:text-white hover:bg-white/10 text-sm transition-colors"
+                          className="flex items-center gap-2.5 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 text-sm transition-colors duration-150"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -192,7 +192,7 @@ const Navbar = () => {
                         <Link
                           to="/builder"
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2.5 text-white/80 hover:text-white hover:bg-white/10 text-sm transition-colors"
+                          className="flex items-center gap-2.5 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 text-sm transition-colors duration-150"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -202,7 +202,7 @@ const Navbar = () => {
                         <button
                           id="logout-btn"
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
+                          className="w-full flex items-center gap-2.5 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors duration-150"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -215,11 +215,11 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-2 z-10">
+              <div className="hidden md:flex items-center gap-3 z-10">
                 <Link to="/signin">
                   <button
                     id="navbar-signin-btn"
-                    className="text-white/70 hover:text-white text-sm font-medium px-3 py-1 rounded-full transition-all duration-300 hover:bg-white/10"
+                    className="text-white/70 hover:text-white text-sm font-medium px-3.5 py-1.5 rounded-full transition-colors duration-200 hover:bg-white/10"
                   >
                     Sign In
                   </button>
@@ -227,7 +227,7 @@ const Navbar = () => {
                 <Link to="/signup">
                   <button
                     id="navbar-signup-btn"
-                    className="flex items-center gap-1.5 bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-900 font-semibold text-sm px-3.5 py-1.5 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30"
+                    className="flex items-center gap-1.5 bg-[#A6FF5D] hover:bg-[#b8ff7a] text-gray-950 font-semibold text-sm px-4 py-1.5 rounded-full transition-colors duration-200"
                   >
                     <SparkleIcon />
                     Get Started
@@ -251,16 +251,12 @@ const Navbar = () => {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
-                className={`transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`}
+                className={`transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
               >
                 {expanded ? (
-                  <>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 ) : (
-                  <>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                  </>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 )}
               </svg>
             </button>
@@ -268,10 +264,9 @@ const Navbar = () => {
 
           {/* ── Mobile expanded panel ── */}
           <div
-            className={`md:hidden overflow-hidden transition-all duration-500 ${
+            className={`md:hidden overflow-hidden transition-all duration-200 ${
               expanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
             }`}
-            style={{ transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)' }}
           >
             <div className="px-4 pb-4 pt-1 border-t border-white/10 max-h-[calc(100vh-120px)] overflow-y-auto">
               {/* Mobile links */}
@@ -284,7 +279,7 @@ const Navbar = () => {
                   <Link
                     key={to}
                     to={to}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 ${
                       isActive(to)
                         ? 'bg-[#A6FF5D]/15 text-[#A6FF5D]'
                         : 'text-white/70 hover:text-white hover:bg-white/5'
@@ -317,7 +312,7 @@ const Navbar = () => {
                   <Link
                     to="/profile"
                     onClick={() => setExpanded(false)}
-                    className="w-full flex items-center justify-center gap-2 text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-medium py-2 rounded-xl transition-all duration-300 mb-2"
+                    className="w-full flex items-center justify-center gap-2 text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-medium py-2 rounded-xl transition-colors duration-200 mb-2"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -327,7 +322,7 @@ const Navbar = () => {
                   <button
                     id="mobile-logout-btn"
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 text-sm font-medium py-2 rounded-xl transition-all duration-300"
+                    className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 text-sm font-medium py-2 rounded-xl transition-colors duration-200"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -340,7 +335,7 @@ const Navbar = () => {
                   <Link to="/signin">
                     <button
                       id="mobile-signin-btn"
-                      className="w-full text-white/70 hover:text-white border border-white/50 hover:border-white/25 text-sm font-medium py-2 rounded-xl transition-all duration-300"
+                      className="w-full text-white/70 hover:text-white border border-white/20 hover:border-white/40 text-sm font-medium py-2 rounded-xl transition-colors duration-200"
                     >
                       Sign In
                     </button>
@@ -348,7 +343,7 @@ const Navbar = () => {
                   <Link to="/signup">
                     <button
                       id="mobile-signup-btn"
-                      className="w-full flex items-center justify-center gap-2 bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-900 font-semibold text-sm py-2 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-[#A6FF5D]/30"
+                      className="w-full flex items-center justify-center gap-2 bg-[#A6FF5D] hover:bg-[#b8ff7a] text-gray-950 font-semibold text-sm py-2 rounded-xl transition-colors duration-200"
                     >
                       <SparkleIcon />
                       Get Started

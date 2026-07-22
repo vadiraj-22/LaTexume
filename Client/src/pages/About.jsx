@@ -5,25 +5,25 @@ import Footer from '../components/Footer'
 const About = () => {
   return (
     <div className="min-h-screen bg-black">
-      <header className="bg-black text-white border-b border-white/10 pt-20">
+      <header className="bg-black text-white border-b border-white/10 pt-16 sm:pt-20">
         <Navbar />
       </header>
 
-      <main className="py-12 px-4 md:px-16 lg:px-24 xl:px-32">
+      <main className="py-8 sm:py-12 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12 animate-fade-in-down">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 gradient-text">
+          <div className="text-center mb-8 sm:mb-12 animate-fade-in-down">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 gradient-text">
               About LaTexume
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-sm sm:text-lg">
               LaTeX-powered resumes for the modern professional
             </p>
           </div>
 
-          <div className="space-y-8">
-            <div className="bg-white/5 backdrop-blur p-8 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-100">
-              <h2 className="text-2xl font-semibold text-white mb-4">Our Mission</h2>
-              <p className="text-gray-400 leading-relaxed">
+          <div className="space-y-6 sm:space-y-8">
+            <div className="bg-white/5 backdrop-blur p-5 sm:p-8 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-100">
+              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Our Mission</h2>
+              <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
                 We believe every professional deserves a resume with perfect typography and ATS compatibility. LaTexume uses LaTeX and Jake's Resume template - the industry standard trusted by engineers at top tech companies - to ensure your resume passes ATS systems and impresses recruiters.
               </p>
             </div>

@@ -56,13 +56,9 @@ function buildHeader(header = {}) {
 }
 
 function buildObjective(objective = '') {
-  // Objective is REQUIRED - must be provided
+  // Objective is OPTIONAL - omitted if not provided
   if (!objective?.trim()) {
-    return `%-----------OBJECTIVE-----------
-\\section{Objective}
-\\begin{itemize}[leftmargin=0.15in, label={}]
-  \\small{\\item{Career objective or professional summary}}
-\\end{itemize}`
+    return ''
   }
   return `%-----------OBJECTIVE-----------
 \\section{Objective}

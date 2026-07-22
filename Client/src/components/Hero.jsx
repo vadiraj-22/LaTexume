@@ -14,18 +14,18 @@ const Hero = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl md:text-[64px]/[82px] text-center max-w-4xl mt-6 md:mt-4 bg-clip-text leading-tight px-4 gradient-text animate-fade-in-up animate-delay-100">
+      <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-[64px]/[82px] text-center max-w-4xl mt-6 md:mt-4 bg-clip-text leading-tight px-2 sm:px-4 gradient-text animate-fade-in-up animate-delay-100">
         LaTeX-powered resumes that pass ATS & impress recruiters
       </h1>
 
-      <p className="text-sm md:text-base text-gray-300 text-center max-w-lg mt-6 md:mt-4 px-4 animate-fade-in-up animate-delay-200">
-        Professional LaTeX resume builder using Jake's Resume template..
+      <p className="text-xs sm:text-sm md:text-base text-gray-300 text-center max-w-lg mt-4 px-4 animate-fade-in-up animate-delay-200">
+        Professional LaTeX resume builder using Jake's Resume template.
         ATS-optimized, recruiter-approved, and trusted by top tech professionals.
       </p>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 md:mt-5 animate-fade-in-up animate-delay-300">
-        <Link to="/builder">
-          <button className="bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-800 px-6 py-2.5 rounded-full text-sm transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30 cursor-pointer group whitespace-nowrap">
+      <div className="flex flex-col sm:flex-row items-center justify-center w-full sm:w-auto gap-3 mt-8 md:mt-5 animate-fade-in-up animate-delay-300">
+        <Link to="/builder" className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-800 px-6 py-3 rounded-full text-sm font-semibold transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30 cursor-pointer group whitespace-nowrap">
             <div className="relative overflow-hidden">
               <span className="block transition-transform duration-200 group-hover:-translate-y-full">
                 Create Your Resume
@@ -37,8 +37,8 @@ const Hero = () => {
           </button>
         </Link>
 
-        <Link to="/about">
-          <button className="px-6 text-sm py-3 text-white rounded-full border border-white/25 bg-transparent cursor-pointer hover:bg-white/10 hover:scale-105 transition-smooth active:scale-100 whitespace-nowrap">
+        <Link to="/about" className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto px-6 text-sm py-3 text-white rounded-full border border-white/25 bg-transparent cursor-pointer hover:bg-white/10 hover:scale-105 transition-smooth active:scale-100 whitespace-nowrap font-medium">
             Learn More
           </button>
         </Link>

@@ -304,3 +304,21 @@ body {
 .transition-smooth-slow {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Responsive adjustments for mobile screens */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS safari focus */
+  }
+}
+
+/* Touch action optimizations */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+

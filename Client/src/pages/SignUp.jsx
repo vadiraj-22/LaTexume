@@ -79,7 +79,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
       {/* Background glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#A6FF5D]/5 blur-[120px]" />
@@ -89,7 +89,7 @@ export default function SignUp() {
 
       <div className="relative w-full max-w-md animate-fade-in-up">
         {/* Card */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
+        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 sm:p-8 backdrop-blur-sm shadow-2xl">
           {/* Logo + heading */}
           <div className="flex flex-col items-center mb-8">
             <Link to="/" className="mb-6 transition-transform duration-300 hover:scale-105">

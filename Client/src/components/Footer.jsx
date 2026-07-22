@@ -6,19 +6,19 @@ const Footer = () => {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-black text-white py-12 px-4 md:px-16 lg:px-24 xl:px-32 border-t border-white/10">
+    <footer className="bg-black text-white py-8 sm:py-12 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32 border-t border-white/10">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="col-span-1 md:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div className="col-span-1 sm:col-span-2">
             <Link to="/" className="inline-block transition-transform duration-300 hover:scale-105">
               <Logo />
             </Link>
-            <p className="text-gray-400 mt-4 max-w-md leading-relaxed">
+            <p className="text-gray-400 mt-4 max-w-md text-xs sm:text-sm leading-relaxed">
               LaTexume - LaTeX-powered resume builder using Jake's Resume template. ATS-optimized and trusted by top tech professionals.
             </p>
             <div className="mt-4">
               <Link to="/builder">
-                <button className="bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-800 font-semibold px-6 py-2.5 rounded-full text-sm transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30">
+                <button className="w-full sm:w-auto bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-800 font-semibold px-6 py-2.5 rounded-full text-sm transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30">
                   Get Started Free
                 </button>
               </Link>

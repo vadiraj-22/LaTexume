@@ -56,8 +56,8 @@ const Profile = () => {
     <div className="min-h-screen bg-black flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 pt-36">
-        <div className="w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden animate-fade-in-up mt-16">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 pt-24 sm:pt-28 md:pt-36">
+        <div className="w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl relative overflow-hidden animate-fade-in-up mt-4 sm:mt-8">
           {/* Glassmorphic decorative elements */}
           <div className="absolute top-0 right-0 -mt-20 -mr-20 w-40 h-40 bg-[#A6FF5D] rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-40 h-40 bg-blue-500 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
