@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Logo from './Logo'
 import { useAuth } from '../context/AuthContext'
-import { GlassEffect } from './ui/liquid-glass'
+import GlassSurface from './ui/GlassSurface'
 
 /* ─── Star / sparkle icon that matches existing brand ─────────────────────── */
 const SparkleIcon = () => (
@@ -51,7 +51,7 @@ const Navbar = () => {
 
   /* ── Scroll detection: tighten island when scrolled ── */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
+    const onScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -106,23 +106,41 @@ const Navbar = () => {
       )}
       
       {/* Top navbar container */}
-      <div className="fixed top-3 left-0 right-0 z-50 flex justify-center pointer-events-none px-4">
+      <div className={`fixed z-50 left-0 right-0 pointer-events-none transition-all duration-300 ease-in-out ${
+        scrolled ? 'top-3 px-4' : 'top-0'
+      }`}>
         <div
           ref={islandRef}
-          className={`pointer-events-auto transition-all duration-200 ${expanded ? 'w-full' : 'w-full max-w-4xl'}`}
-        >
-        <GlassEffect
-          scrolled={scrolled}
-          className={`transition-all duration-200 ${
-            expanded
-              ? 'rounded-2xl backdrop-blur-xl bg-black/90'
-              : 'rounded-full'
+          className={`pointer-events-auto mx-auto transition-all duration-300 ease-in-out ${
+            scrolled && !expanded 
+              ? 'max-w-4xl w-full' 
+              : 'w-full'
           }`}
         >
-          {/* ── Collapsed bar content ── */}
+        <GlassSurface
+          width="100%"
+          height="auto"
+          borderRadius={expanded ? 16 : scrolled ? 9999 : 0}
+          brightness={45}
+          opacity={0.85}
+          blur={14}
+          displace={scrolled ? 8 : 12}
+          backgroundOpacity={0.15}
+          saturation={1.2}
+          distortionScale={-120}
+          redOffset={3}
+          greenOffset={8}
+          blueOffset={15}
+          className="transition-all duration-300 ease-in-out"
+        >
+          {/* ── Navbar content ── */}
           <div
-            className={`relative flex items-center justify-between px-5 ${
-              expanded ? 'py-3' : 'py-2.5'
+            className={`relative flex items-center transition-all duration-300 ease-in-out ${
+              expanded 
+                ? 'justify-between px-5 py-3' 
+                : scrolled
+                ? 'justify-between px-10 py-3'
+                : 'justify-between px-8 md:px-16 lg:px-24 py-4'
             }`}
           >
             {/* LEFT — Logo */}
@@ -131,7 +149,9 @@ const Navbar = () => {
             </Link>
 
             {/* CENTER — Nav links, centered */}
-            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8">
+            <div className={`hidden md:flex items-center gap-8 transition-all duration-300 ease-in-out ${
+              scrolled && !expanded ? 'absolute left-1/2 -translate-x-1/2' : ''
+            }`}>
               <NavLink to="/builder" active={isActive('/builder')}>Builder</NavLink>
               <NavLink to="/about" active={isActive('/about')}>About</NavLink>
             </div>
@@ -356,7 +376,7 @@ const Navbar = () => {
               )}
             </div>
           </div>
-        </GlassEffect>
+        </GlassSurface>
         </div>
       </div>
     </>
