@@ -19,7 +19,7 @@ const Home = () => {
         canonicalPath="/"
       />
 
-      <header className="bg-black text-white flex flex-col items-center bg-cover bg-center bg-no-repeat min-h-screen md:min-h-0 md:pb-10 pt-14" style={{backgroundImage: "url('https://assets.prebuiltui.com/images/components/hero-section/hero-background-image.png')"}}>
+      <header className="bg-black text-white flex flex-col items-center bg-cover bg-center bg-no-repeat min-h-screen md:min-h-0 md:pb-10 pt-14" style={{backgroundImage: "url('https://assets.prebuiltui.com/components/hero-section/hero-background-image.png')"}}>
         <Navbar />
         <div className="flex-1 flex items-center justify-center w-full md:flex-initial">
           <Hero />
