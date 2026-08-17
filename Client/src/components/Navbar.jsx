@@ -107,13 +107,13 @@ const Navbar = () => {
       
       {/* Top navbar container */}
       <div className={`fixed z-50 left-0 right-0 pointer-events-none transition-all duration-300 ease-in-out ${
-        scrolled ? 'top-3 px-4' : 'top-0'
+        scrolled ? 'top-3 px-4' : 'top-0 px-0'
       }`}>
         <div
           ref={islandRef}
           className={`pointer-events-auto mx-auto transition-all duration-300 ease-in-out ${
             scrolled && !expanded 
-              ? 'max-w-4xl w-full' 
+              ? 'max-w-6xl w-full' 
               : 'w-full'
           }`}
         >
@@ -121,17 +121,17 @@ const Navbar = () => {
           width="100%"
           height="auto"
           borderRadius={expanded ? 16 : scrolled ? 9999 : 0}
-          brightness={45}
-          opacity={0.85}
-          blur={14}
-          displace={scrolled ? 8 : 12}
-          backgroundOpacity={0.15}
-          saturation={1.2}
-          distortionScale={-120}
-          redOffset={3}
-          greenOffset={8}
-          blueOffset={15}
-          className="transition-all duration-300 ease-in-out"
+          brightness={scrolled ? 0 : 45}
+          opacity={1.0}
+          blur={20}
+          displace={scrolled ? 0 : 12}
+          backgroundOpacity={scrolled ? 1.0 : 0.2}
+          saturation={1.0}
+          distortionScale={scrolled ? 0 : -120}
+          redOffset={0}
+          greenOffset={0}
+          blueOffset={0}
+          className={`transition-all duration-300 ease-in-out ${scrolled ? 'bg-black shadow-2xl border border-zinc-800' : ''}`}
         >
           {/* ── Navbar content ── */}
           <div
@@ -139,8 +139,8 @@ const Navbar = () => {
               expanded 
                 ? 'justify-between px-5 py-3' 
                 : scrolled
-                ? 'justify-between px-10 py-3'
-                : 'justify-between px-8 md:px-16 lg:px-24 py-4'
+                ? 'justify-between px-8 py-3'
+                : 'justify-between px-8 md:px-12 lg:px-16 py-4'
             }`}
           >
             {/* LEFT — Logo */}
@@ -148,11 +148,11 @@ const Navbar = () => {
               <Logo />
             </Link>
 
-            {/* CENTER — Nav links, centered */}
-            <div className={`hidden md:flex items-center gap-8 transition-all duration-300 ease-in-out ${
-              scrolled && !expanded ? 'absolute left-1/2 -translate-x-1/2' : ''
-            }`}>
+            {/* CENTER — Nav links */}
+            <div className="hidden md:flex items-center gap-6 lg:gap-8 transition-all duration-300 ease-in-out">
               <NavLink to="/builder" active={isActive('/builder')}>Builder</NavLink>
+              <NavLink to="/templates" active={isActive('/templates')}>Templates</NavLink>
+              <NavLink to="/ats-optimizer" active={isActive('/ats-optimizer')}>ATS Matcher</NavLink>
               <NavLink to="/about" active={isActive('/about')}>About</NavLink>
             </div>
 
@@ -176,8 +176,8 @@ const Navbar = () => {
                       {userInitial}
                     </div>
                   )}
-                  <span className="text-white/80 group-hover:text-[#A6FF5D] text-sm font-medium transition-colors duration-200 max-w-[120px] truncate">
-                    @{user?.username}
+                  <span className="text-white/80 group-hover:text-[#A6FF5D] text-sm font-medium transition-colors duration-200 max-w-[140px] truncate">
+                    {user?.fullName || 'User'}
                   </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -192,50 +192,6 @@ const Navbar = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-
-                {/* User dropdown */}
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 overflow-hidden z-50 transition-all duration-150">
-                    <div className="bg-black/95 backdrop-blur-xl rounded-xl border border-white/15 shadow-xl">
-                      <div className="px-4 py-3 border-b border-white/10">
-                        <p className="text-white font-medium text-sm truncate">{user?.fullName}</p>
-                        <p className="text-white/50 text-xs truncate">@{user?.username}</p>
-                      </div>
-                      <div className="py-1">
-                        <Link
-                          to="/profile"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 text-sm transition-colors duration-150"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          Profile
-                        </Link>
-                        <Link
-                          to="/builder"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 text-sm transition-colors duration-150"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          Resume Builder
-                        </Link>
-                        <button
-                          id="logout-btn"
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-2.5 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors duration-150"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                          </svg>
-                          Sign Out
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-3 z-10">
@@ -297,6 +253,8 @@ const Navbar = () => {
                 {[
                   { to: '/', label: 'Home' },
                   { to: '/builder', label: 'Resume Builder' },
+                  { to: '/templates', label: 'Templates' },
+                  { to: '/ats-optimizer', label: 'ATS Matcher' },
                   { to: '/about', label: 'About' },
                 ].map(({ to, label }) => (
                   <Link
@@ -329,7 +287,7 @@ const Navbar = () => {
                     )}
                     <div className="min-w-0">
                       <p className="text-white text-sm font-medium truncate">{user?.fullName}</p>
-                      <p className="text-white/40 text-xs truncate">@{user?.username}</p>
+                      <p className="text-white/40 text-xs truncate">{user?.email}</p>
                     </div>
                   </div>
                   <Link
@@ -377,6 +335,50 @@ const Navbar = () => {
             </div>
           </div>
         </GlassSurface>
+
+        {/* User Profile Dropdown Floating Outside GlassSurface */}
+        {userMenuOpen && isAuthenticated && (
+          <div className="absolute right-4 md:right-16 lg:right-24 top-full mt-2 w-56 overflow-hidden z-50 transition-all duration-150 animate-fade-in-down">
+            <div className="bg-black/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-1">
+              <div className="px-4 py-3 border-b border-white/10">
+                <p className="text-white font-bold text-sm truncate">{user?.fullName}</p>
+                <p className="text-white/50 text-xs truncate">{user?.email}</p>
+              </div>
+              <div className="py-1 space-y-0.5">
+                <Link
+                  to="/profile"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2 text-white/80 hover:text-white hover:bg-white/10 text-sm font-medium rounded-xl transition-colors duration-150"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Profile
+                </Link>
+                <Link
+                  to="/builder"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2 text-white/80 hover:text-white hover:bg-white/10 text-sm font-medium rounded-xl transition-colors duration-150"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Resume Builder
+                </Link>
+                <button
+                  id="logout-btn"
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 text-sm font-medium rounded-xl transition-colors duration-150 cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
       </div>
     </>

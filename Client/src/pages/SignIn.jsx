@@ -22,7 +22,7 @@ export default function SignIn() {
   const location = useLocation()
   const from = location.state?.from?.pathname || '/builder'
 
-  const [form, setForm] = useState({ usernameOrEmail: '', password: '' })
+  const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -34,7 +34,7 @@ export default function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.usernameOrEmail.trim()) return setError('Email or username is required')
+    if (!form.email.trim()) return setError('Email is required')
     if (!form.password) return setError('Password is required')
 
     setLoading(true)
@@ -86,17 +86,17 @@ export default function SignIn() {
           )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            {/* Email or Username */}
+            {/* Email */}
             <div>
-              <label htmlFor="usernameOrEmail" className="block text-white/70 text-sm font-medium mb-1.5">
-                Email or Username
+              <label htmlFor="email" className="block text-white/70 text-sm font-medium mb-1.5">
+                Email Address
               </label>
               <input
-                id="usernameOrEmail" name="usernameOrEmail"
-                type="text"
-                autoComplete="username"
-                placeholder="aarav@example.com or @aaravsharma"
-                value={form.usernameOrEmail} onChange={handleChange}
+                id="email" name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="aarav@example.com"
+                value={form.email} onChange={handleChange}
                 className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl px-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
               />
             </div>

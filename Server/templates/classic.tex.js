@@ -1,30 +1,22 @@
 /**
- * Jake Gutierrez's LaTeX resume template.
- * This file exports the full preamble + custom commands as a string,
- * and a buildTemplate function that assembles the complete .tex document.
- *
- * DO NOT escape strings here — escaping is handled by templateEngine.js
- * before values are passed into these builders.
+ * Classic Executive Minimalist LaTeX Resume Template.
+ * Clean, single-column serif formatting ideal for high-level ATS parsing.
  */
 
 export const PREAMBLE = `%-------------------------
-% Resume in Latex
-% Author : Jake Gutierrez
+% Classic Resume in Latex
 %------------------------
-\\documentclass[letterpaper,11pt]{article}
+\\documentclass[letterpaper,10pt]{article}
 
-\\usepackage{latexsym}
+\\usepackage{charter}
 \\usepackage[empty]{fullpage}
 \\usepackage{titlesec}
-\\usepackage{marvosym}
 \\usepackage[usenames,dvipsnames]{color}
-\\usepackage{verbatim}
 \\usepackage{enumitem}
 \\usepackage[hidelinks]{hyperref}
 \\usepackage{fancyhdr}
 \\usepackage[english]{babel}
 \\usepackage{tabularx}
-\\input{glyphtounicode}
 
 \\pagestyle{fancy}
 \\fancyhf{}
@@ -44,13 +36,11 @@ export const PREAMBLE = `%-------------------------
 \\raggedright
 \\setlength{\\tabcolsep}{0in}
 
+% Section formatting
 \\titleformat{\\section}{
-  \\vspace{-4pt}\\scshape\\raggedright\\large
-}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
+  \\vspace{-4pt}\\scshape\\raggedright\\large\\bfseries
+}{}{0em}{}[\\color{black}\\titlerule \\vspace{-4pt}]
 
-\\pdfgentounicode=1
-
-%-------------------------
 % Custom commands
 \\newcommand{\\resumeItem}[1]{
   \\item\\small{
@@ -63,40 +53,22 @@ export const PREAMBLE = `%-------------------------
     \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
       \\textbf{#1} & #2 \\\\
       \\textit{\\small#3} & \\textit{\\small #4} \\\\
-    \\end{tabular*}\\vspace{-7pt}
-}
-
-\\newcommand{\\resumeSubSubheading}[2]{
-    \\item
-    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
-      \\textit{\\small#1} & \\textit{\\small #2} \\\\
-    \\end{tabular*}\\vspace{-7pt}
+    \\end{tabular*}\\vspace{-6pt}
 }
 
 \\newcommand{\\resumeProjectHeading}[2]{
     \\item
     \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
       \\small#1 & #2 \\\\
-    \\end{tabular*}\\vspace{-7pt}
+    \\end{tabular*}\\vspace{-6pt}
 }
-
-\\newcommand{\\resumeSubItem}[1]{\\resumeItem{#1}\\vspace{-4pt}}
-
-\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
 
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=0.2in]}
 \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 `
 
-/**
- * Assembles the complete .tex document from pre-escaped section strings.
- *
- * @param {object} sections - Object with keys: header, objective, skills,
- *   experience, projects, education, certifications (each a .tex string)
- * @returns {string} - Complete .tex document
- */
 export function buildTemplate({ header, sectionOrder, ...sectionMap }) {
   const defaultOrder = ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
   const order = Array.isArray(sectionOrder) && sectionOrder.length > 0 ? sectionOrder : defaultOrder
@@ -108,8 +80,6 @@ export function buildTemplate({ header, sectionOrder, ...sectionMap }) {
 
   return `${PREAMBLE}
 %-------------------------------------------
-%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \\begin{document}
 
 ${header}

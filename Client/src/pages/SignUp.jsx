@@ -21,7 +21,7 @@ export default function SignUp() {
   const navigate = useNavigate()
   const avatarRef = useRef(null)
 
-  const [form, setForm] = useState({ fullName: '', username: '', email: '', password: '', confirmPassword: '' })
+  const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '' })
   const [avatar, setAvatar] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -44,13 +44,14 @@ export default function SignUp() {
 
   const validate = () => {
     if (!form.fullName.trim()) return 'Full name is required'
-    if (!form.username.trim()) return 'Username is required'
-    if (!/^[a-z0-9_]{3,20}$/.test(form.username.toLowerCase()))
-      return 'Username must be 3–20 characters (letters, numbers, underscores)'
     if (!form.email.trim()) return 'Email is required'
     if (!/\S+@\S+\.\S+/.test(form.email)) return 'Enter a valid email'
     if (!form.password) return 'Password is required'
-    if (form.password.length < 6) return 'Password must be at least 6 characters'
+    if (form.password.length < 8) return 'Password must be at least 8 characters long'
+    if (!/[A-Z]/.test(form.password)) return 'Password must contain at least 1 uppercase letter (A-Z)'
+    if (!/[a-z]/.test(form.password)) return 'Password must contain at least 1 lowercase letter (a-z)'
+    if (!/[0-9]/.test(form.password)) return 'Password must contain at least 1 number (0-9)'
+    if (!/[@$!%*?&^#\-_+=~`]/.test(form.password)) return 'Password must contain at least 1 special character (!@#$%^&*)'
     if (form.password !== form.confirmPassword) return 'Passwords do not match'
     return null
   }
@@ -65,7 +66,6 @@ export default function SignUp() {
     try {
       await register({
         fullName: form.fullName,
-        username: form.username,
         email: form.email,
         password: form.password,
         avatar,
@@ -142,20 +142,6 @@ export default function SignUp() {
               />
             </div>
 
-            {/* Username */}
-            <div>
-              <label htmlFor="username" className="block text-white/70 text-sm font-medium mb-1.5">Username</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm">@</span>
-                <input
-                  id="username" name="username" type="text"
-                  placeholder="aaravsharma"
-                  value={form.username} onChange={handleChange}
-                  className="w-full bg-white/5 border border-white/10 hover:border-white/20 focus:border-[#A6FF5D]/60 focus:outline-none text-white placeholder-white/15 rounded-xl pl-8 pr-4 py-3 text-sm transition-all duration-200 focus:bg-white/[0.07]"
-                />
-              </div>
-            </div>
-
             {/* Email */}
             <div>
               <label htmlFor="reg-email" className="block text-white/70 text-sm font-medium mb-1.5">Email</label>
@@ -183,6 +169,28 @@ export default function SignUp() {
                   <EyeIcon open={showPassword} />
                 </button>
               </div>
+
+              {/* Real-Time Password Policy Requirement Checklist */}
+              {form.password && (
+                <div className="mt-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-1 text-[11px] animate-fade-in">
+                  <p className="text-zinc-400 font-semibold mb-1 uppercase tracking-wider">Password Requirements:</p>
+                  <div className={`flex items-center gap-1.5 ${form.password.length >= 8 ? 'text-[#A6FF5D] font-bold' : 'text-zinc-500'}`}>
+                    <span>{form.password.length >= 8 ? '✓' : '•'}</span> At least 8 characters
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${/[A-Z]/.test(form.password) ? 'text-[#A6FF5D] font-bold' : 'text-zinc-500'}`}>
+                    <span>{/[A-Z]/.test(form.password) ? '✓' : '•'}</span> At least 1 uppercase letter (A-Z)
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${/[a-z]/.test(form.password) ? 'text-[#A6FF5D] font-bold' : 'text-zinc-500'}`}>
+                    <span>{/[a-z]/.test(form.password) ? '✓' : '•'}</span> At least 1 lowercase letter (a-z)
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${/[0-9]/.test(form.password) ? 'text-[#A6FF5D] font-bold' : 'text-zinc-500'}`}>
+                    <span>{/[0-9]/.test(form.password) ? '✓' : '•'}</span> At least 1 number (0-9)
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${/[@$!%*?&^#\-_+=~`]/.test(form.password) ? 'text-[#A6FF5D] font-bold' : 'text-zinc-500'}`}>
+                    <span>{/[@$!%*?&^#\-_+=~`]/.test(form.password) ? '✓' : '•'}</span> At least 1 special character (!@#$%^&*)
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Confirm Password */}

@@ -25,21 +25,27 @@ const Hero = () => {
 
       <div className="flex flex-col sm:flex-row items-center justify-center w-full sm:w-auto gap-3 mt-8 md:mt-5 animate-fade-in-up animate-delay-300">
         <Link to="/builder" className="w-full sm:w-auto">
-          <button className="w-full sm:w-auto bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-800 px-6 py-3 rounded-full text-sm font-semibold transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30 cursor-pointer group whitespace-nowrap">
+          <button className="w-full sm:w-auto bg-[#A6FF5D] hover:bg-[#b8ff7a] text-gray-950 px-6 py-3 rounded-full text-sm font-bold transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30 cursor-pointer group whitespace-nowrap border border-[#A6FF5D]">
             <div className="relative overflow-hidden">
               <span className="block transition-transform duration-200 group-hover:-translate-y-full">
-                Create Your Resume
+                Build Resume Now
               </span>
               <span className="absolute top-0 left-0 block transition-transform duration-200 group-hover:translate-y-0 translate-y-full">
-                Create Your Resume
+                Build Resume Now
               </span>
             </div>
           </button>
         </Link>
 
-        <Link to="/about" className="w-full sm:w-auto">
-          <button className="w-full sm:w-auto px-6 text-sm py-3 text-white rounded-full border border-white/25 bg-transparent cursor-pointer hover:bg-white/10 hover:scale-105 transition-smooth active:scale-100 whitespace-nowrap font-medium">
-            Learn More
+        <Link to="/templates" className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto px-6 text-sm py-3 text-white hover:text-[#A6FF5D] rounded-full border border-zinc-700 hover:border-[#A6FF5D]/60 bg-zinc-900/80 cursor-pointer hover:scale-105 transition-all duration-200 whitespace-nowrap font-semibold flex items-center justify-center gap-2">
+            <span>Browse Templates</span>
+          </button>
+        </Link>
+
+        <Link to="/ats-optimizer" className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto px-6 text-sm py-3 text-white hover:text-[#A6FF5D] rounded-full border border-zinc-700 hover:border-[#A6FF5D]/60 bg-zinc-900/80 cursor-pointer hover:scale-105 transition-all duration-200 whitespace-nowrap font-semibold flex items-center justify-center gap-2">
+            <span>ATS Matcher</span>
           </button>
         </Link>
       </div>

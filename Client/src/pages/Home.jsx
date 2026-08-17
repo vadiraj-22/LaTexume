@@ -1,8 +1,6 @@
 import React from 'react'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
-import ScrollDown from '../components/ScrollDown'
-import TrustedBy from '../components/TrustedBy'
 import ResumePreview from '../components/ResumePreview'
 import Features from '../components/Features'
 import FAQ from '../components/FAQ'
@@ -24,8 +22,6 @@ const Home = () => {
         <div className="flex-1 flex items-center justify-center w-full md:flex-initial">
           <Hero />
         </div>
-        <TrustedBy />
-        <ScrollDown />
       </header>
 
       <main>

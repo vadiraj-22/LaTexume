@@ -123,11 +123,11 @@ const Profile = () => {
               <span className="text-white/40 text-xs">Click photo to update avatar</span>
             </div>
 
-            {/* Username & Email Readonly Cards */}
+            {/* Full Name & Email Readonly Cards */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-                <span className="block text-[11px] text-white/40 font-medium">Username</span>
-                <span className="block text-sm font-semibold text-white/80 truncate">@{user?.username}</span>
+                <span className="block text-[11px] text-white/40 font-medium">Account Name</span>
+                <span className="block text-sm font-semibold text-white/80 truncate">{user?.fullName || 'User'}</span>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <span className="block text-[11px] text-white/40 font-medium">Email</span>

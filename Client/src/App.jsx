@@ -7,6 +7,9 @@ import About from './pages/About'
 import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import Profile from './pages/Profile'
+import Templates from './pages/Templates'
+import AtsOptimizer from './pages/AtsOptimizer'
+import PublicResume from './pages/PublicResume'
 
 /** Redirects unauthenticated users to /signin, preserving the intended destination */
 const ProtectedRoute = ({ children }) => {
@@ -41,8 +44,19 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/r/:id" element={<PublicResume />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+
+          {/* Protected: requires authentication */}
+          <Route
+            path="/templates"
+            element={
+              <ProtectedRoute>
+                <Templates />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Protected: requires authentication */}
           <Route
@@ -50,6 +64,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Builder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ats-optimizer"
+            element={
+              <ProtectedRoute>
+                <AtsOptimizer />
               </ProtectedRoute>
             }
           />

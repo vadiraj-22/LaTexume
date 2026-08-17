@@ -1,9 +1,15 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ResumeImporter from '../components/ResumeImporter'
 import SEO from '../components/SEO'
+import TemplateSelector from '../components/TemplateSelector'
+import BulletEnhancerModal from '../components/BulletEnhancerModal'
+import JdMatcherCard from '../components/JdMatcherCard'
+import SavedResumesModal from '../components/SavedResumesModal'
+import LatexPreviewDrawer from '../components/LatexPreviewDrawer'
+import RightPreviewPane from '../components/RightPreviewPane'
 
 const inputCls = "w-full bg-white/[0.04] text-white placeholder-white/15 text-sm sm:text-base px-4 py-3 rounded-xl border border-white/20 hover:bg-white/[0.08] hover:border-white/40 focus:bg-black/70 focus:border-[#A6FF5D] focus:ring-2 focus:ring-[#A6FF5D]/30 focus:shadow-[0_0_20px_rgba(166,255,93,0.15)] focus:outline-none transition-all duration-200"
 const cardCls = "bg-gray-950/70 backdrop-blur-xl p-5 sm:p-7 md:p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-2xl"
@@ -13,6 +19,7 @@ const removeBtnCls = "text-red-400 hover:text-red-300 hover:bg-red-500/15 border
 
 const Builder = () => {
   const [formData, setFormData] = useState({
+    templateId: 'jake',
     header: {
       name: '',
       phone: '',
@@ -48,16 +55,152 @@ const Builder = () => {
       startDate: '', 
       endDate: '' 
     }],
-    certifications: ['']
+    certifications: [''],
+    sectionOrder: ['objective', 'skills', 'experience', 'projects', 'education', 'certifications'],
   })
+
+  const moveSection = (sectionKey, direction) => {
+    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
+    const idx = currentOrder.indexOf(sectionKey)
+    if (idx === -1) return
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (targetIdx < 0 || targetIdx >= currentOrder.length) return
+
+    const updated = [...currentOrder]
+    const temp = updated[idx]
+    updated[idx] = updated[targetIdx]
+    updated[targetIdx] = temp
+
+    setFormData((prev) => ({ ...prev, sectionOrder: updated }))
+  }
+
+  const handleDragStartSection = (e, sectionKey) => {
+    e.dataTransfer.setData('text/plain', sectionKey)
+  }
+
+  const handleDropSection = (e, targetKey) => {
+    e.preventDefault()
+    const draggedKey = e.dataTransfer.getData('text/plain')
+    if (!draggedKey || draggedKey === targetKey) return
+
+    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
+    const draggedIdx = currentOrder.indexOf(draggedKey)
+    const targetIdx = currentOrder.indexOf(targetKey)
+    if (draggedIdx === -1 || targetIdx === -1) return
+
+    const updated = [...currentOrder]
+    updated.splice(draggedIdx, 1)
+    updated.splice(targetIdx, 0, draggedKey)
+
+    setFormData((prev) => ({ ...prev, sectionOrder: updated }))
+  }
 
   const [loading, setLoading] = useState(false)
   const [isImporterOpen, setIsImporterOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
+  const [activeEnhanceBullet, setActiveEnhanceBullet] = useState(null)
+  const [currentResumeId, setCurrentResumeId] = useState(null)
+  const [currentResumeTitle, setCurrentResumeTitle] = useState('')
+  const [isSavedResumesOpen, setIsSavedResumesOpen] = useState(false)
+  const [isPreviewDrawerOpen, setIsPreviewDrawerOpen] = useState(false)
+  const [searchParams] = useSearchParams()
+
+  // Sync template choice from URL parameter if present
+  useEffect(() => {
+    const tmpl = searchParams.get('template')
+    if (tmpl) {
+      setFormData((prev) => ({ ...prev, templateId: tmpl }))
+    }
+  }, [searchParams])
+
+  // Auto-save draft to localStorage on change
+  useEffect(() => {
+    if (formData.header.name || formData.header.email) {
+      localStorage.setItem('latexume_draft', JSON.stringify(formData))
+    }
+  }, [formData])
+
+  // Load local draft on mount if form is uninitialized
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('latexume_draft')
+    if (savedDraft) {
+      try {
+        const parsed = JSON.parse(savedDraft)
+        if (parsed.header && !formData.header.name && !formData.header.email) {
+          setFormData(parsed)
+        }
+      } catch (e) {
+        // Ignore JSON errors
+      }
+    }
+  }, [])
+
+  const handleSaveToCloud = async () => {
+    const defaultTitle = formData.header.name ? `${formData.header.name}'s Resume` : 'Untitled Resume'
+    const title = window.prompt('Enter a title for this resume draft:', currentResumeTitle || defaultTitle)
+
+    if (title === null) return
+
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    setLoading(true)
+
+    try {
+      const res = await fetch(`${API_URL}/api/v1/resumes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          resumeId: currentResumeId,
+          title,
+          templateId: formData.templateId || 'jake',
+          formData,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success && data.data) {
+        setCurrentResumeId(data.data._id)
+        setCurrentResumeTitle(data.data.title)
+        setToastMessage(`Resume "${data.data.title}" saved to Cloud!`)
+        setTimeout(() => setToastMessage(''), 5000)
+      } else {
+        alert(data.message || 'Could not save resume. Please sign in to save resumes to your account.')
+      }
+    } catch (err) {
+      alert('Network error saving resume to cloud.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLoadSavedResume = (loadedFormData, resumeId, title) => {
+    setFormData(loadedFormData)
+    setCurrentResumeId(resumeId)
+    setCurrentResumeTitle(title)
+    setToastMessage(`Loaded "${title}" into builder!`)
+    setTimeout(() => setToastMessage(''), 5000)
+  }
+
+  const handleAddSkillFromJd = (skillName) => {
+    const updatedSkills = [...formData.skills]
+    if (updatedSkills.length > 0) {
+      const existing = updatedSkills[0].skills
+      updatedSkills[0].skills = existing ? `${existing}, ${skillName}` : skillName
+    } else {
+      updatedSkills.push({ label: 'Skills', skills: skillName })
+    }
+    setFormData({ ...formData, skills: updatedSkills })
+    setToastMessage(`Added "${skillName}" to your Skills section!`)
+    setTimeout(() => setToastMessage(''), 4000)
+  }
 
   const handleImportData = (parsedData, mode = 'replace') => {
     if (mode === 'replace') {
-      setFormData(parsedData)
+      setFormData({
+        templateId: formData.templateId || 'jake',
+        ...parsedData,
+      })
     } else {
       setFormData((prev) => ({
         header: {
@@ -326,48 +469,112 @@ const Builder = () => {
         </div>
       )}
 
-      <main className="py-8 sm:py-12 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32">
-        <div className="max-w-4xl mx-auto">
-          {/* Toast Notification */}
-          {toastMessage && (
-            <div className="mb-6 p-4 bg-primary/10 border border-primary/40 rounded-2xl text-primary flex items-center justify-between animate-fade-in-down shadow-lg shadow-primary/10">
-              <div className="flex items-center gap-3 font-medium text-sm">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span>{toastMessage}</span>
-              </div>
-              <button onClick={() => setToastMessage('')} className="text-primary/70 hover:text-primary">
-                ✕
-              </button>
+      <main className="pt-4 sm:pt-6 pb-8 px-4 sm:px-6 md:px-8 lg:px-10 max-w-[1650px] mx-auto w-full">
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="mb-6 p-4 bg-primary/10 border border-primary/40 rounded-2xl text-primary flex items-center justify-between animate-fade-in-down shadow-lg shadow-primary/10">
+            <div className="flex items-center gap-3 font-medium text-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>{toastMessage}</span>
             </div>
-          )}
+            <button onClick={() => setToastMessage('')} className="text-primary/70 hover:text-primary">
+              ✕
+            </button>
+          </div>
+        )}
 
-          {/* Page Heading & Auto-fill Action */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 animate-fade-in-down">
-            <div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
-                Build Your LaTeX Resume
-              </h1>
-              <p className="text-gray-400 text-sm sm:text-lg">
-                Using Jake's Resume template - industry-standard LaTeX format trusted by tech professionals
-              </p>
-            </div>
+        {/* Page Heading & Action Toolbar */}
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 animate-fade-in-down">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              Build Your LaTeX Resume
+            </h1>
+            <p className="text-zinc-400 text-xs sm:text-sm mt-1">
+              Reorder sections via ⠿ Drag or ▲/▼ • Real-time side-by-side LaTeX preview
+            </p>
+          </div>
+
+          {/* Compact Action Toolbar (No empty bar gap) */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Template Switcher */}
+            <Link
+              to="/templates"
+              className="bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-500/30 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer group shadow-md"
+              title="Change resume template style"
+            >
+              <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h3a1 1 0 011 1v6a1 1 0 01-1 1h-3a1 1 0 01-1-1v-6z" />
+              </svg>
+              <span className="text-purple-300/70">Template:</span>
+              <span className="font-semibold text-white">
+                {formData.templateId === 'blueAccent' ? 'Blue Accent' : formData.templateId === 'classic' ? 'Classic Serif' : "Jake's Clean"}
+              </span>
+              <svg className="w-3.5 h-3.5 text-purple-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </Link>
+
+            {/* ATS Matcher */}
+            <Link
+              to="/ats-optimizer"
+              className="bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+              title="Target Job Description & ATS Optimizer"
+            >
+              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" strokeWidth="2" />
+                <circle cx="12" cy="12" r="4" strokeWidth="2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+              </svg>
+              <span>ATS Matcher</span>
+            </Link>
+
+            {/* Save Draft */}
+            <button
+              type="button"
+              onClick={handleSaveToCloud}
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+            >
+              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              <span>Save Draft</span>
+            </button>
+
+            {/* My Resumes */}
+            <button
+              type="button"
+              onClick={() => setIsSavedResumesOpen(true)}
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+            >
+              <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              <span>My Resumes</span>
+            </button>
+
+            {/* Auto-Fill */}
             <button
               type="button"
               onClick={() => setIsImporterOpen(true)}
-              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-gray-900 font-semibold px-5 py-3 rounded-2xl transition flex items-center justify-center gap-2 hover:scale-105 shadow-xl shadow-primary/20 whitespace-nowrap cursor-pointer"
+              className="bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-bold px-4 py-1.5 rounded-xl transition flex items-center gap-2 hover:scale-[1.02] active:scale-95 shadow-md shadow-[#A6FF5D]/20 whitespace-nowrap cursor-pointer text-xs sm:text-sm border border-[#A6FF5D]"
             >
-              <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span>✨ Auto-Fill from Old Resume</span>
+              <span>Auto-Fill</span>
             </button>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Header Information */}
-            <div className={cardCls + " animate-fade-in-up animate-delay-100"}>
+        {/* TRUE SIDE-BY-SIDE SPLIT VIEW */}
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+          {/* LEFT COLUMN: FORM INPUTS & REORDERABLE SECTIONS (Independently Scrollable) */}
+          <div className="w-full lg:w-[54%] xl:w-[56%] space-y-6 overflow-y-auto lg:max-h-[calc(100vh-80px)] pr-2 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Header Information (Fixed at top) */}
+              <div className={cardCls + " animate-fade-in-up animate-delay-100"}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -450,324 +657,371 @@ const Builder = () => {
               </div>
             </div>
 
-            {/* Objective */}
-            <div className={cardCls + " animate-fade-in-up animate-delay-200"}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Objective <span className="text-sm font-normal text-gray-400">(Optional)</span></h2>
-              </div>
-              <div>
-                <label className={labelCls}>Career Summary / Objective Statement</label>
-                <textarea
-                  placeholder="Results-driven Software Development Engineer with 3+ years of experience building high-performance web applications and scalable cloud microservices..."
-                  value={formData.objective}
-                  onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
-                  rows="4"
-                  className={inputCls + " resize-y min-h-[110px]"}
-                />
-              </div>
-            </div>
+            {/* Dynamic Reorderable Sections */}
+            {(formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']).map((key, index) => {
+              const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
+              
+              const SECTION_TITLES = {
+                objective: 'Objective',
+                skills: 'Technical Skills',
+                experience: 'Experience',
+                projects: 'Projects',
+                education: 'Education',
+                certifications: 'Certifications & Achievements',
+              }
 
-            {/* Skills */}
-            <div className={cardCls + " animate-fade-in-up animate-delay-300"}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Technical Skills <span className="text-red-400">*</span></h2>
-              </div>
-              <div className="space-y-4">
-                {formData.skills.map((skill, index) => (
-                  <div key={index} className="p-4 bg-white/[0.02] border border-white/10 rounded-2xl">
-                    <div className="flex items-end gap-3">
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                          <label className={labelCls}>Category Label</label>
-                          <input
-                            type="text"
-                            placeholder="Languages & Frameworks"
-                            value={skill.label}
-                            onChange={(e) => handleSkillChange(index, 'label', e.target.value)}
-                            className={inputCls}
-                          />
+              return (
+                <div
+                  key={key}
+                  draggable
+                  onDragStart={(e) => handleDragStartSection(e, key)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDropSection(e, key)}
+                  className={cardCls + " transition-all duration-200 border border-white/10 hover:border-emerald-500/30"}
+                >
+                  {/* Reorder Header */}
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-6 select-none">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-zinc-400 hover:text-white cursor-grab font-mono text-xs px-2.5 py-1 rounded bg-white/5 border border-white/10 transition flex items-center gap-1.5"
+                        title="Drag and drop to reorder section"
+                      >
+                        <span className="text-emerald-400">⠿</span>
+                        <span className="font-sans font-semibold">Drag Section</span>
+                      </span>
+                      <h2 className="text-xl sm:text-2xl font-bold text-white">
+                        {SECTION_TITLES[key]}
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => moveSection(key, 'up')}
+                        disabled={index === 0}
+                        className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1 rounded-lg border border-white/10 transition cursor-pointer"
+                        title="Move section up"
+                      >
+                        ▲ Up
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveSection(key, 'down')}
+                        disabled={index === currentOrder.length - 1}
+                        className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1 rounded-lg border border-white/10 transition cursor-pointer"
+                        title="Move section down"
+                      >
+                        ▼ Down
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* OBJECTIVE CARD */}
+                  {key === 'objective' && (
+                    <div>
+                      <label className={labelCls}>Career Summary / Objective Statement</label>
+                      <textarea
+                        placeholder="Results-driven Software Development Engineer with 3+ years of experience building high-performance web applications and scalable cloud microservices..."
+                        value={formData.objective}
+                        onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
+                        rows="4"
+                        className={inputCls + " resize-y min-h-[110px]"}
+                      />
+                    </div>
+                  )}
+
+                  {/* SKILLS CARD */}
+                  {key === 'skills' && (
+                    <div>
+                      <div className="space-y-4">
+                        {formData.skills.map((skill, skillIdx) => (
+                          <div key={skillIdx} className="p-4 bg-white/[0.02] border border-white/10 rounded-2xl">
+                            <div className="flex items-end gap-3">
+                              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                  <label className={labelCls}>Category Label</label>
+                                  <input
+                                    type="text"
+                                    placeholder="Languages & Frameworks"
+                                    value={skill.label}
+                                    onChange={(e) => handleSkillChange(skillIdx, 'label', e.target.value)}
+                                    className={inputCls}
+                                  />
+                                </div>
+                                <div className="sm:col-span-2">
+                                  <label className={labelCls}>Skills List (Comma-separated)</label>
+                                  <input
+                                    type="text"
+                                    placeholder="JavaScript, TypeScript, Python, C++, Java, React, Node.js"
+                                    value={skill.skills}
+                                    onChange={(e) => handleSkillChange(skillIdx, 'skills', e.target.value)}
+                                    className={inputCls}
+                                  />
+                                </div>
+                              </div>
+                              {formData.skills.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeSkill(skillIdx)}
+                                  className={removeBtnCls}
+                                  title="Delete skill category"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button" onClick={addSkill} className={addBtnCls}>
+                        <span>+ Add Skill Category</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* EXPERIENCE CARD */}
+                  {key === 'experience' && (
+                    <div>
+                      {formData.experience.map((exp, expIndex) => (
+                        <div key={expIndex} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
+                          <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                            <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Position #{expIndex + 1}</span>
+                            {formData.experience.length > 1 && (
+                              <button type="button" onClick={() => removeExperience(expIndex)} className={removeBtnCls} title="Delete experience">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className={labelCls}>Job Title</label>
+                              <input type="text" placeholder="Software Development Engineer" value={exp.title} onChange={(e) => handleExperienceChange(expIndex, 'title', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>Company</label>
+                              <input type="text" placeholder="Flipkart" value={exp.company} onChange={(e) => handleExperienceChange(expIndex, 'company', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>Location</label>
+                              <input type="text" placeholder="Bengaluru, Karnataka" value={exp.location} onChange={(e) => handleExperienceChange(expIndex, 'location', e.target.value)} className={inputCls} />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className={labelCls}>Start Date</label>
+                                <input type="text" placeholder="July 2022" value={exp.startDate} onChange={(e) => handleExperienceChange(expIndex, 'startDate', e.target.value)} className={inputCls} />
+                              </div>
+                              <div>
+                                <label className={labelCls}>End Date</label>
+                                <input type="text" placeholder="Present" value={exp.endDate} onChange={(e) => handleExperienceChange(expIndex, 'endDate', e.target.value)} className={inputCls} />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-3 pt-2">
+                            <label className={labelCls}>Key Responsibilities & Achievements</label>
+                            {exp.bullets.map((bullet, bulletIndex) => (
+                              <div key={bulletIndex} className="flex items-center gap-2">
+                                <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
+                                <input
+                                  type="text"
+                                  placeholder={`Architected microservices handling 1.5M+ daily requests using Node.js & Redis`}
+                                  value={bullet}
+                                  onChange={(e) => handleExperienceBulletChange(expIndex, bulletIndex, e.target.value)}
+                                  className={inputCls}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveEnhanceBullet({ section: 'experience', expIndex, bulletIndex, text: bullet, roleTitle: exp.title })}
+                                  className="text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-2.5 rounded-xl font-semibold transition shrink-0 cursor-pointer"
+                                  title="Polish bullet with AI"
+                                >
+                                  ✨ Polish
+                                </button>
+                                {exp.bullets.length > 1 && (
+                                  <button type="button" onClick={() => removeExperienceBullet(expIndex, bulletIndex)} className={removeBtnCls}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            <button type="button" onClick={() => addExperienceBullet(expIndex)} className="text-xs font-semibold text-[#A6FF5D] hover:underline transition flex items-center gap-1">
+                              + Add Bullet Point
+                            </button>
+                          </div>
                         </div>
-                        <div className="sm:col-span-2">
-                          <label className={labelCls}>Skills List (Comma-separated)</label>
-                          <input
-                            type="text"
-                            placeholder="JavaScript, TypeScript, Python, C++, Java, React, Node.js"
-                            value={skill.skills}
-                            onChange={(e) => handleSkillChange(index, 'skills', e.target.value)}
-                            className={inputCls}
-                          />
+                      ))}
+                      <button type="button" onClick={addExperience} className={addBtnCls}>
+                        <span>+ Add Experience Position</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* PROJECTS CARD */}
+                  {key === 'projects' && (
+                    <div>
+                      {formData.projects.map((proj, projIndex) => (
+                        <div key={projIndex} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
+                          <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                            <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Project #{projIndex + 1}</span>
+                            {formData.projects.length > 1 && (
+                              <button type="button" onClick={() => removeProject(projIndex)} className={removeBtnCls} title="Delete project">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className={labelCls}>Project Name</label>
+                              <input type="text" placeholder="LaTexume Website" value={proj.name} onChange={(e) => handleProjectChange(projIndex, 'name', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>Date / Duration</label>
+                              <input type="text" placeholder="Jan 2024" value={proj.date} onChange={(e) => handleProjectChange(projIndex, 'date', e.target.value)} className={inputCls} />
+                            </div>
+                          </div>
+                          <div>
+                            <label className={labelCls}>Technologies Used</label>
+                            <input type="text" placeholder="React.js, Node.js, Express, MongoDB, Tailwind CSS" value={proj.technologies} onChange={(e) => handleProjectChange(projIndex, 'technologies', e.target.value)} className={inputCls} />
+                          </div>
+                          <div className="space-y-3 pt-2">
+                            <label className={labelCls}>Project Highlights / Bullet Points</label>
+                            {proj.bullets.map((bullet, bulletIndex) => (
+                              <div key={bulletIndex} className="flex items-center gap-2">
+                                <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
+                                <input
+                                  type="text"
+                                  placeholder={`Developed responsive UI using React & Tailwind with 99.8% test coverage`}
+                                  value={bullet}
+                                  onChange={(e) => handleProjectBulletChange(projIndex, bulletIndex, e.target.value)}
+                                  className={inputCls}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveEnhanceBullet({ section: 'project', projIndex, bulletIndex, text: bullet, roleTitle: proj.name })}
+                                  className="text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-2.5 rounded-xl font-semibold transition shrink-0 cursor-pointer"
+                                  title="Polish bullet with AI"
+                                >
+                                  ✨ Polish
+                                </button>
+                                {proj.bullets.length > 1 && (
+                                  <button type="button" onClick={() => removeProjectBullet(projIndex, bulletIndex)} className={removeBtnCls}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            <button type="button" onClick={() => addProjectBullet(projIndex)} className="text-xs font-semibold text-[#A6FF5D] hover:underline transition flex items-center gap-1">
+                              + Add Detail
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className={labelCls}>Live Site Link</label>
+                              <input type="text" placeholder="https://latexume.vercel.app" value={proj.liveLink} onChange={(e) => handleProjectChange(projIndex, 'liveLink', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>GitHub Link</label>
+                              <input type="text" placeholder="https://github.com/aaravsharma/latexume" value={proj.githubLink} onChange={(e) => handleProjectChange(projIndex, 'githubLink', e.target.value)} className={inputCls} />
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      {formData.skills.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeSkill(index)}
-                          className={removeBtnCls}
-                          title="Delete skill category"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={addSkill}
-                className={addBtnCls}
-              >
-                <span>+ Add Skill Category</span>
-              </button>
-            </div>
-
-            {/* Experience */}
-            <div className={cardCls + " animate-fade-in-up animate-delay-400"}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Experience <span className="text-gray-400 text-sm font-normal">(Optional)</span></h2>
-              </div>
-              {formData.experience.map((exp, expIndex) => (
-                <div key={expIndex} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
-                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                    <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Position #{expIndex + 1}</span>
-                    {formData.experience.length > 1 && (
-                      <button type="button" onClick={() => removeExperience(expIndex)} className={removeBtnCls} title="Delete experience">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
+                      ))}
+                      <button type="button" onClick={addProject} className={addBtnCls}>
+                        <span>+ Add Project</span>
                       </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelCls}>Job Title</label>
-                      <input type="text" placeholder="Software Development Engineer" value={exp.title} onChange={(e) => handleExperienceChange(expIndex, 'title', e.target.value)} className={inputCls} />
                     </div>
-                    <div>
-                      <label className={labelCls}>Company</label>
-                      <input type="text" placeholder="Flipkart" value={exp.company} onChange={(e) => handleExperienceChange(expIndex, 'company', e.target.value)} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>Location</label>
-                      <input type="text" placeholder="Bengaluru, Karnataka" value={exp.location} onChange={(e) => handleExperienceChange(expIndex, 'location', e.target.value)} className={inputCls} />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className={labelCls}>Start Date</label>
-                        <input type="text" placeholder="July 2022" value={exp.startDate} onChange={(e) => handleExperienceChange(expIndex, 'startDate', e.target.value)} className={inputCls} />
-                      </div>
-                      <div>
-                        <label className={labelCls}>End Date</label>
-                        <input type="text" placeholder="Present" value={exp.endDate} onChange={(e) => handleExperienceChange(expIndex, 'endDate', e.target.value)} className={inputCls} />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-3 pt-2">
-                    <label className={labelCls}>Key Responsibilities & Achievements</label>
-                    {exp.bullets.map((bullet, bulletIndex) => (
-                      <div key={bulletIndex} className="flex items-center gap-2">
-                        <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
-                        <input
-                          type="text"
-                          placeholder={`Architected microservices handling 1.5M+ daily requests using Node.js & Redis`}
-                          value={bullet}
-                          onChange={(e) => handleExperienceBulletChange(expIndex, bulletIndex, e.target.value)}
-                          className={inputCls}
-                        />
-                        {exp.bullets.length > 1 && (
-                          <button type="button" onClick={() => removeExperienceBullet(expIndex, bulletIndex)} className={removeBtnCls}>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <button type="button" onClick={() => addExperienceBullet(expIndex)} className="text-xs font-semibold text-[#A6FF5D] hover:underline transition flex items-center gap-1">
-                      + Add Bullet Point
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <button type="button" onClick={addExperience} className={addBtnCls}>
-                <span>+ Add Experience Position</span>
-              </button>
-            </div>
+                  )}
 
-            {/* Projects */}
-            <div className={cardCls + " animate-fade-in-up animate-delay-500"}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Projects <span className="text-red-400">*</span></h2>
-              </div>
-              {formData.projects.map((proj, projIndex) => (
-                <div key={projIndex} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
-                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                    <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Project #{projIndex + 1}</span>
-                    {formData.projects.length > 1 && (
-                      <button type="button" onClick={() => removeProject(projIndex)} className={removeBtnCls} title="Delete project">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
+                  {/* EDUCATION CARD */}
+                  {key === 'education' && (
+                    <div>
+                      {formData.education.map((edu, eduIdx) => (
+                        <div key={eduIdx} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
+                          <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                            <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Education #{eduIdx + 1}</span>
+                            {formData.education.length > 1 && (
+                              <button type="button" onClick={() => removeEducation(eduIdx)} className={removeBtnCls} title="Delete education">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className={labelCls}>Institution Name</label>
+                              <input type="text" placeholder="Indian Institute of Technology (IIT), Bombay" value={edu.institution} onChange={(e) => handleEducationChange(eduIdx, 'institution', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>Location</label>
+                              <input type="text" placeholder="Mumbai, Maharashtra" value={edu.location} onChange={(e) => handleEducationChange(eduIdx, 'location', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>Degree</label>
+                              <input type="text" placeholder="Bachelor of Technology (B.Tech)" value={edu.degree} onChange={(e) => handleEducationChange(eduIdx, 'degree', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>Field of Study</label>
+                              <input type="text" placeholder="Computer Science and Engineering" value={edu.field} onChange={(e) => handleEducationChange(eduIdx, 'field', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>Start Date</label>
+                              <input type="text" placeholder="Aug 2020" value={edu.startDate} onChange={(e) => handleEducationChange(eduIdx, 'startDate', e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                              <label className={labelCls}>End Date</label>
+                              <input type="text" placeholder="May 2024" value={edu.endDate} onChange={(e) => handleEducationChange(eduIdx, 'endDate', e.target.value)} className={inputCls} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button type="button" onClick={addEducation} className={addBtnCls}>
+                        <span>+ Add Education</span>
                       </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelCls}>Project Name</label>
-                      <input type="text" placeholder="LaTexume Website" value={proj.name} onChange={(e) => handleProjectChange(projIndex, 'name', e.target.value)} className={inputCls} />
                     </div>
+                  )}
+
+                  {/* CERTIFICATIONS CARD */}
+                  {key === 'certifications' && (
                     <div>
-                      <label className={labelCls}>Date / Duration</label>
-                      <input type="text" placeholder="Jan 2024" value={proj.date} onChange={(e) => handleProjectChange(projIndex, 'date', e.target.value)} className={inputCls} />
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelCls}>Technologies Used</label>
-                    <input type="text" placeholder="React.js, Node.js, Express, MongoDB, Tailwind CSS" value={proj.technologies} onChange={(e) => handleProjectChange(projIndex, 'technologies', e.target.value)} className={inputCls} />
-                  </div>
-                  <div className="space-y-3 pt-2">
-                    <label className={labelCls}>Project Highlights / Bullet Points</label>
-                    {proj.bullets.map((bullet, bulletIndex) => (
-                      <div key={bulletIndex} className="flex items-center gap-2">
-                        <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
-                        <input
-                          type="text"
-                          placeholder={`Developed responsive UI using React & Tailwind with 99.8% test coverage`}
-                          value={bullet}
-                          onChange={(e) => handleProjectBulletChange(projIndex, bulletIndex, e.target.value)}
-                          className={inputCls}
-                        />
-                        {proj.bullets.length > 1 && (
-                          <button type="button" onClick={() => removeProjectBullet(projIndex, bulletIndex)} className={removeBtnCls}>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        )}
+                      <p className="text-xs sm:text-sm text-gray-400 mb-4">Add your certifications, honors, awards, or achievements as bullet points</p>
+                      <div className="space-y-3">
+                        {formData.certifications.map((cert, certIdx) => (
+                          <div key={certIdx} className="flex items-center gap-2">
+                            <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
+                            <input
+                              type="text"
+                              placeholder="AWS Certified Solutions Architect – Associate (2023)"
+                              value={cert}
+                              onChange={(e) => handleCertificationChange(certIdx, e.target.value)}
+                              className={inputCls}
+                            />
+                            {formData.certifications.length > 1 && (
+                              <button type="button" onClick={() => removeCertification(certIdx)} className={removeBtnCls} title="Delete certification">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <button type="button" onClick={() => addProjectBullet(projIndex)} className="text-xs font-semibold text-[#A6FF5D] hover:underline transition flex items-center gap-1">
-                      + Add Detail
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelCls}>Live Site Link</label>
-                      <input type="text" placeholder="https://latexume.vercel.app" value={proj.liveLink} onChange={(e) => handleProjectChange(projIndex, 'liveLink', e.target.value)} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>GitHub Link</label>
-                      <input type="text" placeholder="https://github.com/aaravsharma/latexume" value={proj.githubLink} onChange={(e) => handleProjectChange(projIndex, 'githubLink', e.target.value)} className={inputCls} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <button type="button" onClick={addProject} className={addBtnCls}>
-                <span>+ Add Project</span>
-              </button>
-            </div>
-
-            {/* Education */}
-            <div className={cardCls + " animate-fade-in-up animate-delay-600"}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Education <span className="text-red-400">*</span></h2>
-              </div>
-              {formData.education.map((edu, index) => (
-                <div key={index} className="mb-6 p-4 sm:p-5 bg-white/[0.02] border border-white/10 rounded-2xl space-y-4">
-                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                    <span className="text-xs font-semibold text-[#A6FF5D] uppercase tracking-wider">Education #{index + 1}</span>
-                    {formData.education.length > 1 && (
-                      <button type="button" onClick={() => removeEducation(index)} className={removeBtnCls} title="Delete education">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
+                      <button type="button" onClick={addCertification} className={addBtnCls}>
+                        <span>+ Add Certification / Achievement</span>
                       </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelCls}>Institution Name</label>
-                      <input type="text" placeholder="Indian Institute of Technology (IIT), Bombay" value={edu.institution} onChange={(e) => handleEducationChange(index, 'institution', e.target.value)} className={inputCls} />
                     </div>
-                    <div>
-                      <label className={labelCls}>Location</label>
-                      <input type="text" placeholder="Mumbai, Maharashtra" value={edu.location} onChange={(e) => handleEducationChange(index, 'location', e.target.value)} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>Degree</label>
-                      <input type="text" placeholder="Bachelor of Technology (B.Tech)" value={edu.degree} onChange={(e) => handleEducationChange(index, 'degree', e.target.value)} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>Field of Study</label>
-                      <input type="text" placeholder="Computer Science and Engineering" value={edu.field} onChange={(e) => handleEducationChange(index, 'field', e.target.value)} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>Start Date</label>
-                      <input type="text" placeholder="Aug 2020" value={edu.startDate} onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>End Date</label>
-                      <input type="text" placeholder="May 2024" value={edu.endDate} onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)} className={inputCls} />
-                    </div>
-                  </div>
+                  )}
                 </div>
-              ))}
-              <button type="button" onClick={addEducation} className={addBtnCls}>
-                <span>+ Add Education</span>
-              </button>
-            </div>
-
-            {/* Certifications */}
-            <div className={cardCls + " animate-fade-in-up animate-delay-700"}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-[#A6FF5D]/15 border border-[#A6FF5D]/30 flex items-center justify-center text-[#A6FF5D] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Certifications & Achievements <span className="text-red-400">*</span></h2>
-              </div>
-              <p className="text-xs sm:text-sm text-gray-400 mb-4">Add your certifications, honors, awards, or achievements as bullet points</p>
-              <div className="space-y-3">
-                {formData.certifications.map((cert, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
-                    <input
-                      type="text"
-                      placeholder="AWS Certified Solutions Architect – Associate (2023)"
-                      value={cert}
-                      onChange={(e) => handleCertificationChange(index, e.target.value)}
-                      className={inputCls}
-                    />
-                    {formData.certifications.length > 1 && (
-                      <button type="button" onClick={() => removeCertification(index)} className={removeBtnCls} title="Delete certification">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <button type="button" onClick={addCertification} className={addBtnCls}>
-                <span>+ Add Certification / Achievement</span>
-              </button>
-            </div>
+              )
+            })}
 
             {/* Submit Button */}
             <div className="flex justify-center animate-fade-in-up pt-4">
@@ -791,7 +1045,13 @@ const Builder = () => {
             </div>
           </form>
         </div>
-      </main>
+
+        {/* RIGHT COLUMN: STICKY REAL-TIME PDF & LATEX PREVIEW */}
+        <div className="w-full lg:w-[46%] xl:w-[44%] sticky top-24 self-start">
+          <RightPreviewPane formData={formData} />
+        </div>
+      </div>
+    </main>
 
       <Footer />
 
@@ -799,6 +1059,33 @@ const Builder = () => {
         isOpen={isImporterOpen}
         onClose={() => setIsImporterOpen(false)}
         onImportData={handleImportData}
+      />
+
+      <SavedResumesModal
+        isOpen={isSavedResumesOpen}
+        onClose={() => setIsSavedResumesOpen(false)}
+        onLoadResume={handleLoadSavedResume}
+      />
+
+      <BulletEnhancerModal
+        isOpen={!!activeEnhanceBullet}
+        initialBullet={activeEnhanceBullet?.text || ''}
+        roleTitle={activeEnhanceBullet?.roleTitle || ''}
+        onClose={() => setActiveEnhanceBullet(null)}
+        onApply={(appliedText) => {
+          if (!activeEnhanceBullet) return
+          if (activeEnhanceBullet.section === 'experience') {
+            handleExperienceBulletChange(activeEnhanceBullet.expIndex, activeEnhanceBullet.bulletIndex, appliedText)
+          } else if (activeEnhanceBullet.section === 'project') {
+            handleProjectBulletChange(activeEnhanceBullet.projIndex, activeEnhanceBullet.bulletIndex, appliedText)
+          }
+        }}
+      />
+
+      <LatexPreviewDrawer
+        isOpen={isPreviewDrawerOpen}
+        onClose={() => setIsPreviewDrawerOpen(false)}
+        formData={formData}
       />
     </div>
   )

@@ -13,7 +13,8 @@ try {
   console.warn('[ResumeParser] pdfjs-dist import warning:', e.message)
 }
 
-const GEMINI_MODELS = ['gemini-2.0-flash']
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-3.1-pro-preview']
+const GROQ_MODELS = ['groq/compound', 'groq/compound-mini', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b']
 
 const GEMINI_JSON_SCHEMA = {
   type: 'object',
@@ -103,8 +104,8 @@ export async function parseResume({ fileBuffer, resumeText }) {
     resumeText = ''
   }
 
-  const geminiKey = process.env.GEMINI_API_KEY
-  const groqKey = process.env.GROQ_API_KEY
+  const groqKeys = (process.env.GROQ_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean)
+  const geminiKeys = (process.env.GEMINI_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean)
   let aiError = null
   let retryAfterSeconds = null
 
@@ -122,8 +123,8 @@ export async function parseResume({ fileBuffer, resumeText }) {
 
   rawText = rawText.replace(/\r\n/g, '\n').trim()
 
-  // 2. Try Groq AI on text first (Fastest, 14,400 free requests/day)
-  if (groqKey && groqKey.trim()) {
+  // 2. Try Groq AI keys sequentially
+  for (const groqKey of groqKeys) {
     try {
       console.log('[ResumeParser] Trying Groq AI (Llama 3.3 70B)...')
       const aiResult = await parseWithGroq(rawText, groqKey)
@@ -133,24 +134,24 @@ export async function parseResume({ fileBuffer, resumeText }) {
     } catch (err) {
       const isQuota = err.message?.includes('429') || err.message?.includes('rate_limit')
       const msg = isQuota ? 'Rate Limit' : err.message?.split('\n')[0]
-      console.warn(`[ResumeParser] Groq AI failed: ${msg}`)
+      console.warn(`[ResumeParser] Groq AI key failed: ${msg}`)
       aiError = `Groq AI Error: ${msg}`
       const match = err.message?.match(/try again in ([\d.]+)s/i)
       retryAfterSeconds = match ? Math.ceil(parseFloat(match[1])) : 60
     }
   }
 
-  // 3. Try Gemini AI as fallback (on PDF if available, else text)
-  if (geminiKey && geminiKey.trim()) {
+  // 3. Try Gemini AI keys as fallback
+  for (const geminiKey of geminiKeys) {
     try {
       if (fileBuffer) {
-        console.log('[ResumeParser] Groq failed/skipped. Trying Gemini AI on PDF...')
+        console.log('[ResumeParser] Trying Gemini AI on PDF...')
         const aiResult = await parsePdfWithGemini(fileBuffer, geminiKey)
         if (aiResult) {
           return { data: sanitizeParsedData(aiResult), isAiParsed: true, aiProvider: 'Gemini' }
         }
       } else {
-        console.log('[ResumeParser] Groq failed/skipped. Trying Gemini AI on text...')
+        console.log('[ResumeParser] Trying Gemini AI on text...')
         const aiResult = await parseWithGemini(rawText, geminiKey)
         if (aiResult) {
           return { data: sanitizeParsedData(aiResult), isAiParsed: true, aiProvider: 'Gemini' }
@@ -159,11 +160,9 @@ export async function parseResume({ fileBuffer, resumeText }) {
     } catch (err) {
       const isQuota = err.message?.includes('429') || err.message?.includes('Quota')
       const msg = isQuota ? 'Rate Limit (429)' : err.message?.split('\n')[0]
-      console.warn(`[ResumeParser] Gemini AI fallback failed: ${msg}`)
-      
-      // Override aiError only if Groq didn't already set a rate limit error we want to track
+      console.warn(`[ResumeParser] Gemini AI key failed: ${msg}`)
       if (!aiError || !aiError.includes('Groq')) {
-        aiError = 'Gemini AI Rate Limit Exceeded (429)'
+        aiError = `Gemini AI Error: ${msg}`
         const match = err.message?.match(/retry in ([\d.]+)s/i)
         retryAfterSeconds = match ? Math.ceil(parseFloat(match[1])) : 60
       }
@@ -413,32 +412,40 @@ FIELD EXTRACTION RULES:
 - DATES: Use the exact format from the resume. Prefer "Mon YYYY" format.
 - LINKS: Extract ALL URLs (portfolio, live demo, github, linkedin, leetcode, etc.)`
 
-  console.log('[ResumeParser] Calling Groq llama-3.3-70b-versatile...')
-  const completion = await groq.chat.completions.create({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Extract ALL data from this resume. Do not skip any bullet points or achievements:\n\n${text}` },
-    ],
-    model: 'llama-3.3-70b-versatile',
-    response_format: {
-      type: 'json_object',
-    },
-    temperature: 0,
-    max_tokens: 8192,
-  })
+  let lastErr = null
 
-  const responseText = completion.choices[0]?.message?.content
-  if (!responseText) {
-    throw new Error('Groq returned empty response')
+  for (const modelName of GROQ_MODELS) {
+    try {
+      console.log(`[ResumeParser] Calling Groq ${modelName}...`)
+      const completion = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Extract ALL data from this resume. Do not skip any bullet points or achievements:\n\n${text}` },
+        ],
+        model: modelName,
+        response_format: {
+          type: 'json_object',
+        },
+        temperature: 0,
+        max_tokens: 8192,
+      })
+
+      const responseText = completion.choices[0]?.message?.content
+      if (!responseText) {
+        throw new Error('Groq returned empty response')
+      }
+
+      console.log(`[ResumeParser] Groq AI response received successfully with ${modelName} ✅`)
+      const parsed = JSON.parse(responseText)
+      console.log(`[ResumeParser] Groq extracted: ${parsed.experience?.length || 0} experience, ${parsed.projects?.length || 0} projects, ${parsed.education?.length || 0} education, ${parsed.certifications?.length || 0} certifications, ${parsed.skills?.length || 0} skill categories`)
+      return parsed
+    } catch (err) {
+      console.warn(`[ResumeParser] Groq model ${modelName} failed:`, err.message?.split('\n')[0])
+      lastErr = err
+    }
   }
 
-  console.log('[ResumeParser] Groq AI response received successfully ✅')
-  const parsed = JSON.parse(responseText)
-
-  // Log extraction summary for debugging
-  console.log(`[ResumeParser] Groq extracted: ${parsed.experience?.length || 0} experience, ${parsed.projects?.length || 0} projects, ${parsed.education?.length || 0} education, ${parsed.certifications?.length || 0} certifications, ${parsed.skills?.length || 0} skill categories`)
-
-  return parsed
+  throw lastErr || new Error('All Groq model attempts failed')
 }
 
 function parseWithRules(text) {

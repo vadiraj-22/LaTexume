@@ -22,17 +22,32 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 // ─── POST /api/v1/users/register ────────────────────────────────────────────
 const registerUser = asyncHandler(async (req, res) => {
-  const { fullName, email, username, password } = req.body
+  const { fullName, email, password } = req.body
 
   // Validate required fields
-  if ([fullName, email, username, password].some((field) => !field?.trim())) {
+  if ([fullName, email, password].some((field) => !field?.trim())) {
     throw new ApiError(400, 'All fields are required')
   }
 
+  // Strong Password Policy Validation:
+  // At least 8 chars, 1 uppercase (A-Z), 1 lowercase (a-z), 1 number (0-9), 1 special character (@$!%*?&^#\-_+=~`)
+  const hasMinLength = password.length >= 8
+  const hasUpper = /[A-Z]/.test(password)
+  const hasLower = /[a-z]/.test(password)
+  const hasNumber = /[0-9]/.test(password)
+  const hasSpecial = /[@$!%*?&^#\-_+=~`]/.test(password)
+
+  if (!hasMinLength || !hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+    throw new ApiError(
+      400,
+      'Password must be at least 8 characters long and include an uppercase letter (A-Z), a lowercase letter (a-z), a number (0-9), and a special character (!@#$%^&*).'
+    )
+  }
+
   // Check if user already exists
-  const existedUser = await User.findOne({ $or: [{ username }, { email }] })
+  const existedUser = await User.findOne({ email: email.toLowerCase() })
   if (existedUser) {
-    throw new ApiError(409, 'User with this email or username already exists')
+    throw new ApiError(409, 'User with this email already exists')
   }
 
   // Handle optional avatar upload
@@ -46,9 +61,8 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     fullName,
     avatar: avatarUrl,
-    email,
+    email: email.toLowerCase(),
     password,
-    username: username.toLowerCase(),
   })
 
   const createdUser = await User.findById(user._id).select('-password -refreshToken')
@@ -64,17 +78,17 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // ─── POST /api/v1/users/login ────────────────────────────────────────────────
 const loginUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body
+  const { email, password } = req.body
 
-  if (!(username || email)) {
-    throw new ApiError(400, 'Username or email is required')
+  if (!email) {
+    throw new ApiError(400, 'Email is required')
   }
 
   if (!password) {
     throw new ApiError(400, 'Password is required')
   }
 
-  const user = await User.findOne({ $or: [{ username }, { email }] })
+  const user = await User.findOne({ email: email.toLowerCase() })
 
   if (!user) {
     throw new ApiError(404, 'User does not exist')

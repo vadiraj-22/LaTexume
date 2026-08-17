@@ -18,18 +18,20 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar matching dark UI theme */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: #09090b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 5px;
+  background: #27272a;
+  border-radius: 9999px;
+  border: 1px solid #18181b;
 }
 
 ::-webkit-scrollbar-thumb:hover {

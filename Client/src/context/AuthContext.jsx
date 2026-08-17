@@ -32,12 +32,11 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Register a new user.
-   * @param {{ fullName, username, email, password, avatar?: File }} payload
+   * @param {{ fullName, email, password, avatar?: File }} payload
    */
   const register = async (payload) => {
     const formData = new FormData()
     formData.append('fullName', payload.fullName)
-    formData.append('username', payload.username)
     formData.append('email', payload.email)
     formData.append('password', payload.password)
     if (payload.avatar) formData.append('avatar', payload.avatar)
@@ -56,19 +55,14 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Log in an existing user.
-   * @param {{ usernameOrEmail, password }} payload
+   * @param {{ email, password }} payload
    */
-  const login = async ({ usernameOrEmail, password }) => {
-    const isEmail = usernameOrEmail.includes('@')
-    const body = isEmail
-      ? { email: usernameOrEmail, password }
-      : { username: usernameOrEmail, password }
-
+  const login = async ({ email, password }) => {
     const res = await fetch(`${API_BASE}/api/v1/users/login`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ email, password }),
     })
 
     const data = await res.json()

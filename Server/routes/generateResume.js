@@ -8,13 +8,18 @@ router.post('/', async (req, res, next) => {
   try {
     const data = req.body
 
-    // Validate required fields
-    if (!data?.header?.name?.trim() || !data?.header?.email?.trim()) {
-      return res.status(400).json({ message: 'Missing required fields: name, email' })
+    // Ensure fallback header values so preview compilation never fails
+    const payload = {
+      ...data,
+      header: {
+        ...data?.header,
+        name: data?.header?.name?.trim() || 'Your Name',
+        email: data?.header?.email?.trim() || 'your.email@example.com',
+      },
     }
 
     // Generate .tex source from resume data
-    const texSource = templateEngine(data)
+    const texSource = templateEngine(payload)
 
     // Compile .tex to PDF
     const pdfBuffer = await compileTex(texSource)
@@ -23,6 +28,19 @@ router.post('/', async (req, res, next) => {
     res.set('Content-Type', 'application/pdf')
     res.set('Content-Disposition', 'attachment; filename="resume.pdf"')
     res.send(pdfBuffer)
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * Endpoint to get raw LaTeX (.tex) source string
+ */
+router.post('/tex', async (req, res, next) => {
+  try {
+    const data = req.body
+    const texSource = templateEngine(data)
+    res.json({ success: true, texSource })
   } catch (err) {
     next(err)
   }

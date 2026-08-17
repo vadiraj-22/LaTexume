@@ -5,7 +5,9 @@ import cookieParser from 'cookie-parser'
 import connectDB from './src/db/db.js'
 import generateResumeRouter from './routes/generateResume.js'
 import parseResumeRouter from './routes/parseResume.js'
+import aiRouter from './routes/ai.routes.js'
 import userRouter from './src/routes/user.routes.js'
+import resumeRouter from './src/routes/resume.routes.js'
 
 const app = express()
 const PORT = process.env.PORT ?? 3000
@@ -38,7 +40,9 @@ app.get('/health', (_req, res) => {
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/generate-resume', generateResumeRouter) // PDF generation
 app.use('/api/parse-resume', parseResumeRouter)       // Resume parsing & auto-fill
+app.use('/api/ai', aiRouter)                           // AI Optimization (Bullet Polish & JD Matcher)
 app.use('/api/v1/users', userRouter)                  // Auth (register / login / logout / me)
+app.use('/api/v1/resumes', resumeRouter)               // Resume Persistence (Save/Load/Delete)
 
 // ─── Global error handler ────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
