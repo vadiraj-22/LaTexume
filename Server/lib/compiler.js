@@ -22,38 +22,52 @@ export async function compileTex(texSource) {
 }
 
 /**
- * Compiles LaTeX using the latexonline.cc API
+ * Compiles LaTeX using resilient online APIs (latex.ytotech.com & latexonline.cc)
  */
 async function compileOnline(texSource) {
-  // Use latex.ytotech.com (free, no auth needed)
-  const response = await fetch('https://latex.ytotech.com/builds/sync', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      compiler: 'pdflatex',
-      resources: [
-        {
-          main: true,
-          content: texSource,
-        },
-      ],
-    }),
-  })
+  // Primary: latex.ytotech.com
+  try {
+    const response = await fetch('https://latex.ytotech.com/builds/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        compiler: 'pdflatex',
+        resources: [
+          {
+            main: true,
+            content: texSource,
+          },
+        ],
+      }),
+    })
 
-  if (!response.ok) {
-    const text = await response.text()
-    throw new Error(`Online LaTeX API error (${response.status}): ${text.slice(0, 300)}`)
+    if (response.ok) {
+      const arrayBuffer = await response.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      if (buffer.length > 100 && buffer.toString('utf8', 0, 4) === '%PDF') {
+        return buffer
+      }
+    }
+  } catch (err) {
+    console.warn('ytotech online LaTeX compiler failed:', err.message)
   }
 
-  const arrayBuffer = await response.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
-
-  // Verify it's a valid PDF (starts with %PDF)
-  if (buffer.length < 100 || buffer.toString('utf8', 0, 4) !== '%PDF') {
-    throw new Error('Online API returned invalid PDF')
+  // Secondary Fallback: latexonline.cc
+  try {
+    const url = `https://latexonline.cc/compile?text=${encodeURIComponent(texSource)}`
+    const response = await fetch(url)
+    if (response.ok) {
+      const arrayBuffer = await response.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+      if (buffer.length > 100 && buffer.toString('utf8', 0, 4) === '%PDF') {
+        return buffer
+      }
+    }
+  } catch (err) {
+    console.warn('latexonline.cc compiler failed:', err.message)
   }
 
-  return buffer
+  throw new Error('All online LaTeX compiler APIs failed')
 }
 
 /**

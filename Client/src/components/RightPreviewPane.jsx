@@ -247,11 +247,13 @@ export default function RightPreviewPane({ formData }) {
             )}
 
             {pdfUrl && (
-              <iframe
-                src={`${pdfUrl}#view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
-                className="w-full h-full rounded-xl border-0 bg-zinc-900"
-                title="LaTeX Resume PDF Preview"
-              />
+              <div className="w-full h-full rounded-xl overflow-hidden relative bg-zinc-900 flex justify-center items-center">
+                <iframe
+                  src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                  className="min-w-[calc(100%+32px)] w-[calc(100%+32px)] -mr-[32px] h-full border-0 bg-zinc-900"
+                  title="LaTeX Resume PDF Preview"
+                />
+              </div>
             )}
           </div>
         )}

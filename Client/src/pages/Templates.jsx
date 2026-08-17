@@ -54,23 +54,23 @@ const SAMPLE_RESUME_DATA = {
     name: 'Alex Rivera',
     email: 'alex.rivera@example.com',
     phone: '+1 (555) 019-2834',
-    linkedin: 'linkedin.com/in/alexrivera',
-    github: 'github.com/alexrivera',
-    portfolio: 'alexrivera.dev',
+    linkedin: 'https://linkedin.com/in/alexrivera',
+    github: 'https://github.com/alexrivera',
+    portfolio: 'https://alexrivera.dev',
     location: 'San Francisco, CA',
   },
-  objective: 'Senior Full Stack & Cloud Systems Engineer with 6+ years of experience building high-throughput microservices, real-time web architectures, and AI-driven platforms. Proven track record scaling applications to millions of active users.',
+  objective: 'Senior Full Stack Engineer with 6+ years of experience architecting scalable cloud microservices, real-time web applications, and AI platforms. Proven track record driving performance optimizations for high-throughput distributed systems.',
   sectionOrder: ['skills', 'experience', 'projects', 'education', 'certifications'],
   skills: [
-    { category: 'Languages', items: 'TypeScript, JavaScript, Python, Go, Java, SQL, HTML5/CSS3' },
-    { category: 'Frameworks & Frontend', items: 'React, Next.js, Redux, TailwindCSS, Vue.js, GraphQL, REST APIs' },
-    { category: 'Backend & Cloud', items: 'Node.js, Express, FastAPI, PostgreSQL, MongoDB, Docker, AWS, Redis' },
-    { category: 'Developer Tools', items: 'Git, GitHub Actions, CI/CD Pipelines, Jest, Vite, Linux, NGINX, LaTeX' },
+    { label: 'Languages', skills: 'TypeScript, JavaScript, Python, Go, Java, SQL, HTML5/CSS3' },
+    { label: 'Frontend', skills: 'React, Next.js, Redux, TailwindCSS, Vue.js, GraphQL, REST APIs' },
+    { label: 'Backend & Cloud', skills: 'Node.js, Express, FastAPI, PostgreSQL, MongoDB, Docker, AWS, Redis' },
+    { label: 'Developer Tools', skills: 'Git, GitHub Actions, CI/CD, Jest, Vite, Linux, NGINX, LaTeX' },
   ],
   experience: [
     {
       company: 'Apex Cloud Systems',
-      position: 'Senior Full Stack Engineer',
+      title: 'Senior Full Stack Engineer',
       location: 'San Francisco, CA',
       startDate: 'Jun 2022',
       endDate: 'Present',
@@ -82,7 +82,7 @@ const SAMPLE_RESUME_DATA = {
     },
     {
       company: 'Nexus Tech Labs',
-      position: 'Software Engineer',
+      title: 'Software Engineer',
       location: 'San Jose, CA',
       startDate: 'Jul 2020',
       endDate: 'May 2022',
@@ -96,9 +96,10 @@ const SAMPLE_RESUME_DATA = {
   projects: [
     {
       name: 'LaTexume Platform',
-      tech: 'React, Node.js, Express, LaTeX Engine, Docker, MongoDB',
+      technologies: 'React, Node.js, Express, Docker, MongoDB',
       date: '2024',
-      link: 'github.com/alexrivera/latexume',
+      liveLink: 'https://latexume.vercel.app',
+      githubLink: 'https://github.com/alexrivera/latexume',
       bullets: [
         'Built open-source LaTeX resume generator with live PDF preview, ATS keyword matching, and AI bullet optimization.',
         'Containerized LaTeX compilation environment in Docker to achieve sub-second PDF generation speeds across 100,000+ downloads.',
@@ -106,9 +107,10 @@ const SAMPLE_RESUME_DATA = {
     },
     {
       name: 'Distributed Vector DB Visualizer',
-      tech: 'Python, FastAPI, React, D3.js, Vector Embeddings',
+      technologies: 'Python, FastAPI, React, D3.js, Embeddings',
       date: '2023',
-      link: 'github.com/alexrivera/vector-viz',
+      liveLink: 'https://vectorviz.dev',
+      githubLink: 'https://github.com/alexrivera/vector-viz',
       bullets: [
         'Created interactive 3D spatial visualization tool for high-dimensional vector embeddings, adopted by 3,000+ ML developers.',
       ],
@@ -116,8 +118,9 @@ const SAMPLE_RESUME_DATA = {
   ],
   education: [
     {
-      school: 'University of California, Berkeley',
-      degree: 'B.S. in Computer Science & Engineering (GPA: 3.89 / 4.0)',
+      institution: 'University of California, Berkeley',
+      degree: 'B.S. in Computer Science & Engineering',
+      field: 'GPA: 3.89 / 4.0',
       location: 'Berkeley, CA',
       startDate: 'Aug 2016',
       endDate: 'May 2020',
@@ -131,7 +134,7 @@ const SAMPLE_RESUME_DATA = {
     },
     {
       name: 'Certified Kubernetes Application Developer (CKAD)',
-      issuer: 'Cloud Native Computing Foundation (CNCF)',
+      issuer: 'Cloud Native Computing Foundation',
       date: '2022',
     },
   ],
@@ -142,36 +145,64 @@ export default function Templates() {
   const [selectedTemplateId, setSelectedTemplateId] = useState('jake')
   const [previewPdfUrl, setPreviewPdfUrl] = useState('')
   const [loadingPreview, setLoadingPreview] = useState(false)
+  const [previewError, setPreviewError] = useState(false)
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   const selectedTemplate = TEMPLATES.find((t) => t.id === selectedTemplateId) || TEMPLATES[0]
 
-  useEffect(() => {
-    let isMounted = true
-    const fetchSamplePdf = async () => {
-      setLoadingPreview(true)
+  const getPayloadData = () => {
+    let baseData = SAMPLE_RESUME_DATA
+    const savedDraft = localStorage.getItem('latexume_draft')
+    if (savedDraft) {
       try {
-        const response = await fetch(`${API_URL}/api/generate-resume`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...SAMPLE_RESUME_DATA, templateId: selectedTemplateId }),
-        })
-        if (response.ok && isMounted) {
-          const blob = await response.blob()
-          const url = window.URL.createObjectURL(blob)
-          setPreviewPdfUrl(url)
+        const parsed = JSON.parse(savedDraft)
+        if (parsed?.header?.name || parsed?.experience?.length > 0) {
+          baseData = parsed
         }
       } catch (e) {
-        console.warn('Failed to load sample preview:', e)
-      } finally {
-        if (isMounted) setLoadingPreview(false)
+        console.warn('Draft parse error:', e)
       }
     }
 
-    fetchSamplePdf()
-    return () => {
-      isMounted = false
+    return {
+      ...baseData,
+      header: {
+        ...baseData?.header,
+        phone: baseData?.header?.phone ? '+1 (555) 000-0000' : '',
+        email: baseData?.header?.email ? 'user@example.com' : '',
+        location: baseData?.header?.location ? 'City, State' : '',
+      },
+      templateId: selectedTemplateId,
     }
+  }
+
+  const fetchSamplePdf = async () => {
+    setLoadingPreview(true)
+    setPreviewError(false)
+    try {
+      const payload = getPayloadData()
+      const response = await fetch(`${API_URL}/api/generate-resume`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        setPreviewPdfUrl(url)
+      } else {
+        setPreviewError(true)
+      }
+    } catch (e) {
+      console.warn('Failed to load sample preview:', e)
+      setPreviewError(true)
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchSamplePdf()
   }, [selectedTemplateId])
 
   const handleUseTemplate = (templateId) => {
@@ -196,9 +227,9 @@ export default function Templates() {
       />
       <Navbar />
 
-      <main className="flex-1 pt-36 sm:pt-40 pb-16 px-4 sm:px-8 md:px-12 lg:px-16 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 pt-36 sm:pt-40 pb-16 px-4 sm:px-8 md:px-12 lg:px-16 max-w-7xl mx-auto w-full flex flex-col items-center">
         {/* Header */}
-        <div className="text-center space-y-3 mb-10 animate-fade-in-down">
+        <div className="text-center space-y-3 mb-10 animate-fade-in-down w-full max-w-3xl mx-auto flex flex-col items-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 text-[#A6FF5D] text-xs font-semibold uppercase tracking-wider">
             <span>📄 LaTeX Resume Styles</span>
           </div>
@@ -210,130 +241,121 @@ export default function Templates() {
           </p>
         </div>
 
-        {/* Split View: Template Selectors on Left, Live PDF Preview on Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT: Selectable Template Cards (5 Columns) */}
+        {/* Split View: Compact Template Selectors on Left, Live PDF Preview on Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+          {/* LEFT: Compact Square Template Cards (5 Columns on Desktop) */}
           <div className="lg:col-span-5 space-y-4">
-            {TEMPLATES.map((tmpl) => {
-              const isSelected = selectedTemplateId === tmpl.id
-              return (
-                <div
-                  key={tmpl.id}
-                  onClick={() => setSelectedTemplateId(tmpl.id)}
-                  className={`bg-zinc-950 p-5 sm:p-6 rounded-3xl border transition-all duration-200 shadow-xl cursor-pointer relative group ${
-                    isSelected
-                      ? 'border-[#A6FF5D] ring-2 ring-[#A6FF5D]/40 bg-zinc-900/90'
-                      : 'border-zinc-800 hover:border-zinc-700 bg-zinc-950/80'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full border ${tmpl.badgeColor}`}>
-                      {tmpl.badge}
-                    </span>
-                    {isSelected ? (
-                      <span className="text-xs font-bold text-black bg-[#A6FF5D] px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
-                        ✓ Selected
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                Select Style ({TEMPLATES.length})
+              </span>
+              <span className="text-xs text-[#A6FF5D] font-semibold">
+                Click card to preview →
+              </span>
+            </div>
+
+            {/* Compact Grid of Small Square Cards */}
+            <div className="grid grid-cols-2 gap-3.5">
+              {TEMPLATES.map((tmpl) => {
+                const isSelected = selectedTemplateId === tmpl.id
+                return (
+                  <div
+                    key={tmpl.id}
+                    onClick={() => setSelectedTemplateId(tmpl.id)}
+                    className={`bg-zinc-950 p-3 rounded-2xl border transition-all duration-200 shadow-lg cursor-pointer relative group flex flex-col justify-between ${
+                      isSelected
+                        ? 'border-[#A6FF5D] ring-2 ring-[#A6FF5D]/40 bg-zinc-900/90 scale-[1.02]'
+                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 hover:scale-[1.01]'
+                    }`}
+                  >
+                    {/* Compact Card Header */}
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${tmpl.badgeColor}`}>
+                        {tmpl.badge}
                       </span>
-                    ) : (
-                      <span className="text-xs font-mono text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800">
-                        {tmpl.atsScore}
-                      </span>
-                    )}
-                  </div>
+                      {isSelected && (
+                        <span className="text-[9px] font-extrabold text-black bg-[#A6FF5D] px-2 py-0.5 rounded-full">
+                          ✓ Active
+                        </span>
+                      )}
+                    </div>
 
-                  <h2 className="text-xl font-bold text-white mb-1 group-hover:text-[#A6FF5D] transition">
-                    {tmpl.name}
-                  </h2>
-                  <p className="text-xs text-zinc-400 font-medium mb-2">{tmpl.tagline}</p>
-                  
-                  {/* High-Fidelity Document Visual Screenshot Mockup Thumbnail */}
-                  <div className="w-full h-44 bg-white/95 rounded-2xl p-3.5 text-gray-900 shadow-inner overflow-hidden relative group/thumb border border-zinc-700/50 my-3 transition-transform duration-200 group-hover:scale-[1.01]">
-                    {tmpl.id === 'jake' && (
-                      <div className="space-y-1.5 text-[8px] font-sans">
-                        <div className="text-center pb-1 border-b border-gray-300">
-                          <h4 className="font-extrabold text-[10px] text-gray-900 tracking-tight">JAKE R. ENGINEER</h4>
-                          <p className="text-[6.5px] text-gray-600">jake@example.com • +1 (555) 019-2834 • github.com/jake</p>
+                    {/* Small Miniature Document Preview Box */}
+                    <div className="w-full h-28 bg-white/95 rounded-xl p-2 text-gray-900 shadow-inner overflow-hidden relative border border-zinc-700/40 my-1 group-hover:border-zinc-500 transition-colors">
+                      {tmpl.id === 'jake' && (
+                        <div className="space-y-1 text-[6.5px] font-sans">
+                          <div className="text-center pb-0.5 border-b border-gray-300">
+                            <h4 className="font-extrabold text-[8px] text-gray-900">JAKE R. ENGINEER</h4>
+                            <p className="text-[5.5px] text-gray-500">jake@example.com • github.com/jake</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-[6.5px] uppercase border-b border-gray-800 pb-0.5">EDUCATION</p>
+                            <div className="flex justify-between font-semibold text-[6px]"><span>B.S. CS — UC Berkeley</span><span>2018–2022</span></div>
+                          </div>
+                          <div>
+                            <p className="font-bold text-[6.5px] uppercase border-b border-gray-800 pb-0.5 mt-0.5">EXPERIENCE</p>
+                            <div className="flex justify-between font-bold text-[6px]"><span>SWE — Google</span><span>2022–Pres</span></div>
+                            <p className="text-[5.5px] text-gray-600 truncate">• Cloud microservices serving 10M+ users.</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-[8px] uppercase tracking-wider text-gray-900 border-b border-gray-900 pb-0.5">EDUCATION</p>
-                          <div className="flex justify-between font-semibold mt-0.5 text-[7.5px]"><span>B.S. Computer Science — UC Berkeley</span><span>2018 – 2022</span></div>
-                        </div>
-                        <div>
-                          <p className="font-bold text-[8px] uppercase tracking-wider text-gray-900 border-b border-gray-900 pb-0.5 mt-0.5">EXPERIENCE</p>
-                          <div className="flex justify-between font-bold text-gray-800 text-[7.5px]"><span>Software Engineer — Google</span><span>2022 – Present</span></div>
-                          <ul className="list-disc pl-2.5 text-[7px] text-gray-600 space-y-0.5">
-                            <li>Architected cloud microservices serving 10M+ daily active requests.</li>
-                            <li>Optimized database queries, reducing API latency by 35%.</li>
-                          </ul>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {tmpl.id === 'blueAccent' && (
-                      <div className="space-y-1.5 text-[8px] font-sans">
-                        <div className="text-center pb-1 border-b border-blue-200 bg-blue-50/50 -m-3.5 p-2.5 mb-1.5">
-                          <h4 className="font-extrabold text-[10px] text-blue-950 tracking-tight">ALEX RIVERA</h4>
-                          <p className="text-[6.5px] text-blue-700">alex@tech.dev • sf, ca • linkedin.com/in/alex</p>
+                      {tmpl.id === 'blueAccent' && (
+                        <div className="space-y-1 text-[6.5px] font-sans">
+                          <div className="text-center pb-0.5 border-b border-blue-200 bg-blue-50/50 -m-2 p-1.5 mb-1">
+                            <h4 className="font-extrabold text-[8px] text-blue-950">ALEX RIVERA</h4>
+                            <p className="text-[5.5px] text-blue-700">alex@tech.dev • sf, ca</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-[6.5px] uppercase text-blue-800 border-b border-blue-200 pb-0.5">SKILLS</p>
+                            <p className="text-[5.5px] text-gray-700 truncate"><span className="font-semibold text-blue-900">Tech:</span> React, TS, Python, AWS</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-[6.5px] uppercase text-blue-800 border-b border-blue-200 pb-0.5 mt-0.5">EXPERIENCE</p>
+                            <div className="flex justify-between font-bold text-[6px]"><span>Senior SWE — Apex Cloud</span><span>2022–Pres</span></div>
+                            <p className="text-[5.5px] text-gray-600 truncate">• Built Node.js microservices.</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-[8px] uppercase tracking-wider text-blue-800 border-b border-blue-200 pb-0.5">TECHNICAL SKILLS</p>
-                          <p className="text-[7px] text-gray-700 mt-0.5"><span className="font-semibold text-blue-900">Languages:</span> TypeScript, Python, React, Node.js, AWS</p>
-                        </div>
-                        <div>
-                          <p className="font-bold text-[8px] uppercase tracking-wider text-blue-800 border-b border-blue-200 pb-0.5 mt-0.5">EXPERIENCE</p>
-                          <div className="flex justify-between font-bold text-gray-900 text-[7.5px]"><span>Lead Fullstack Dev — Vercel</span><span>2021 – Present</span></div>
-                          <ul className="list-disc pl-2.5 text-[7px] text-gray-600 space-y-0.5">
-                            <li>Built high-concurrency edge infrastructure with 99.99% uptime.</li>
-                          </ul>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {tmpl.id === 'classic' && (
-                      <div className="space-y-1.5 text-[8px] font-serif">
-                        <div className="text-center pb-1 border-b border-gray-400">
-                          <h4 className="font-bold text-[10px] text-gray-900 tracking-wide font-serif">VICTORIA STERLING</h4>
-                          <p className="text-[6.5px] text-gray-600 italic">v.sterling@executive.com • +1 555 234 5678</p>
+                      {tmpl.id === 'classic' && (
+                        <div className="space-y-1 text-[6.5px] font-serif">
+                          <div className="text-center pb-0.5 border-b border-gray-400">
+                            <h4 className="font-bold text-[8.5px] text-gray-900 tracking-wider">ELIZABETH MORGAN</h4>
+                            <p className="text-[5.5px] text-gray-600 italic">Senior Tech Director • NYC</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-[6.5px] uppercase tracking-widest text-gray-900 border-b border-gray-400 pb-0.5">SUMMARY</p>
+                            <p className="text-[5.5px] text-gray-700 italic truncate">Engineering Leader with 10+ years...</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-[6.5px] uppercase tracking-widest text-gray-900 border-b border-gray-400 pb-0.5 mt-0.5">EXPERIENCE</p>
+                            <div className="flex justify-between font-bold text-[6px]"><span>VP Eng — Enterprise Corp</span><span>2019–Pres</span></div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-[8px] uppercase tracking-widest text-gray-800 border-b border-gray-700 pb-0.5 font-serif">EXECUTIVE PROFILE</p>
-                          <p className="text-[7px] text-gray-700 leading-tight italic">Engineering Leader with 10+ years directing multi-disciplinary tech organizations.</p>
-                        </div>
-                        <div>
-                          <p className="font-bold text-[8px] uppercase tracking-widest text-gray-800 border-b border-gray-700 pb-0.5 mt-0.5 font-serif">EXPERIENCE</p>
-                          <div className="flex justify-between font-bold text-gray-900 text-[7.5px]"><span>VP of Engineering — Enterprise Corp</span><span>2019 – Present</span></div>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="bg-[#A6FF5D] text-black font-bold text-[10px] px-3 py-1 rounded-full shadow-lg">
-                        Click to Preview Live PDF
+                    {/* Compact Bottom Label */}
+                    <div className="mt-1.5 pt-1.5 border-t border-zinc-900 flex items-center justify-between">
+                      <h3 className="text-xs font-bold text-white truncate group-hover:text-[#A6FF5D] transition">
+                        {tmpl.name}
+                      </h3>
+                      <span className="text-[9px] font-mono text-zinc-500">
+                        {tmpl.atsScore.split(' ')[0]}
                       </span>
                     </div>
                   </div>
+                )
+              })}
+            </div>
 
-                  <p className="text-xs text-zinc-300 leading-relaxed mb-4">{tmpl.description}</p>
-
-                  <div className="pt-3 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
-                    <div>
-                      <span className="text-zinc-500">Font:</span> <span className="text-zinc-200 font-semibold">{tmpl.font}</span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-500">Accent:</span> <span className="text-zinc-200 font-semibold">{tmpl.accent}</span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* Launch Builder Hero Action */}
-            <div className="pt-2">
+            {/* Launch Builder Action */}
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={() => handleUseTemplate(selectedTemplateId)}
-                className="w-full bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold py-4 px-6 rounded-2xl transition-all duration-200 shadow-xl shadow-[#A6FF5D]/20 hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center justify-center gap-2 text-base border border-[#A6FF5D]"
+                className="w-full bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold py-3.5 px-5 rounded-2xl shadow-xl shadow-[#A6FF5D]/20 text-sm flex items-center justify-center gap-2 border border-[#A6FF5D] transition cursor-pointer hover:scale-[1.01] active:scale-95"
               >
                 <span>Use {selectedTemplate.name} in Builder →</span>
               </button>
@@ -353,21 +375,35 @@ export default function Templates() {
             </div>
 
             <div className="flex-1 bg-zinc-900 rounded-2xl overflow-hidden relative flex flex-col justify-center items-center border border-zinc-800">
-              {loadingPreview && (
-                <div className="absolute inset-0 z-10 bg-zinc-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
-                  <div className="w-7 h-7 border-2 border-[#A6FF5D] border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-zinc-300 font-medium animate-pulse">Rendering {selectedTemplate.name} sample PDF...</p>
+              {loadingPreview ? (
+                <div className="absolute inset-0 z-10 bg-zinc-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 border-2 border-[#A6FF5D] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-zinc-300 font-medium animate-pulse">
+                    Compiling {selectedTemplate.name} sample PDF...
+                  </p>
                 </div>
-              )}
-
-              {previewPdfUrl ? (
-                <iframe
-                  src={`${previewPdfUrl}#view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
-                  className="w-full h-full rounded-xl border-0 bg-zinc-900"
-                  title="Template Sample PDF Preview"
-                />
+              ) : previewPdfUrl ? (
+                <div className="w-full h-full rounded-xl overflow-hidden relative bg-zinc-900 flex justify-center items-center">
+                  <iframe
+                    src={`${previewPdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                    className="min-w-[calc(100%+32px)] w-[calc(100%+32px)] -mr-[32px] h-full border-0 bg-zinc-900"
+                    title="Template Sample PDF Preview"
+                  />
+                </div>
               ) : (
-                <p className="text-xs text-zinc-500">Loading sample preview...</p>
+                <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
+                  <span className="text-2xl">⚠️</span>
+                  <p className="text-xs text-zinc-400 font-medium">
+                    Unable to load online preview right now
+                  </p>
+                  <button
+                    type="button"
+                    onClick={fetchSamplePdf}
+                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold border border-zinc-700 transition"
+                  >
+                    🔄 Retry Live Preview
+                  </button>
+                </div>
               )}
             </div>
           </div>

@@ -121,35 +121,39 @@ const Navbar = () => {
           width="100%"
           height="auto"
           borderRadius={expanded ? 16 : scrolled ? 9999 : 0}
-          brightness={scrolled ? 0 : 45}
+          brightness={0}
           opacity={1.0}
-          blur={20}
-          displace={scrolled ? 0 : 12}
-          backgroundOpacity={scrolled ? 1.0 : 0.2}
-          saturation={1.0}
-          distortionScale={scrolled ? 0 : -120}
+          blur={30}
+          displace={0}
+          backgroundOpacity={scrolled ? 0.9 : 0.75}
+          saturation={1.2}
+          distortionScale={0}
           redOffset={0}
           greenOffset={0}
           blueOffset={0}
-          className={`transition-all duration-300 ease-in-out ${scrolled ? 'bg-black shadow-2xl border border-zinc-800' : ''}`}
+          className={`transition-all duration-300 ease-in-out backdrop-blur-xl ${
+            scrolled
+              ? 'bg-black/90 shadow-2xl border border-zinc-800'
+              : 'bg-zinc-900/80 border-b border-zinc-800/80'
+          }`}
         >
           {/* ── Navbar content ── */}
           <div
-            className={`relative flex items-center transition-all duration-300 ease-in-out ${
+            className={`relative flex items-center justify-between w-full h-full min-h-[64px] transition-all duration-300 ease-in-out ${
               expanded 
-                ? 'justify-between px-5 py-3' 
+                ? 'px-5 py-3' 
                 : scrolled
-                ? 'justify-between px-8 py-3'
-                : 'justify-between px-8 md:px-12 lg:px-16 py-4'
+                ? 'px-8 py-3'
+                : 'px-8 md:px-12 lg:px-16 py-3.5'
             }`}
           >
             {/* LEFT — Logo */}
-            <Link to="/" className="shrink-0 transition-opacity duration-200 hover:opacity-80 z-10">
+            <Link to="/" className="shrink-0 flex items-center transition-opacity duration-200 hover:opacity-80 z-10">
               <Logo />
             </Link>
 
             {/* CENTER — Nav links */}
-            <div className="hidden md:flex items-center gap-6 lg:gap-8 transition-all duration-300 ease-in-out">
+            <div className="hidden md:flex items-center justify-center gap-6 lg:gap-8 transition-all duration-300 ease-in-out">
               <NavLink to="/builder" active={isActive('/builder')}>Builder</NavLink>
               <NavLink to="/templates" active={isActive('/templates')}>Templates</NavLink>
               <NavLink to="/ats-optimizer" active={isActive('/ats-optimizer')}>ATS Matcher</NavLink>
@@ -158,25 +162,25 @@ const Navbar = () => {
 
             {/* RIGHT — Auth section */}
             {isAuthenticated ? (
-              <div className={`relative z-10 ${expanded ? 'hidden' : 'hidden md:block'}`} ref={userMenuRef}>
+              <div className={`relative z-10 flex items-center ${expanded ? 'hidden' : 'hidden md:flex'}`} ref={userMenuRef}>
                 <button
                   id="user-avatar-btn"
                   onClick={() => setUserMenuOpen((v) => !v)}
-                  className="flex items-center gap-2.5 px-2.5 py-1 rounded-full group hover:bg-white/10 border border-transparent hover:border-white/10 transition-all duration-200 hover:scale-[1.03] active:scale-95"
+                  className="flex items-center justify-center gap-2.5 px-2.5 py-1 rounded-full group hover:bg-white/10 border border-transparent hover:border-white/10 transition-all duration-200 hover:scale-[1.03] active:scale-95"
                   aria-label="User menu"
                 >
                   {user?.avatar ? (
                     <img
                       src={user.avatar}
                       alt={user.fullName}
-                      className="w-8 h-8 rounded-full object-cover border border-white/20 group-hover:border-[#A6FF5D] group-hover:shadow-[0_0_12px_rgba(166,255,93,0.35)] transition-all duration-200"
+                      className="w-8 h-8 rounded-full object-cover border border-white/20 group-hover:border-[#A6FF5D] group-hover:shadow-[0_0_12px_rgba(166,255,93,0.35)] transition-all duration-200 shrink-0"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-[#A6FF5D]/20 border border-[#A6FF5D]/40 group-hover:border-[#A6FF5D] group-hover:shadow-[0_0_12px_rgba(166,255,93,0.35)] flex items-center justify-center text-[#A6FF5D] font-semibold text-sm transition-all duration-200">
+                    <div className="w-8 h-8 rounded-full bg-[#A6FF5D]/20 border border-[#A6FF5D]/40 group-hover:border-[#A6FF5D] group-hover:shadow-[0_0_12px_rgba(166,255,93,0.35)] flex items-center justify-center text-[#A6FF5D] font-semibold text-sm transition-all duration-200 shrink-0">
                       {userInitial}
                     </div>
                   )}
-                  <span className="text-white/80 group-hover:text-[#A6FF5D] text-sm font-medium transition-colors duration-200 max-w-[140px] truncate">
+                  <span className="text-white/80 group-hover:text-[#A6FF5D] text-sm font-medium leading-none flex items-center transition-colors duration-200 max-w-[140px] truncate">
                     {user?.fullName || 'User'}
                   </span>
                   <svg
@@ -187,7 +191,7 @@ const Navbar = () => {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth={2.5}
-                    className={`text-white/40 group-hover:text-[#A6FF5D] transition-all duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
+                    className={`shrink-0 text-white/40 group-hover:text-[#A6FF5D] transition-all duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>

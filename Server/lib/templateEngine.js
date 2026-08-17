@@ -252,7 +252,7 @@ function buildBlueHeader(header = {}) {
 function buildBlueObjective(objective = '') {
   if (!objective?.trim()) return ''
   return `\\section{\\color{BlueViolet} Objective}
-\\begin{itemize}[leftmargin=*]
+\\begin{itemize}[leftmargin=0.15in, label={}]
   \\item\\small{${escapeLatex(objective)}}
 \\end{itemize}`
 }
@@ -357,13 +357,14 @@ function buildBlueCertifications(certifications = []) {
       return ''
     })
     .filter(c => c?.trim())
-    .map(c => `\\item {${escapeLatex(c)}}`)
-    .join('\n\\vspace{-5pt}\n')
+    .map(c => `  \\resumeItemSimple{${escapeLatex(c)}}`)
+    .join('\n')
 
   if (!entries) return ''
 
   return `\\section{\\color{BlueViolet} Certifications}
-\\begin{description}[font=$\\bullet$]
+\\resumeSubHeadingListStart
 ${entries}
-\\end{description}`
+\\resumeSubHeadingListEnd
+\\vspace{-2pt}`
 }
