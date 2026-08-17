@@ -2,13 +2,14 @@ import React from 'react'
 
 const Logo = () => {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2.5 sm:gap-3">
       <svg
-        width="40"
-        height="40"
+        width="36"
+        height="36"
         viewBox="0 0 40 40"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        className="w-8 h-8 sm:w-10 sm:h-10 shrink-0"
       >
         {/* Document with code brackets */}
         <rect
@@ -64,10 +65,10 @@ const Logo = () => {
         />
       </svg>
       <div className="flex flex-col leading-tight">
-        <span className="text-xl font-bold text-white">
-          La<span className="text-primary">Texume</span>
+        <span className="text-lg sm:text-xl font-bold text-white tracking-tight">
+          La<span className="text-[#A6FF5D]">Texume</span>
         </span>
-        <span className="text-[10px] text-gray-400 -mt-1">LaTeX-Powered ATS Resume</span>
+        <span className="text-[10px] text-gray-400 -mt-0.5 hidden md:block truncate">LaTeX-Powered ATS Resume</span>
       </div>
     </div>
   )
