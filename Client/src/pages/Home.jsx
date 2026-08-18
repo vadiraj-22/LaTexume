@@ -17,7 +17,7 @@ const Home = () => {
         canonicalPath="/"
       />
 
-      <header className="bg-transparent text-white flex flex-col items-center min-h-screen md:min-h-0 md:pb-10 pt-20 sm:pt-24">
+      <header className="bg-transparent text-white flex flex-col items-center md:pb-6 pt-28 sm:pt-32 md:pt-20">
         <Navbar />
         <div className="flex-1 flex items-center justify-center w-full md:flex-initial">
           <Hero />

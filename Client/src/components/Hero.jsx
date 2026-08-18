@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 
 const Hero = () => {
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 py-10 md:py-16">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 py-8 sm:py-10 md:py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
         
         {/* LEFT COLUMN: Left-Aligned Headline & Actions */}
-        <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6 animate-fade-in-up">
+        <div className="lg:col-span-7 flex flex-col items-start text-left space-y-7 sm:space-y-8 animate-fade-in-up">
           
           {/* Status Badge */}
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-zinc-900/90 border border-zinc-800 backdrop-blur-md shadow-lg">
@@ -21,57 +21,57 @@ const Hero = () => {
           </div>
 
           {/* Main Title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[58px]/[68px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[50px]/[58px] font-extrabold text-white tracking-tight leading-[1.18] sm:leading-[1.14] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
             LaTeX-powered resumes that pass ATS &amp; get you hired.
           </h1>
 
           {/* Description */}
-          <p className="text-base sm:text-lg text-zinc-100 max-w-2xl font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+          <p className="text-sm sm:text-base text-zinc-200 max-w-xl font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
             Build recruiter-approved software engineering resumes using Jake's Resume LaTeX template. 
             Instant online compilation, real-time ATS match scoring, and zero LaTeX knowledge required.
           </p>
 
-          {/* Action Group: Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-2 w-full sm:w-auto">
+          {/* Action Group: Buttons (Stacked on mobile with clean vertical gaps) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-4.5 pt-4 sm:pt-5 w-full sm:w-auto">
             <Link to="/builder" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black px-7 py-3.5 rounded-full text-sm font-extrabold transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-[#A6FF5D]/25 cursor-pointer border border-[#A6FF5D] flex items-center justify-center gap-2">
+              <button className="w-full sm:w-auto bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black px-7 py-3.5 rounded-full text-sm sm:text-base font-extrabold transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-[#A6FF5D]/25 cursor-pointer border border-[#A6FF5D] flex items-center justify-center gap-2">
                 <span>Build Resume Now</span>
                 <span className="text-base">→</span>
               </button>
             </Link>
 
             <Link to="/templates" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-6 py-3.5 text-sm text-zinc-200 hover:text-white rounded-full border border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 cursor-pointer hover:scale-105 transition-all duration-200 whitespace-nowrap font-semibold flex items-center justify-center gap-2">
+              <button className="w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base text-zinc-200 hover:text-white rounded-full border border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 cursor-pointer hover:scale-105 transition-all duration-200 whitespace-nowrap font-semibold flex items-center justify-center gap-2">
                 <span>Browse Templates</span>
               </button>
             </Link>
 
             <Link to="/ats-optimizer" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-6 py-3.5 text-sm text-zinc-200 hover:text-white rounded-full border border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 cursor-pointer hover:scale-105 transition-all duration-200 whitespace-nowrap font-semibold flex items-center justify-center gap-2">
+              <button className="w-full sm:w-auto px-6 py-3.5 text-sm sm:text-base text-zinc-200 hover:text-white rounded-full border border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 cursor-pointer hover:scale-105 transition-all duration-200 whitespace-nowrap font-semibold flex items-center justify-center gap-2">
                 <span>ATS Matcher</span>
               </button>
             </Link>
           </div>
 
           {/* Metric Highlights */}
-          <div className="grid grid-cols-3 gap-6 pt-6 border-t border-zinc-800/80 w-full max-w-lg text-left">
+          <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-7 sm:pt-8 mt-6 sm:mt-8 border-t border-zinc-800/80 w-full max-w-lg text-left">
             <div>
-              <span className="block text-xl sm:text-2xl font-extrabold text-white drop-shadow">99/100</span>
-              <span className="block text-xs text-zinc-300 font-medium mt-0.5 drop-shadow">ATS Match Rate</span>
+              <span className="block text-xl sm:text-2xl md:text-3xl font-extrabold text-white drop-shadow">99/100</span>
+              <span className="block text-xs sm:text-sm text-zinc-300 font-medium mt-0.5 drop-shadow">ATS Match Rate</span>
             </div>
             <div>
-              <span className="block text-xl sm:text-2xl font-extrabold text-[#A6FF5D] drop-shadow">0.4s</span>
-              <span className="block text-xs text-zinc-300 font-medium mt-0.5 drop-shadow">PDF Compilation</span>
+              <span className="block text-xl sm:text-2xl md:text-3xl font-extrabold text-[#A6FF5D] drop-shadow">0.4s</span>
+              <span className="block text-xs sm:text-sm text-zinc-300 font-medium mt-0.5 drop-shadow">PDF Compilation</span>
             </div>
             <div>
-              <span className="block text-xl sm:text-2xl font-extrabold text-white drop-shadow">100%</span>
-              <span className="block text-xs text-zinc-300 font-medium mt-0.5 drop-shadow">Free &amp; Open Source</span>
+              <span className="block text-xl sm:text-2xl md:text-3xl font-extrabold text-white drop-shadow">100%</span>
+              <span className="block text-xs sm:text-sm text-zinc-300 font-medium mt-0.5 drop-shadow">Free &amp; Open Source</span>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Modern Visual Mockup Card */}
-        <div className="lg:col-span-5 relative w-full flex items-center justify-center animate-fade-in mt-6 lg:mt-0">
+        {/* RIGHT COLUMN: Modern Visual Mockup Card (Generous top margin on mobile) */}
+        <div className="lg:col-span-5 relative w-full flex items-center justify-center animate-fade-in mt-16 sm:mt-20 lg:mt-0">
           
           {/* Subtle Glow background */}
           <div className="absolute -inset-4 bg-[#A6FF5D]/10 rounded-3xl blur-3xl pointer-events-none" />

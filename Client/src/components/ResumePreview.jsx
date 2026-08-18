@@ -68,146 +68,110 @@ const ResumePreview = () => {
   ]
 
   return (
-    <section className="py-12 sm:py-20 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32 bg-gray-900/30">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8 sm:mb-12 animate-fade-in-up">
+    <section className="py-12 sm:py-20 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 bg-gray-900/30">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Section Header */}
+        <div className="text-center mb-10 sm:mb-14 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 text-[#A6FF5D] text-xs font-semibold uppercase tracking-wider mb-4">
+            Structured Layout
+          </div>
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3">
             Your Resume Structure
           </h2>
           <p className="text-gray-400 text-sm sm:text-lg max-w-2xl mx-auto">
-            See how your information will be organized in the professional LaTeX format
+            See how your information is seamlessly organized in the industry-standard LaTeX format
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          {/* Left Side - Resume Preview */}
-          <div className="lg:sticky lg:top-24 animate-fade-in-left animate-delay-100 flex justify-center w-full">
-            <div className="bg-white/5 backdrop-blur p-3.5 sm:p-5 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-500 hover-lift max-w-sm sm:max-w-[400px] w-full">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg sm:text-xl font-semibold text-white">Preview</h3>
-                <span className="text-xs text-primary bg-primary/10 px-3 py-1 rounded-full animate-pulse-slow">
-                  LaTeX Format
-                </span>
+        {/* Symmetrical Centered 50/50 Grid Container */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-14 lg:gap-12 items-start w-full max-w-6xl mx-auto">
+          
+          {/* LEFT SIDE: Resume Preview (Centered in Left 50% Column on desktop, Order 2 on mobile) */}
+          <div className="w-full lg:sticky lg:top-24 animate-fade-in-left flex justify-center order-2 lg:order-1">
+            <div className="relative w-full max-w-[520px] bg-zinc-950/90 border border-zinc-800/90 rounded-3xl p-4 sm:p-6 shadow-2xl backdrop-blur-xl hover:border-[#A6FF5D]/30 transition-all duration-500 hover-glow">
+              {/* Subtle Glow background */}
+              <div className="absolute -inset-4 bg-[#A6FF5D]/10 rounded-3xl blur-3xl pointer-events-none" />
+
+              {/* Mockup Window Controls Header */}
+              <div className="relative flex items-center justify-between border-b border-zinc-800/80 pb-3.5 mb-5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                  <span className="text-[11px] text-zinc-400 font-mono ml-2 hidden sm:inline">jake_resume.tex</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-[11px] text-zinc-400 font-mono hidden md:inline">pdflatex • 0.4s</span>
+                  <span className="text-[10px] font-extrabold text-black bg-[#A6FF5D] px-2.5 py-0.5 rounded-full shadow-md">
+                    ⚡ Live Render
+                  </span>
+                </div>
               </div>
-              
+
               {/* Resume Preview Image */}
-              <div className="bg-white rounded-lg p-4 shadow-2xl">
-                <div className="aspect-[8.5/11] bg-white rounded overflow-hidden border border-gray-200">
-                  <img 
-                    src="/myresume.png" 
-                    alt="Resume Preview - LaTeX ATS Format" 
-                    loading="lazy"
-                    className="w-full h-full object-cover object-top"
-                    onError={(e) => {
-                      // Fallback to placeholder if image fails to load
-                      e.target.style.display = 'none';
+              <div className="relative bg-white rounded-2xl overflow-hidden shadow-2xl border border-zinc-200 w-full">
+                <img 
+                  src="/myresume.png" 
+                  alt="Resume Preview - LaTeX ATS Format" 
+                  loading="lazy"
+                  className="w-full h-auto object-cover object-top block rounded-2xl"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    if (e.target.nextElementSibling) {
                       e.target.nextElementSibling.style.display = 'block';
-                    }}
-                  />
-                  {/* Fallback skeleton if image doesn't load */}
-                  <div style={{ display: 'none' }}>
-                    {/* Header */}
-                    <div className="text-center py-4 border-b border-gray-300">
-                      <div className="h-6 bg-gray-800 w-48 mx-auto mb-2 rounded"></div>
-                      <div className="h-2 bg-gray-400 w-64 mx-auto rounded"></div>
-                    </div>
-                    
-                    {/* Objective */}
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <div className="h-3 bg-gray-700 w-24 mb-2 rounded"></div>
-                      <div className="h-2 bg-gray-300 w-full mb-1 rounded"></div>
-                      <div className="h-2 bg-gray-300 w-5/6 rounded"></div>
-                    </div>
-                    
-                    {/* Skills */}
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <div className="h-3 bg-gray-700 w-32 mb-2 rounded"></div>
-                      <div className="space-y-1">
-                        <div className="h-2 bg-gray-300 w-full rounded"></div>
-                        <div className="h-2 bg-gray-300 w-4/5 rounded"></div>
-                      </div>
-                    </div>
-                    
-                    {/* Experience */}
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <div className="h-3 bg-gray-700 w-28 mb-2 rounded"></div>
-                      <div className="flex justify-between mb-1">
-                        <div className="h-2 bg-gray-600 w-32 rounded"></div>
-                        <div className="h-2 bg-gray-400 w-24 rounded"></div>
-                      </div>
-                      <div className="h-2 bg-gray-400 w-40 mb-2 rounded"></div>
-                      <div className="space-y-1 ml-2">
-                        <div className="h-1.5 bg-gray-300 w-full rounded"></div>
-                        <div className="h-1.5 bg-gray-300 w-11/12 rounded"></div>
-                      </div>
-                    </div>
-                    
-                    {/* Projects */}
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <div className="h-3 bg-gray-700 w-24 mb-2 rounded"></div>
-                      <div className="flex justify-between mb-1">
-                        <div className="h-2 bg-gray-600 w-36 rounded"></div>
-                        <div className="h-2 bg-gray-400 w-16 rounded"></div>
-                      </div>
-                      <div className="space-y-1 ml-2">
-                        <div className="h-1.5 bg-gray-300 w-full rounded"></div>
-                        <div className="h-1.5 bg-gray-300 w-10/12 rounded"></div>
-                      </div>
-                    </div>
-                    
-                    {/* Education */}
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <div className="h-3 bg-gray-700 w-28 mb-2 rounded"></div>
-                      <div className="flex justify-between mb-1">
-                        <div className="h-2 bg-gray-600 w-40 rounded"></div>
-                        <div className="h-2 bg-gray-400 w-28 rounded"></div>
-                      </div>
-                      <div className="h-2 bg-gray-400 w-48 rounded"></div>
-                    </div>
-                    
-                    {/* Certifications */}
-                    <div className="px-4 py-2">
-                      <div className="h-3 bg-gray-700 w-36 mb-2 rounded"></div>
-                      <div className="space-y-1 ml-2">
-                        <div className="h-1.5 bg-gray-300 w-11/12 rounded"></div>
-                        <div className="h-1.5 bg-gray-300 w-10/12 rounded"></div>
-                      </div>
-                    </div>
+                    }
+                  }}
+                />
+                {/* Fallback skeleton if image doesn't load */}
+                <div style={{ display: 'none' }} className="p-6 bg-white">
+                  <div className="text-center py-4 border-b border-gray-300">
+                    <div className="h-6 bg-gray-800 w-48 mx-auto mb-2 rounded"></div>
+                    <div className="h-2 bg-gray-400 w-64 mx-auto rounded"></div>
+                  </div>
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <div className="h-3 bg-gray-700 w-24 mb-2 rounded"></div>
+                    <div className="h-2 bg-gray-300 w-full mb-1 rounded"></div>
+                    <div className="h-2 bg-gray-300 w-5/6 rounded"></div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-400">
-                  Professional LaTeX formatting ensures perfect typography and ATS compatibility
-                </p>
+              {/* Live Indicator Footer */}
+              <div className="relative mt-4.5 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#A6FF5D] animate-pulse" />
+                  <span>ATS Match Score: <strong className="text-white font-semibold">99/100 (Optimal)</strong></span>
+                </div>
+                <span className="text-zinc-500 font-mono text-[11px]">Jake's LaTeX Template</span>
               </div>
             </div>
           </div>
 
-          {/* Right Side - Resume Sections */}
-          <div className="space-y-4 sm:space-y-6">
+          {/* RIGHT SIDE: Resume Structure Cards (Centered in Right 50% Column on desktop, Order 1 on mobile) */}
+          <div className="w-full max-w-[520px] mx-auto space-y-3.5 sm:space-y-4 order-1 lg:order-2">
             {sections.map((section, index) => {
               const delays = ['animate-delay-100', 'animate-delay-200', 'animate-delay-300', 'animate-delay-400', 'animate-delay-500', 'animate-delay-600', 'animate-delay-700']
               return (
-              <div
-                key={index}
-                className={`flex gap-3 sm:gap-4 bg-white/5 backdrop-blur p-4 sm:p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300 hover-lift animate-fade-in-right ${delays[index] || ''}`}
-              >
-                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary transition-transform duration-300 hover:scale-110 hover:rotate-6">
-                  {section.icon}
+                <div
+                  key={index}
+                  className={`flex gap-4 bg-white/5 backdrop-blur p-4 sm:p-4.5 rounded-xl border border-white/10 hover:border-[#A6FF5D]/40 transition-all duration-300 hover-lift animate-fade-in-right ${delays[index] || ''}`}
+                >
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 bg-[#A6FF5D]/10 rounded-lg flex items-center justify-center text-[#A6FF5D] transition-transform duration-300 hover:scale-110 hover:rotate-6 border border-[#A6FF5D]/20">
+                    {section.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-semibold text-white mb-0.5">
+                      {section.title}
+                    </h3>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      {section.description}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-1">
-                    {section.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    {section.description}
-                  </p>
-                </div>
-              </div>
-            )})}
+              )
+            })}
           </div>
+
         </div>
       </div>
     </section>
