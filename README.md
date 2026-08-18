@@ -78,7 +78,7 @@ Built on the industry-standard **Jake's Resume** template (trusted by engineers 
 | **Resume Builder & Preview** | <img src="./Client/public/Builder.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
 | **Template Selector Gallery** | <img src="./Client/public/Template.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
 | **ATS Job Matcher & Keyword Scanner** | <img src="./Client/public/ATS.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
-| **LaTeX PDF Output** | <img src="./Client/public/MyResume.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
+| **LaTeX PDF Output** | <img src="./Client/public/myresume.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
 | **About & Mission** | <img src="./Client/public/About.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
 
 </details>
@@ -164,7 +164,7 @@ latexume/
 │   │   ├── ATS.png                     # ATS Job Matcher screenshot
 │   │   ├── Builder.png                 # Resume Builder screenshot
 │   │   ├── Home.png                    # Landing page screenshot
-│   │   ├── MyResume.png                # Resume output preview image
+│   │   ├── myresume.png                # Resume output preview image
 │   │   └── Template.png               # Template gallery screenshot
 │   │
 │   ├── src/

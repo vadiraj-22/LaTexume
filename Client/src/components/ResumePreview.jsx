@@ -118,7 +118,7 @@ const ResumePreview = () => {
               <div className="bg-white rounded-lg p-4 shadow-2xl">
                 <div className="aspect-[8.5/11] bg-white rounded overflow-hidden border border-gray-200">
                   <img 
-                    src="/MyResume.png" 
+                    src="/myresume.png" 
                     alt="Resume Preview - LaTeX ATS Format" 
                     loading="lazy"
                     className="w-full h-full object-cover object-top"
