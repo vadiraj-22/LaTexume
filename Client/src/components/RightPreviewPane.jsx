@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import PdfCanvasViewer from './PdfCanvasViewer'
 
 export default function RightPreviewPane({ formData }) {
   const [activeTab, setActiveTab] = useState('pdf') // 'pdf' | 'tex'
@@ -218,43 +219,13 @@ export default function RightPreviewPane({ formData }) {
       <div className="flex-1 overflow-hidden p-2.5 bg-zinc-950/60">
         {/* PDF TAB */}
         {activeTab === 'pdf' && (
-          <div className="w-full h-full bg-zinc-900 rounded-2xl overflow-hidden flex flex-col justify-center items-center border border-zinc-800/80 relative">
-            {loadingPdf && (
-              <div className="absolute inset-0 z-10 bg-zinc-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
-                <div className="w-7 h-7 border-2 border-[#A6FF5D] border-t-transparent rounded-full animate-spin" />
-                <p className="text-xs text-zinc-300 font-medium animate-pulse">Compiling PDF with LaTeX...</p>
-              </div>
-            )}
-
-            {!pdfUrl && !loadingPdf && !pdfError && (
-              <div className="p-6 text-center text-zinc-400 text-xs">
-                <p className="font-semibold mb-1 text-white">Live PDF Preview</p>
-                <p className="text-zinc-500">Fill in your Name and Email to render your LaTeX resume preview live.</p>
-              </div>
-            )}
-
-            {pdfError && !loadingPdf && (
-              <div className="p-6 text-center text-red-400 text-xs">
-                <p className="font-bold mb-1">Compilation Warning</p>
-                <p className="text-zinc-400 mb-3">{pdfError}</p>
-                <button
-                  onClick={fetchPdf}
-                  className="bg-zinc-800 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-zinc-700 cursor-pointer"
-                >
-                  Retry Render
-                </button>
-              </div>
-            )}
-
-            {pdfUrl && (
-              <div className="w-full h-full rounded-xl overflow-hidden relative bg-zinc-900 flex justify-center items-center">
-                <iframe
-                  src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                  className="min-w-[calc(100%+32px)] w-[calc(100%+32px)] -mr-[32px] h-full border-0 bg-zinc-900"
-                  title="LaTeX Resume PDF Preview"
-                />
-              </div>
-            )}
+          <div className="w-full h-full bg-zinc-900 rounded-2xl overflow-hidden flex flex-col border border-zinc-800/80 relative">
+            <PdfCanvasViewer
+              pdfUrl={pdfUrl}
+              loading={loadingPdf}
+              error={pdfError}
+              onRetry={fetchPdf}
+            />
           </div>
         )}
 

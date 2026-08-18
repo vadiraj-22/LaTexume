@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_URL } from '../config/api'
 
 export default function BulletEnhancerModal({ isOpen, initialBullet, roleTitle, onClose, onApply }) {
   const [loading, setLoading] = useState(false)
@@ -10,7 +11,6 @@ export default function BulletEnhancerModal({ isOpen, initialBullet, roleTitle, 
   const handleEnhance = async () => {
     setLoading(true)
     setError('')
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
     try {
       const response = await fetch(`${API_URL}/api/ai/enhance-bullet`, {

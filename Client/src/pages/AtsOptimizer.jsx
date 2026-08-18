@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SEO from '../components/SEO'
+import { API_URL } from '../config/api'
 
 const DEFAULT_SAMPLE_RESUME = {
   header: {
@@ -36,8 +37,6 @@ export default function AtsOptimizer() {
   const [extractedKeywords, setExtractedKeywords] = useState([])
   const [toastMessage, setToastMessage] = useState('')
   const [isSampleResume, setIsSampleResume] = useState(false)
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
   // Load current resume draft from localStorage on mount
   useEffect(() => {

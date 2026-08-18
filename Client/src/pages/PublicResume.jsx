@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SEO from '../components/SEO'
+import { API_URL } from '../config/api'
 
 export default function PublicResume() {
   const { id } = useParams()
@@ -11,7 +12,6 @@ export default function PublicResume() {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
   const pdfEndpoint = `${API_URL}/api/v1/resumes/public/${id}/pdf`
 
   useEffect(() => {

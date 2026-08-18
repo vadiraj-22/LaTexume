@@ -9,17 +9,24 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // On mount – try to restore session from the server (via httpOnly cookie)
+  // On mount – try to restore session from the server (via httpOnly cookie or stored token)
   useEffect(() => {
     const restoreSession = async () => {
       try {
+        const headers = {}
+        const token = localStorage.getItem('accessToken')
+        if (token) headers['Authorization'] = `Bearer ${token}`
+
         const res = await fetch(`${API_BASE}/api/v1/users/me`, {
+          headers,
           credentials: 'include',
         })
         if (res.ok) {
           const data = await res.json()
           setUser(data.data)
           setIsAuthenticated(true)
+        } else {
+          localStorage.removeItem('accessToken')
         }
       } catch {
         // No active session — that's fine
@@ -68,6 +75,10 @@ export const AuthProvider = ({ children }) => {
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Login failed')
 
+    if (data.data?.accessToken) {
+      localStorage.setItem('accessToken', data.data.accessToken)
+    }
+
     setUser(data.data.user)
     setIsAuthenticated(true)
     return data
@@ -78,11 +89,17 @@ export const AuthProvider = ({ children }) => {
    */
   const logout = async () => {
     try {
+      const headers = {}
+      const token = localStorage.getItem('accessToken')
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       await fetch(`${API_BASE}/api/v1/users/logout`, {
         method: 'POST',
+        headers,
         credentials: 'include',
       })
     } finally {
+      localStorage.removeItem('accessToken')
       setUser(null)
       setIsAuthenticated(false)
     }
@@ -101,8 +118,13 @@ export const AuthProvider = ({ children }) => {
       formData.append('avatar', payload.avatar)
     }
 
+    const headers = {}
+    const token = localStorage.getItem('accessToken')
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
     const res = await fetch(`${API_BASE}/api/v1/users/update-account`, {
       method: 'PATCH',
+      headers,
       credentials: 'include',
       body: formData,
     })

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import PdfCanvasViewer from './PdfCanvasViewer'
 
 export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
   const [activeTab, setActiveTab] = useState('pdf') // 'pdf' | 'tex'
@@ -95,15 +96,15 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
       {/* Drawer Container */}
       <div className="w-full md:w-[650px] lg:w-[750px] h-full bg-zinc-950 border-l border-zinc-800 flex flex-col shadow-2xl animate-fade-in-right">
         {/* Top Bar */}
-        <div className="p-4 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="p-3 sm:p-4 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2">
             <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
               <button
                 type="button"
                 onClick={() => setActiveTab('pdf')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                   activeTab === 'pdf'
-                    ? 'bg-emerald-500 text-black shadow font-bold'
+                    ? 'bg-[#A6FF5D] text-black shadow font-bold'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -114,11 +115,11 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
                 onClick={() => setActiveTab('tex')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                   activeTab === 'tex'
-                    ? 'bg-emerald-500 text-black shadow font-bold'
+                    ? 'bg-[#A6FF5D] text-black shadow font-bold'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                💻 Raw LaTeX (.tex)
+                💻 Raw .tex
               </button>
             </div>
           </div>
@@ -142,14 +143,14 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
                   onClick={handleCopyTex}
                   className="text-xs bg-zinc-800 hover:bg-zinc-700 text-white font-medium px-3 py-1.5 rounded-lg transition border border-zinc-700 cursor-pointer"
                 >
-                  {copied ? '✓ Copied!' : '📋 Copy .tex'}
+                  {copied ? '✓ Copied!' : '📋 Copy'}
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadTex}
-                  className="text-xs bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 font-medium px-3 py-1.5 rounded-lg transition border border-emerald-500/30 cursor-pointer"
+                  className="text-xs bg-[#A6FF5D]/15 text-[#A6FF5D] hover:bg-[#A6FF5D]/25 font-medium px-3 py-1.5 rounded-lg transition border border-[#A6FF5D]/30 cursor-pointer"
                 >
-                  📥 Download .tex
+                  📥 Download
                 </button>
               </>
             )}
@@ -157,6 +158,7 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
             <button
               onClick={onClose}
               className="text-zinc-400 hover:text-white text-lg font-bold px-2.5 py-1 rounded-lg hover:bg-zinc-800 cursor-pointer"
+              aria-label="Close Preview Drawer"
             >
               ✕
             </button>
@@ -164,49 +166,16 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-hidden p-4">
-          {/* TAB 1: PDF Viewer */}
+        <div className="flex-1 overflow-hidden p-2 sm:p-4">
+          {/* TAB 1: PDF Canvas Viewer */}
           {activeTab === 'pdf' && (
-            <div className="w-full h-full bg-zinc-900 rounded-xl overflow-hidden flex flex-col justify-center items-center border border-zinc-800">
-              {loadingPdf && (
-                <div className="space-y-3 text-center">
-                  <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-xs text-zinc-400 animate-pulse">Compiling PDF preview with LaTeX...</p>
-                </div>
-              )}
-
-              {pdfError && !loadingPdf && (
-                <div className="p-6 text-center text-red-400 text-xs">
-                  <p className="font-bold mb-1">Failed to render PDF preview</p>
-                  <p className="text-zinc-500 mb-4">{pdfError}</p>
-                  <button
-                    onClick={fetchPdf}
-                    className="bg-zinc-800 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-zinc-700"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-
-              {pdfUrl && !loadingPdf && (
-                <object
-                  data={pdfUrl}
-                  type="application/pdf"
-                  className="w-full h-full rounded-xl"
-                >
-                  <div className="p-6 text-center text-zinc-400 text-xs">
-                    <p className="mb-2">Your browser cannot inline PDF objects.</p>
-                    <a
-                      href={pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-emerald-400 underline font-semibold"
-                    >
-                      Click here to open PDF in a new tab
-                    </a>
-                  </div>
-                </object>
-              )}
+            <div className="w-full h-full bg-zinc-900 rounded-xl overflow-hidden flex flex-col border border-zinc-800">
+              <PdfCanvasViewer
+                pdfUrl={pdfUrl}
+                loading={loadingPdf}
+                error={pdfError}
+                onRetry={fetchPdf}
+              />
             </div>
           )}
 
@@ -227,3 +196,4 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
     </div>
   )
 }
+

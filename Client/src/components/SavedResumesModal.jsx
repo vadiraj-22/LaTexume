@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { API_URL, getAuthHeaders } from '../config/api'
 
 export default function SavedResumesModal({ isOpen, onClose, onLoadResume }) {
   const [resumes, setResumes] = useState([])
@@ -8,12 +9,11 @@ export default function SavedResumesModal({ isOpen, onClose, onLoadResume }) {
   const fetchResumes = async () => {
     setLoading(true)
     setError('')
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
     try {
       const res = await fetch(`${API_URL}/api/v1/resumes`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
       })
 
@@ -39,12 +39,11 @@ export default function SavedResumesModal({ isOpen, onClose, onLoadResume }) {
 
   const handleLoadSingle = async (id) => {
     setLoading(true)
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
     try {
       const res = await fetch(`${API_URL}/api/v1/resumes/${id}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
       })
 
@@ -66,12 +65,10 @@ export default function SavedResumesModal({ isOpen, onClose, onLoadResume }) {
   const handleDelete = async (id, title) => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-
     try {
       const res = await fetch(`${API_URL}/api/v1/resumes/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
       })
 
@@ -87,12 +84,10 @@ export default function SavedResumesModal({ isOpen, onClose, onLoadResume }) {
   }
 
   const handleTogglePublic = async (id, currentIsPublic) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-
     try {
       const res = await fetch(`${API_URL}/api/v1/resumes/${id}/toggle-public`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ isPublic: !currentIsPublic }),
       })

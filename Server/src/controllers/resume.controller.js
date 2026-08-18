@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import { Resume } from '../models/resume.model.js'
 import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
@@ -114,6 +115,10 @@ export const togglePublicStatus = asyncHandler(async (req, res) => {
 export const getPublicResume = asyncHandler(async (req, res) => {
   const { id } = req.params
 
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(404, 'Public resume not found or link has expired')
+  }
+
   const resume = await Resume.findOne({ _id: id, isPublic: true })
     .populate('owner', 'fullName email avatar')
     .select('title templateId formData viewsCount downloadsCount createdAt updatedAt owner')
@@ -136,6 +141,10 @@ export const getPublicResume = asyncHandler(async (req, res) => {
  */
 export const getPublicResumePdf = asyncHandler(async (req, res) => {
   const { id } = req.params
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(404, 'Public resume not found or link has expired')
+  }
 
   const resume = await Resume.findOne({ _id: id, isPublic: true })
   if (!resume) {

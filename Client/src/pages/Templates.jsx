@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SEO from '../components/SEO'
+import { API_URL } from '../config/api'
 
 const TEMPLATES = [
   {
@@ -147,7 +148,6 @@ export default function Templates() {
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [previewError, setPreviewError] = useState(false)
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   const selectedTemplate = TEMPLATES.find((t) => t.id === selectedTemplateId) || TEMPLATES[0]
 
   const getPayloadData = () => {

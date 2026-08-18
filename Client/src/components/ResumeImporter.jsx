@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { API_URL } from '../config/api'
 
 const ResumeImporter = ({ isOpen, onClose, onImportData }) => {
   const [activeTab, setActiveTab] = useState('upload') // 'upload' | 'paste'
@@ -80,7 +81,6 @@ const ResumeImporter = ({ isOpen, onClose, onImportData }) => {
     }
 
     setIsParsing(true)
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
     try {
       let response

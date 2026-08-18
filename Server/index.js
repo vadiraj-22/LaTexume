@@ -13,13 +13,27 @@ const app = express()
 const PORT = process.env.PORT ?? 3000
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'https://latexume.vercel.app',
+]
+
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'https://latexume.vercel.app',
-      /\.vercel\.app$/, // Allow all Vercel preview deployments
-    ],
+    origin: (origin, callback) => {
+      // Allow server-to-server or tools without origin header
+      if (!origin) return callback(null, true)
+      if (
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin) ||
+        origin.startsWith('http://localhost:')
+      ) {
+        return callback(null, true)
+      }
+      return callback(null, origin)
+    },
     credentials: true,
   })
 )

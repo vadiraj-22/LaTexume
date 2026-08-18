@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_URL } from '../config/api'
 
 export default function JdMatcherCard({ resumeData, onAddSkill }) {
   const [jobDescription, setJobDescription] = useState('')
@@ -10,7 +11,6 @@ export default function JdMatcherCard({ resumeData, onAddSkill }) {
     if (!jobDescription.trim()) return
     setLoading(true)
     setError('')
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
     try {
       const response = await fetch(`${API_URL}/api/ai/match-jd`, {

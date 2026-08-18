@@ -10,6 +10,7 @@ import JdMatcherCard from '../components/JdMatcherCard'
 import SavedResumesModal from '../components/SavedResumesModal'
 import LatexPreviewDrawer from '../components/LatexPreviewDrawer'
 import RightPreviewPane from '../components/RightPreviewPane'
+import { API_URL, getAuthHeaders } from '../config/api'
 
 const inputCls = "w-full bg-white/[0.04] text-white placeholder-white/15 text-sm sm:text-base px-4 py-3 rounded-xl border border-white/20 hover:bg-white/[0.08] hover:border-white/40 focus:bg-black/70 focus:border-[#A6FF5D] focus:ring-2 focus:ring-[#A6FF5D]/30 focus:shadow-[0_0_20px_rgba(166,255,93,0.15)] focus:outline-none transition-all duration-200"
 const cardCls = "bg-gray-950/70 backdrop-blur-xl p-5 sm:p-7 md:p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-2xl"
@@ -141,13 +142,12 @@ const Builder = () => {
 
     if (title === null) return
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
     setLoading(true)
 
     try {
       const res = await fetch(`${API_URL}/api/v1/resumes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({
           resumeId: currentResumeId,
@@ -361,9 +361,6 @@ const Builder = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-
-    // Use environment variable for API URL
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
     try {
       const response = await fetch(`${API_URL}/api/generate-resume`, {
@@ -1087,8 +1084,27 @@ const Builder = () => {
         onClose={() => setIsPreviewDrawerOpen(false)}
         formData={formData}
       />
+
+      {/* Mobile Floating Live Preview Button */}
+      <button
+        type="button"
+        onClick={() => setIsPreviewDrawerOpen(true)}
+        className="lg:hidden fixed bottom-6 right-6 z-40 bg-[#A6FF5D] hover:bg-[#b8ff7a] text-gray-950 font-extrabold px-5 py-3 rounded-full shadow-[0_0_25px_rgba(166,255,93,0.45)] border border-[#A6FF5D] transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2.5 cursor-pointer"
+        aria-label="Open Live Resume Preview"
+      >
+        <span className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-950 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-950"></span>
+        </span>
+        <svg className="w-5 h-5 text-gray-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        <span className="text-xs font-black uppercase tracking-wider">Live Preview</span>
+      </button>
     </div>
   )
 }
 
 export default Builder
+
