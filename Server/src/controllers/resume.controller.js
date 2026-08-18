@@ -115,7 +115,7 @@ export const getPublicResume = asyncHandler(async (req, res) => {
   const { id } = req.params
 
   const resume = await Resume.findOne({ _id: id, isPublic: true })
-    .populate('owner', 'fullName username email')
+    .populate('owner', 'fullName email avatar')
     .select('title templateId formData viewsCount downloadsCount createdAt updatedAt owner')
 
   if (!resume) {

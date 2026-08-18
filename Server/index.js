@@ -46,14 +46,23 @@ app.use('/api/v1/resumes', resumeRouter)               // Resume Persistence (Sa
 
 // ─── Global error handler ────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
-  const statusCode = err.statusCode || 500
+  let statusCode = err.statusCode || 500
+  let message = err.message || 'Internal Server Error'
+
+  // Handle MongoDB duplicate key error (E11000)
+  if (err.code === 11000) {
+    statusCode = 409
+    const field = Object.keys(err.keyPattern || {})[0] || 'field'
+    message = `User with this ${field} already exists`
+  }
+
   // Log unexpected internal server errors (5xx), omit expected client operational responses (4xx)
   if (statusCode >= 500) {
-    console.error(`[${statusCode}] ${err.message}`, err)
+    console.error(`[${statusCode}] ${message}`, err)
   }
   res.status(statusCode).json({
     success: false,
-    message: err.message || 'Internal Server Error',
+    message,
     errors: err.errors || [],
   })
 })
