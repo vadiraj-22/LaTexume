@@ -13,6 +13,7 @@ const TEMPLATES = [
     badge: 'Popular Choice',
     badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
     description: 'Clean single-column monochrome design trusted by software engineers and DevOps specialists applying to top tech firms (Google, Meta, Amazon).',
+    shortExplanation: 'Clean single-column monochrome layout trusted by top software engineers.',
     atsScore: '99/100 ATS Match',
     font: 'Helvetica / Sans-Serif',
     accent: 'Monochrome Black & White',
@@ -27,6 +28,7 @@ const TEMPLATES = [
     badge: 'Modern Tech',
     badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
     description: 'Vibrant ATS template featuring royal blue section headers and navy details. Excellent visual hierarchy while retaining 100% ATS parser compatibility.',
+    shortExplanation: 'Vibrant blue headers and section titles for clean visual hierarchy.',
     atsScore: '98/100 ATS Match',
     font: 'Computer Modern / Sans',
     accent: 'Royal Blue & Navy Headers',
@@ -41,6 +43,7 @@ const TEMPLATES = [
     badge: 'Executive',
     badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
     description: 'Single-column Charter Serif typography designed for senior engineers, tech leads, managers, and corporate positions.',
+    shortExplanation: 'Traditional serif typography designed for senior engineering leads and managers.',
     atsScore: '97/100 ATS Match',
     font: 'Charter Serif',
     accent: 'Classic Dark Gray Serif',
@@ -254,97 +257,47 @@ export default function Templates() {
               </span>
             </div>
 
-            {/* Compact Grid of Small Square Cards */}
-            <div className="grid grid-cols-2 gap-3.5">
+            {/* Vertical Stack of Text-Only Template Cards (One Below the Other) */}
+            <div className="flex flex-col gap-3">
               {TEMPLATES.map((tmpl) => {
                 const isSelected = selectedTemplateId === tmpl.id
                 return (
                   <div
                     key={tmpl.id}
                     onClick={() => setSelectedTemplateId(tmpl.id)}
-                    className={`bg-zinc-950 p-3 rounded-2xl border transition-all duration-200 shadow-lg cursor-pointer relative group flex flex-col justify-between ${
+                    className={`bg-zinc-950 p-4 rounded-2xl border transition-all duration-200 shadow-lg cursor-pointer relative group flex flex-col gap-2 ${
                       isSelected
-                        ? 'border-[#A6FF5D] ring-2 ring-[#A6FF5D]/40 bg-zinc-900/90 scale-[1.02]'
-                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 hover:scale-[1.01]'
+                        ? 'border-[#A6FF5D] ring-2 ring-[#A6FF5D]/30 bg-zinc-900/90 scale-[1.01]'
+                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 hover:bg-zinc-900/50'
                     }`}
                   >
-                    {/* Compact Card Header */}
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${tmpl.badgeColor}`}>
-                        {tmpl.badge}
-                      </span>
-                      {isSelected && (
-                        <span className="text-[9px] font-extrabold text-black bg-[#A6FF5D] px-2 py-0.5 rounded-full">
-                          ✓ Active
+                    {/* Top Row: Title + Badge + Score + Active status */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h3 className={`text-sm font-bold transition ${isSelected ? 'text-[#A6FF5D]' : 'text-white group-hover:text-[#A6FF5D]'}`}>
+                          {tmpl.name}
+                        </h3>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tmpl.badgeColor}`}>
+                          {tmpl.badge}
                         </span>
-                      )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-zinc-400 font-semibold">
+                          {tmpl.atsScore.split(' ')[0]}
+                        </span>
+                        {isSelected && (
+                          <span className="text-[10px] font-extrabold text-black bg-[#A6FF5D] px-2.5 py-0.5 rounded-full">
+                            ✓ Active
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Small Miniature Document Preview Box */}
-                    <div className="w-full h-28 bg-white/95 rounded-xl p-2 text-gray-900 shadow-inner overflow-hidden relative border border-zinc-700/40 my-1 group-hover:border-zinc-500 transition-colors">
-                      {tmpl.id === 'jake' && (
-                        <div className="space-y-1 text-[6.5px] font-sans">
-                          <div className="text-center pb-0.5 border-b border-gray-300">
-                            <h4 className="font-extrabold text-[8px] text-gray-900">JAKE R. ENGINEER</h4>
-                            <p className="text-[5.5px] text-gray-500">jake@example.com • github.com/jake</p>
-                          </div>
-                          <div>
-                            <p className="font-bold text-[6.5px] uppercase border-b border-gray-800 pb-0.5">EDUCATION</p>
-                            <div className="flex justify-between font-semibold text-[6px]"><span>B.S. CS — UC Berkeley</span><span>2018–2022</span></div>
-                          </div>
-                          <div>
-                            <p className="font-bold text-[6.5px] uppercase border-b border-gray-800 pb-0.5 mt-0.5">EXPERIENCE</p>
-                            <div className="flex justify-between font-bold text-[6px]"><span>SWE — Google</span><span>2022–Pres</span></div>
-                            <p className="text-[5.5px] text-gray-600 truncate">• Cloud microservices serving 10M+ users.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {tmpl.id === 'blueAccent' && (
-                        <div className="space-y-1 text-[6.5px] font-sans">
-                          <div className="text-center pb-0.5 border-b border-blue-200 bg-blue-50/50 -m-2 p-1.5 mb-1">
-                            <h4 className="font-extrabold text-[8px] text-blue-950">ALEX RIVERA</h4>
-                            <p className="text-[5.5px] text-blue-700">alex@tech.dev • sf, ca</p>
-                          </div>
-                          <div>
-                            <p className="font-bold text-[6.5px] uppercase text-blue-800 border-b border-blue-200 pb-0.5">SKILLS</p>
-                            <p className="text-[5.5px] text-gray-700 truncate"><span className="font-semibold text-blue-900">Tech:</span> React, TS, Python, AWS</p>
-                          </div>
-                          <div>
-                            <p className="font-bold text-[6.5px] uppercase text-blue-800 border-b border-blue-200 pb-0.5 mt-0.5">EXPERIENCE</p>
-                            <div className="flex justify-between font-bold text-[6px]"><span>Senior SWE — Apex Cloud</span><span>2022–Pres</span></div>
-                            <p className="text-[5.5px] text-gray-600 truncate">• Built Node.js microservices.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {tmpl.id === 'classic' && (
-                        <div className="space-y-1 text-[6.5px] font-serif">
-                          <div className="text-center pb-0.5 border-b border-gray-400">
-                            <h4 className="font-bold text-[8.5px] text-gray-900 tracking-wider">ELIZABETH MORGAN</h4>
-                            <p className="text-[5.5px] text-gray-600 italic">Senior Tech Director • NYC</p>
-                          </div>
-                          <div>
-                            <p className="font-bold text-[6.5px] uppercase tracking-widest text-gray-900 border-b border-gray-400 pb-0.5">SUMMARY</p>
-                            <p className="text-[5.5px] text-gray-700 italic truncate">Engineering Leader with 10+ years...</p>
-                          </div>
-                          <div>
-                            <p className="font-bold text-[6.5px] uppercase tracking-widest text-gray-900 border-b border-gray-400 pb-0.5 mt-0.5">EXPERIENCE</p>
-                            <div className="flex justify-between font-bold text-[6px]"><span>VP Eng — Enterprise Corp</span><span>2019–Pres</span></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Compact Bottom Label */}
-                    <div className="mt-1.5 pt-1.5 border-t border-zinc-900 flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-white truncate group-hover:text-[#A6FF5D] transition">
-                        {tmpl.name}
-                      </h3>
-                      <span className="text-[9px] font-mono text-zinc-500">
-                        {tmpl.atsScore.split(' ')[0]}
-                      </span>
-                    </div>
+                    {/* Text-Only ~10-word Explanation */}
+                    <p className="text-xs text-zinc-400 leading-relaxed font-normal">
+                      {tmpl.shortExplanation}
+                    </p>
                   </div>
                 )
               })}
