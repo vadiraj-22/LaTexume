@@ -227,7 +227,7 @@ const runLocalKeywordMatch = (jdText, rData) => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-[#A6FF5D] selection:text-black">
+    <div className="min-h-screen bg-transparent text-white flex flex-col selection:bg-[#A6FF5D] selection:text-black">
       <SEO
         title="ATS Job Description Matcher | LaTexume"
         description="Optimize your resume for ATS parsers. Analyze job descriptions, extract missing keywords, and boost match scores."
@@ -244,15 +244,15 @@ const runLocalKeywordMatch = (jdText, rData) => {
         )}
 
         {/* Top Title & Navigation */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-zinc-950/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.15)] hover:border-[#A6FF5D]/50 transition-all duration-300">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 text-[#A6FF5D] text-xs font-semibold uppercase tracking-wider mb-2">
               <span>🎯 ATS Job Matcher</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
               Target Job Description Matcher
             </h1>
-            <p className="text-gray-400 text-sm sm:text-base mt-1">
+            <p className="text-zinc-200 text-sm sm:text-base mt-1 font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
               Extract missing keywords & run AI ATS scoring against your target job posting.
             </p>
           </div>

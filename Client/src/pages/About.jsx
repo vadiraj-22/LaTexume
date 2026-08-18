@@ -5,7 +5,7 @@ import SEO from '../components/SEO'
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-transparent">
       <SEO 
         title="About LaTexume & Jake's Resume Template"
         description="Learn why software engineers at Google, Meta, and Amazon trust LaTexume and Jake's Resume LaTeX template for building 100% ATS-compliant resumes."
@@ -13,7 +13,7 @@ const About = () => {
         canonicalPath="/about"
       />
 
-      <header className="bg-black text-white border-b border-white/10 pt-16 sm:pt-20">
+      <header className="bg-transparent text-white border-b border-white/10 pt-16 sm:pt-20">
         <Navbar />
       </header>
 
@@ -29,16 +29,16 @@ const About = () => {
           </div>
 
           <div className="space-y-6 sm:space-y-8">
-            <div className="bg-white/5 backdrop-blur p-5 sm:p-8 rounded-2xl border border-white/10 hover:border-[#A6FF5D]/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-100">
+            <div className="bg-zinc-950/90 backdrop-blur-md p-5 sm:p-8 rounded-2xl border border-white/10 hover:border-[#A6FF5D]/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-100 shadow-xl">
               <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Our Mission</h2>
-              <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+              <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">
                 We believe every professional deserves a resume with perfect typography and 100% ATS compatibility. LaTexume combines the typesetting precision of LaTeX with <strong className="text-white">Jake's Resume template</strong>—the gold standard trusted by software engineers at FAANG companies—to ensure your resume passes Applicant Tracking Systems (ATS) and lands technical interviews.
               </p>
             </div>
 
-            <div className="bg-white/5 backdrop-blur p-8 rounded-2xl border border-white/10 hover:border-[#A6FF5D]/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-200">
+            <div className="bg-zinc-950/90 backdrop-blur-md p-8 rounded-2xl border border-white/10 hover:border-[#A6FF5D]/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-200 shadow-xl">
               <h2 className="text-2xl font-semibold text-white mb-4">Why Tech Professionals Choose LaTexume</h2>
-              <ul className="space-y-4 text-gray-400">
+              <ul className="space-y-4 text-zinc-300">
                 <li className="flex items-start transition-transform duration-300 hover:translate-x-2">
                   <svg className="w-6 h-6 text-[#A6FF5D] mr-3 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -66,12 +66,12 @@ const About = () => {
               </ul>
             </div>
 
-            <div className="bg-white/5 backdrop-blur p-8 rounded-2xl border border-white/10 hover:border-[#A6FF5D]/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-300">
+            <div className="bg-zinc-950/90 backdrop-blur-md p-8 rounded-2xl border border-white/10 hover:border-[#A6FF5D]/20 transition-all duration-300 hover-lift animate-fade-in-up animate-delay-300 shadow-xl">
               <h2 className="text-2xl font-semibold text-white mb-4">The Story Behind Jake's Resume Template</h2>
-              <p className="text-gray-400 leading-relaxed mb-4">
+              <p className="text-zinc-300 leading-relaxed mb-4">
                 Jake's Resume is widely regarded as the single most effective LaTeX resume template for computer science students, software engineers, and IT professionals. It eliminates visual clutter and focuses strictly on quantifiable metrics, engineering skill sets, project impact, and educational background.
               </p>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-zinc-300 leading-relaxed">
                 LaTexume brings this powerful template to your browser—no LaTeX installation, TeX compilers, or syntax troubleshooting required. Enter your details and generate your PDF in seconds.
               </p>
             </div>

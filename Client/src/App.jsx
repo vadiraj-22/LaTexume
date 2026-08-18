@@ -11,6 +11,8 @@ import Templates from './pages/Templates'
 import AtsOptimizer from './pages/AtsOptimizer'
 import PublicResume from './pages/PublicResume'
 
+import LineWaves from './components/LineWaves'
+
 /** Redirects unauthenticated users to /signin, preserving the intended destination */
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth()
@@ -41,49 +43,74 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/r/:id" element={<PublicResume />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+        <div className="relative min-h-screen bg-black text-white selection:bg-[#A6FF5D] selection:text-black">
+          {/* Global LineWaves Background */}
+          <div className="fixed inset-0 z-0 pointer-events-none">
+            <LineWaves
+              speed={0.4}
+              innerLineCount={32}
+              outerLineCount={36}
+              warpIntensity={1.0}
+              rotation={16}
+              edgeFadeWidth={0.0}
+              colorCycleSpeed={0.8}
+              brightness={0.15}
+              color1="#A6FF5D"
+              color2="#064e3b"
+              color3="#0f172a"
+              enableMouseInteraction={true}
+              mouseInfluence={1.2}
+            />
+            {/* Subtle dark backdrop overlay to ensure crisp text contrast */}
+            <div className="absolute inset-0 bg-black/35 pointer-events-none" />
+          </div>
 
-          {/* Protected: requires authentication */}
-          <Route
-            path="/templates"
-            element={
-              <ProtectedRoute>
-                <Templates />
-              </ProtectedRoute>
-            }
-          />
+          <div className="relative z-10">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/r/:id" element={<PublicResume />} />
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
 
-          {/* Protected: requires authentication */}
-          <Route
-            path="/builder"
-            element={
-              <ProtectedRoute>
-                <Builder />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ats-optimizer"
-            element={
-              <ProtectedRoute>
-                <AtsOptimizer />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+              {/* Protected: requires authentication */}
+              <Route
+                path="/templates"
+                element={
+                  <ProtectedRoute>
+                    <Templates />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Protected: requires authentication */}
+              <Route
+                path="/builder"
+                element={
+                  <ProtectedRoute>
+                    <Builder />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ats-optimizer"
+                element={
+                  <ProtectedRoute>
+                    <AtsOptimizer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </div>
+        </div>
       </AuthProvider>
     </Router>
   )

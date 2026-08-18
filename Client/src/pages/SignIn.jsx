@@ -50,7 +50,7 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
       <SEO 
         title="Sign In"
         description="Sign in to your LaTexume account to save, edit, and export your LaTeX ATS resumes."

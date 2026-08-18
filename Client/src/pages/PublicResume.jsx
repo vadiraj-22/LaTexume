@@ -46,7 +46,7 @@ export default function PublicResume() {
   const resumeTitle = resume?.title || `${candidateName}'s Resume`
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-[#A6FF5D] selection:text-black">
+    <div className="min-h-screen bg-transparent text-white flex flex-col selection:bg-[#A6FF5D] selection:text-black">
       <SEO
         title={`${resumeTitle} | LaTexume`}
         description={`View and download ${candidateName}'s ATS-optimized LaTeX resume on LaTexume.`}

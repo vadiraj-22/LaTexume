@@ -21,12 +21,12 @@ const Hero = () => {
           </div>
 
           {/* Main Title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[58px]/[68px] font-extrabold text-white tracking-tight leading-[1.1]">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[58px]/[68px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
             LaTeX-powered resumes that pass ATS &amp; get you hired.
           </h1>
 
           {/* Description */}
-          <p className="text-base sm:text-lg text-zinc-400 max-w-2xl font-normal leading-relaxed">
+          <p className="text-base sm:text-lg text-zinc-100 max-w-2xl font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
             Build recruiter-approved software engineering resumes using Jake's Resume LaTeX template. 
             Instant online compilation, real-time ATS match scoring, and zero LaTeX knowledge required.
           </p>
@@ -54,18 +54,18 @@ const Hero = () => {
           </div>
 
           {/* Metric Highlights */}
-          <div className="grid grid-cols-3 gap-6 pt-6 border-t border-zinc-900 w-full max-w-lg text-left">
+          <div className="grid grid-cols-3 gap-6 pt-6 border-t border-zinc-800/80 w-full max-w-lg text-left">
             <div>
-              <span className="block text-xl sm:text-2xl font-extrabold text-white">99/100</span>
-              <span className="block text-xs text-zinc-500 font-medium mt-0.5">ATS Match Rate</span>
+              <span className="block text-xl sm:text-2xl font-extrabold text-white drop-shadow">99/100</span>
+              <span className="block text-xs text-zinc-300 font-medium mt-0.5 drop-shadow">ATS Match Rate</span>
             </div>
             <div>
-              <span className="block text-xl sm:text-2xl font-extrabold text-[#A6FF5D]">0.4s</span>
-              <span className="block text-xs text-zinc-500 font-medium mt-0.5">PDF Compilation</span>
+              <span className="block text-xl sm:text-2xl font-extrabold text-[#A6FF5D] drop-shadow">0.4s</span>
+              <span className="block text-xs text-zinc-300 font-medium mt-0.5 drop-shadow">PDF Compilation</span>
             </div>
             <div>
-              <span className="block text-xl sm:text-2xl font-extrabold text-white">100%</span>
-              <span className="block text-xs text-zinc-500 font-medium mt-0.5">Free &amp; Open Source</span>
+              <span className="block text-xl sm:text-2xl font-extrabold text-white drop-shadow">100%</span>
+              <span className="block text-xs text-zinc-300 font-medium mt-0.5 drop-shadow">Free &amp; Open Source</span>
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ const Hero = () => {
           <div className="absolute -inset-4 bg-[#A6FF5D]/10 rounded-3xl blur-3xl pointer-events-none" />
 
           {/* Dark Glass Feature Mockup Card */}
-          <div className="relative w-full max-w-md bg-zinc-950/90 border border-zinc-800/90 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-xl">
+          <div className="relative w-full max-w-sm sm:max-w-[380px] bg-zinc-950/90 border border-zinc-800/90 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
             {/* Header bar of mockup */}
             <div className="flex items-center justify-between border-b border-zinc-900 pb-3 mb-4">
               <div className="flex items-center gap-2">
@@ -92,31 +92,12 @@ const Hero = () => {
             </div>
 
             {/* Document Screenshot Mockup */}
-            <div className="bg-white rounded-2xl p-4 sm:p-5 text-gray-900 shadow-2xl border border-zinc-300 text-left space-y-2.5 font-sans">
-              <div className="text-center pb-2 border-b border-gray-300">
-                <h3 className="font-extrabold text-sm text-gray-900 tracking-tight">JAKE R. ENGINEER</h3>
-                <p className="text-[9px] text-gray-600">jake@example.com • +1 (555) 019-2834 • github.com/jake</p>
-              </div>
-
-              <div>
-                <p className="font-extrabold text-[9px] uppercase tracking-wider text-gray-900 border-b border-gray-900 pb-0.5">EDUCATION</p>
-                <div className="flex justify-between font-semibold text-[9px] mt-1">
-                  <span>B.S. Computer Science — UC Berkeley</span>
-                  <span className="text-gray-600">2018 – 2022</span>
-                </div>
-              </div>
-
-              <div>
-                <p className="font-extrabold text-[9px] uppercase tracking-wider text-gray-900 border-b border-gray-900 pb-0.5">EXPERIENCE</p>
-                <div className="flex justify-between font-bold text-gray-900 text-[9px] mt-1">
-                  <span>Software Engineer — Google</span>
-                  <span className="text-gray-600">2022 – Present</span>
-                </div>
-                <ul className="list-disc pl-3 text-[8.5px] text-gray-700 space-y-1 mt-1">
-                  <li>Architected cloud microservices handling 10M+ daily active API requests.</li>
-                  <li>Optimized database queries, reducing P99 latency by 35%.</li>
-                </ul>
-              </div>
+            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl border border-zinc-300">
+              <img 
+                src="/myresume.png" 
+                alt="Jake's LaTeX Resume Preview" 
+                className="w-full h-auto object-cover block rounded-2xl"
+              />
             </div>
 
             {/* Live Indicator Footer */}

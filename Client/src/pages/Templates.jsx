@@ -223,7 +223,7 @@ export default function Templates() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-[#A6FF5D] selection:text-black">
+    <div className="min-h-screen bg-transparent text-white flex flex-col selection:bg-[#A6FF5D] selection:text-black">
       <SEO
         title="Resume Templates | LaTexume"
         description="Choose from ATS-friendly, professional LaTeX resume templates. Clean, modern, and free."
@@ -232,14 +232,14 @@ export default function Templates() {
 
       <main className="flex-1 pt-36 sm:pt-40 pb-16 px-4 sm:px-8 md:px-12 lg:px-16 max-w-7xl mx-auto w-full flex flex-col items-center">
         {/* Header */}
-        <div className="text-center space-y-3 mb-10 animate-fade-in-down w-full max-w-3xl mx-auto flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 text-[#A6FF5D] text-xs font-semibold uppercase tracking-wider">
+        <div className="text-center space-y-3 mb-10 animate-fade-in-down w-full max-w-3xl mx-auto flex flex-col items-center bg-zinc-950/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.15)] hover:border-[#A6FF5D]/50 transition-all duration-300">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/40 text-[#A6FF5D] text-xs font-semibold uppercase tracking-wider shadow">
             <span>📄 LaTeX Resume Styles</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
             Choose Your Resume Template
           </h1>
-          <p className="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto">
+          <p className="text-zinc-200 text-sm sm:text-base max-w-2xl mx-auto font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
             Click any card to preview its live LaTeX styling beside the options, then launch into the Builder.
           </p>
         </div>
@@ -265,10 +265,10 @@ export default function Templates() {
                   <div
                     key={tmpl.id}
                     onClick={() => setSelectedTemplateId(tmpl.id)}
-                    className={`bg-zinc-950 p-4 rounded-2xl border transition-all duration-200 shadow-lg cursor-pointer relative group flex flex-col gap-2 ${
+                    className={`bg-zinc-950/80 backdrop-blur-xl p-4 sm:p-5 rounded-3xl border transition-all duration-300 shadow-xl cursor-pointer relative group flex flex-col gap-2 ${
                       isSelected
-                        ? 'border-[#A6FF5D] ring-2 ring-[#A6FF5D]/30 bg-zinc-900/90 scale-[1.01]'
-                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-950/80 hover:bg-zinc-900/50'
+                        ? 'border-[#A6FF5D] ring-2 ring-[#A6FF5D]/40 bg-zinc-900/90 shadow-[0_0_25px_rgba(166,255,93,0.2)] scale-[1.01]'
+                        : 'border-zinc-800/80 hover:border-[#A6FF5D]/40 hover:shadow-[0_0_20px_rgba(166,255,93,0.12)] bg-zinc-950/80 hover:bg-zinc-900/60'
                     }`}
                   >
                     {/* Top Row: Title + Badge + Score + Active status */}
@@ -316,7 +316,7 @@ export default function Templates() {
           </div>
 
           {/* RIGHT: Live PDF Preview Viewer (7 Columns) */}
-          <div className="lg:col-span-7 bg-zinc-950 border border-zinc-800 rounded-3xl p-4 shadow-2xl flex flex-col h-[780px] lg:sticky lg:top-24">
+          <div className="lg:col-span-7 bg-zinc-950/90 backdrop-blur-xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.12)] hover:border-[#A6FF5D]/50 rounded-3xl p-5 transition-all duration-300 flex flex-col h-[780px] lg:sticky lg:top-24">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3 px-2">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#A6FF5D] animate-ping" />

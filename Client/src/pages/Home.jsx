@@ -9,7 +9,7 @@ import SEO from '../components/SEO'
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-transparent">
       <SEO 
         title="Free LaTeX ATS Resume Builder | Jake's Resume Template"
         description="Build ATS-optimized LaTeX resumes in minutes using Jake's Resume template. Trusted by software engineers at Google, Meta, Amazon, and top tech companies. 100% Free."
@@ -17,7 +17,7 @@ const Home = () => {
         canonicalPath="/"
       />
 
-      <header className="bg-black text-white flex flex-col items-center bg-cover bg-center bg-no-repeat min-h-screen md:min-h-0 md:pb-10 pt-20 sm:pt-24" style={{backgroundImage: "url('https://assets.prebuiltui.com/components/hero-section/hero-background-image.png')"}}>
+      <header className="bg-transparent text-white flex flex-col items-center min-h-screen md:min-h-0 md:pb-10 pt-20 sm:pt-24">
         <Navbar />
         <div className="flex-1 flex items-center justify-center w-full md:flex-initial">
           <Hero />
@@ -31,7 +31,7 @@ const Home = () => {
         
         <FAQ />
         
-        <section className="py-20 px-4 md:px-16 lg:px-24 xl:px-32 bg-black">
+        <section className="py-20 px-4 md:px-16 lg:px-24 xl:px-32 bg-black/40 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
               Ready to create your LaTeX resume?

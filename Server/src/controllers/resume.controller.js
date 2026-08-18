@@ -16,8 +16,16 @@ export const saveResume = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Resume data is required.')
   }
 
-  const resumeTitle = title?.trim() || formData.header.name ? `${formData.header.name}'s Resume` : 'Untitled Resume'
+  const resumeTitle = title?.trim()
+    ? title.trim()
+    : formData.header?.name
+    ? `${formData.header.name}'s Resume`
+    : 'Untitled Resume'
   const selectedTemplate = templateId || formData.templateId || 'jake'
+  const updatedFormData = {
+    ...formData,
+    templateId: selectedTemplate,
+  }
 
   let resume
 
@@ -28,14 +36,14 @@ export const saveResume = asyncHandler(async (req, res) => {
     }
     resume.title = resumeTitle
     resume.templateId = selectedTemplate
-    resume.formData = formData
+    resume.formData = updatedFormData
     await resume.save()
   } else {
     resume = await Resume.create({
       owner: req.user._id,
       title: resumeTitle,
       templateId: selectedTemplate,
-      formData,
+      formData: updatedFormData,
     })
   }
 

@@ -50,7 +50,11 @@ export default function SavedResumesModal({ isOpen, onClose, onLoadResume }) {
       const data = await res.json()
 
       if (data.success && data.data?.formData) {
-        onLoadResume(data.data.formData, data.data._id, data.data.title)
+        const loadedForm = {
+          ...data.data.formData,
+          templateId: data.data.templateId || data.data.formData.templateId || 'jake',
+        }
+        onLoadResume(loadedForm, data.data._id, data.data.title)
         onClose()
       } else {
         alert('Failed to load resume details.')

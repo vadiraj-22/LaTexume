@@ -67,10 +67,10 @@ const Features = () => {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 text-[#A6FF5D] text-xs font-semibold uppercase tracking-wider mb-3">
             <span>⚡ Powerful Feature Suite</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-3">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-3 drop-shadow">
             Everything you need for a 100% ATS Resume
           </h2>
-          <p className="text-zinc-400 text-sm sm:text-lg max-w-2xl mx-auto">
+          <p className="text-zinc-300 text-sm sm:text-lg max-w-2xl mx-auto drop-shadow">
             From LaTeX compilation and AI bullet enhancement to job matching and public share links.
           </p>
         </div>
@@ -79,7 +79,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-black/80 backdrop-blur p-6 sm:p-7 rounded-3xl border border-zinc-800/80 hover:border-[#A6FF5D]/50 transition-all duration-300 hover:-translate-y-1.5 shadow-xl flex flex-col justify-between group"
+              className="bg-zinc-950/90 backdrop-blur-md p-6 sm:p-7 rounded-3xl border border-zinc-800/90 hover:border-[#A6FF5D]/50 transition-all duration-300 hover:-translate-y-1.5 shadow-xl flex flex-col justify-between group"
             >
               <div>
                 <div className="p-3 w-fit rounded-2xl bg-zinc-900 border border-zinc-800 mb-5 group-hover:border-[#A6FF5D]/40 transition">
@@ -88,7 +88,7 @@ const Features = () => {
                 <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#A6FF5D] transition">
                   {feature.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">{feature.description}</p>
+                <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">{feature.description}</p>
               </div>
             </div>
           ))}

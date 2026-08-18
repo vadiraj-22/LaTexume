@@ -70,10 +70,10 @@ const FAQ = () => {
           <span className="text-[#A6FF5D] text-sm font-semibold tracking-wider uppercase mb-2 block">
             Got Questions?
           </span>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow">
             Frequently Asked Questions
           </h2>
-          <p className="text-gray-400 text-base md:text-lg">
+          <p className="text-zinc-300 text-base md:text-lg drop-shadow">
             Everything you need to know about building ATS-optimized LaTeX resumes with LaTexume
           </p>
         </div>
@@ -84,7 +84,7 @@ const FAQ = () => {
             return (
               <article 
                 key={index} 
-                className="bg-white/5 backdrop-blur rounded-xl border border-white/10 overflow-hidden transition-all duration-200 hover:border-[#A6FF5D]/30"
+                className="bg-zinc-950/90 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden transition-all duration-200 hover:border-[#A6FF5D]/30"
               >
                 <button
                   onClick={() => toggleFAQ(index)}

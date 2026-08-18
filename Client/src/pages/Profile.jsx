@@ -73,7 +73,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-transparent flex flex-col">
       <SEO 
         title="User Profile"
         description="Manage your account preferences and saved resume settings on LaTexume."

@@ -80,7 +80,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
       <SEO 
         title="Create Account"
         description="Create a free LaTexume account to build, edit, and download ATS-friendly LaTeX resumes."

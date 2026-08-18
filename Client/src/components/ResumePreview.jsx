@@ -80,33 +80,9 @@ const ResumePreview = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          {/* Left Side - Resume Sections */}
-          <div className="space-y-4 sm:space-y-6">
-            {sections.map((section, index) => {
-              const delays = ['animate-delay-100', 'animate-delay-200', 'animate-delay-300', 'animate-delay-400', 'animate-delay-500', 'animate-delay-600', 'animate-delay-700']
-              return (
-              <div
-                key={index}
-                className={`flex gap-3 sm:gap-4 bg-white/5 backdrop-blur p-4 sm:p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300 hover-lift animate-fade-in-left ${delays[index] || ''}`}
-              >
-                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary transition-transform duration-300 hover:scale-110 hover:rotate-6">
-                  {section.icon}
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-1">
-                    {section.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    {section.description}
-                  </p>
-                </div>
-              </div>
-            )})}
-          </div>
-
-          {/* Right Side - Resume Preview */}
-          <div className="lg:sticky lg:top-24 animate-fade-in-right animate-delay-200">
-            <div className="bg-white/5 backdrop-blur p-4 sm:p-6 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-500 hover-lift">
+          {/* Left Side - Resume Preview */}
+          <div className="lg:sticky lg:top-24 animate-fade-in-left animate-delay-100 flex justify-center w-full">
+            <div className="bg-white/5 backdrop-blur p-3.5 sm:p-5 rounded-2xl border border-white/10 hover:border-primary/20 transition-all duration-500 hover-lift max-w-sm sm:max-w-[400px] w-full">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg sm:text-xl font-semibold text-white">Preview</h3>
                 <span className="text-xs text-primary bg-primary/10 px-3 py-1 rounded-full animate-pulse-slow">
@@ -207,6 +183,30 @@ const ResumePreview = () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Right Side - Resume Sections */}
+          <div className="space-y-4 sm:space-y-6">
+            {sections.map((section, index) => {
+              const delays = ['animate-delay-100', 'animate-delay-200', 'animate-delay-300', 'animate-delay-400', 'animate-delay-500', 'animate-delay-600', 'animate-delay-700']
+              return (
+              <div
+                key={index}
+                className={`flex gap-3 sm:gap-4 bg-white/5 backdrop-blur p-4 sm:p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300 hover-lift animate-fade-in-right ${delays[index] || ''}`}
+              >
+                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary transition-transform duration-300 hover:scale-110 hover:rotate-6">
+                  {section.icon}
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-1">
+                    {section.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-400">
+                    {section.description}
+                  </p>
+                </div>
+              </div>
+            )})}
           </div>
         </div>
       </div>

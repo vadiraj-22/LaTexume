@@ -153,7 +153,10 @@ const Builder = () => {
           resumeId: currentResumeId,
           title,
           templateId: formData.templateId || 'jake',
-          formData,
+          formData: {
+            ...formData,
+            templateId: formData.templateId || 'jake',
+          },
         }),
       })
 
@@ -394,14 +397,14 @@ const Builder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-transparent">
       <SEO 
         title="Interactive LaTeX Resume Builder & Editor"
         description="Build and customize your LaTeX resume online with real-time preview and instant PDF export using Jake's Resume template."
         keywords="online latex resume editor, build latex resume, resume generator app, ATS resume creator"
         canonicalPath="/builder"
       />
-      <header className="bg-black text-white border-b border-white/10 pt-20">
+      <header className="bg-transparent text-white border-b border-white/10 pt-20">
         <Navbar />
       </header>
 
@@ -483,12 +486,12 @@ const Builder = () => {
         )}
 
         {/* Page Heading & Action Toolbar */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 animate-fade-in-down">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 animate-fade-in-down bg-zinc-950/80 backdrop-blur-xl p-6 sm:p-7 rounded-3xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.15)] hover:border-[#A6FF5D]/50 transition-all duration-300">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
               Build Your LaTeX Resume
             </h1>
-            <p className="text-zinc-400 text-xs sm:text-sm mt-1">
+            <p className="text-zinc-200 text-xs sm:text-sm mt-1 font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
               Reorder sections via ⠿ Drag or ▲/▼ • Real-time side-by-side LaTeX preview
             </p>
           </div>
@@ -496,22 +499,21 @@ const Builder = () => {
           {/* Compact Action Toolbar (No empty bar gap) */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Template Switcher */}
-            <Link
-              to="/templates"
-              className="bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-500/30 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer group shadow-md"
-              title="Change resume template style"
-            >
-              <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-500/30 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm shadow-md">
+              <svg className="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h3a1 1 0 011 1v6a1 1 0 01-1 1h-3a1 1 0 01-1-1v-6z" />
               </svg>
-              <span className="text-purple-300/70">Template:</span>
-              <span className="font-semibold text-white">
-                {formData.templateId === 'blueAccent' ? 'Blue Accent' : formData.templateId === 'classic' ? 'Classic Serif' : "Jake's Clean"}
-              </span>
-              <svg className="w-3.5 h-3.5 text-purple-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </Link>
+              <span className="text-purple-300/70 shrink-0">Template:</span>
+              <select
+                value={formData.templateId || 'jake'}
+                onChange={(e) => setFormData((prev) => ({ ...prev, templateId: e.target.value }))}
+                className="bg-transparent text-white font-semibold outline-none cursor-pointer text-xs sm:text-sm pr-1 border-none focus:ring-0"
+              >
+                <option value="jake" className="bg-zinc-900 text-white">Jake's Clean</option>
+                <option value="blueAccent" className="bg-zinc-900 text-white">Blue Accent</option>
+                <option value="classic" className="bg-zinc-900 text-white">Classic Serif</option>
+              </select>
+            </div>
 
             {/* ATS Matcher */}
             <Link
