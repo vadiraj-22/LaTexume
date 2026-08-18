@@ -1,229 +1,155 @@
 <div align="center">
 
-#  LaTexume
+  <h1>📄 LaTexume</h1>
+  <p><strong>Next-Generation LaTeX ATS Resume Builder & AI Career Suite</strong></p>
+  <p><em>Create recruiter-approved, publication-quality resumes with instant compilation and AI optimization.</em></p>
 
-### LaTeX-Powered ATS Resume Builder
+  <p>
+    <a href="https://latexume.vercel.app/">
+      <img src="https://img.shields.io/badge/Live_Demo-latexume.vercel.app-A6FF5D?style=flat-square&logo=vercel&logoColor=black" alt="Live Demo" />
+    </a>
+    <a href="#-key-features">
+      <img src="https://img.shields.io/badge/Features-Overview-18181b?style=flat-square" alt="Features" />
+    </a>
+    <a href="#-api-reference">
+      <img src="https://img.shields.io/badge/API-Reference-18181b?style=flat-square" alt="API Docs" />
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-18181b?style=flat-square" alt="License" />
+    </a>
+  </p>
 
-*Where Code Meets Career*
+  <p>
+    <img src="https://img.shields.io/badge/React-18.3-20232a?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/Node.js-Express_5-18181b?style=flat-square&logo=node.js&logoColor=5FA04E" alt="Node" />
+    <img src="https://img.shields.io/badge/MongoDB-Mongoose-18181b?style=flat-square&logo=mongodb&logoColor=47A248" alt="MongoDB" />
+    <img src="https://img.shields.io/badge/LaTeX-pdflatex-18181b?style=flat-square&logo=latex&logoColor=008080" alt="LaTeX" />
+    <img src="https://img.shields.io/badge/Gemini_AI-Google-18181b?style=flat-square&logo=google&logoColor=8E75B2" alt="Gemini" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-18181b?style=flat-square&logo=tailwind-css&logoColor=38B2AC" alt="Tailwind" />
+  </p>
 
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![LaTeX](https://img.shields.io/badge/LaTeX-Powered-47A141?style=for-the-badge&logo=latex&logoColor=white)](https://www.latex-project.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+  <br />
 
-[🚀 Live Site](https://latexume.vercel.app/) • [📖 Documentation](#usage) • [🐛 Report Bug](../../issues) • [✨ Request Feature](../../issues)
-
-
-
-
-
-</div>
-
----
-
-## 📋 Table of Contents
-
-- [About](#-about)
-- [Features](#-features)
-- [Screenshots](#-screenshots)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-- [Usage](#-usage)
-- [Project Structure](#-project-structure)
-- [API Documentation](#-api-documentation)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Acknowledgments](#-acknowledgments)
-
----
-
-## 🎯 About
-
-**LaTexume** is a modern, professional resume builder that leverages the power of LaTeX to create ATS-optimized resumes. Built specifically for developers, engineers, and tech professionals, it uses the industry-standard **Jake's Resume template** - trusted by engineers at Google, Meta, Amazon, and Microsoft.
-
-### Why LaTexume?
-
-- ✅ **100% ATS Compatible** - LaTeX formatting ensures perfect parsing by all Applicant Tracking Systems
-- ✅ **Industry Standard** - Uses Jake's Resume template, the most popular format among FAANG engineers
-- ✅ **Professional Typography** - LaTeX provides publication-quality formatting
-- ✅ **Zero LaTeX Knowledge Required** - Simple form-based interface
-- ✅ **Instant PDF Generation** - Get your resume in seconds
-- ✅ **Clickable Links** - Portfolio, GitHub, LinkedIn, and project links work in the PDF
-
----
-
-## ✨ Features
-
-<div align="center">
-
-| Feature | Description |
-|---------|-------------|
-| 🎨 **LaTeX-Powered** | Professional document preparation system ensuring perfect typography |
-| 🤖 **ATS-Optimized** | Guaranteed compatibility with all Applicant Tracking Systems |
-| ⚡ **Instant Export** | Generate publication-quality PDFs in seconds |
-| 🔗 **Smart Links** | All URLs are clickable in the generated PDF |
-| 📱 **Responsive UI** | Beautiful interface that works on all devices |
-| 🎯 **Structured Sections** | Organized format with all essential resume sections |
-| 🌐 **Professional Links** | Add Portfolio, LinkedIn, GitHub, LeetCode profiles |
-| 💼 **Project Showcase** | Include live site and GitHub repository links |
-| 🏆 **Achievements** | Dedicated section for certifications and awards |
+  <a href="https://latexume.vercel.app/">
+    <img src="./Client/public/Home.png" alt="LaTexume Landing Page" width="850" style="border-radius: 12px; border: 1px solid #27272a; box-shadow: 0 8px 30px rgba(0,0,0,0.5);" />
+  </a>
 
 </div>
 
----
-
-## 📸 Screenshots
-
-<div align="center">
-
-### 🏠 Home Page
-<img src="./Client/public/Home.png" alt="Home Page" width="800px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
-
-*Modern landing page with resume structure preview*
+<br />
 
 ---
 
-### 📝 Resume Builder
-<img src="./Client/public/Builder.png" alt="Resume Builder" width="800px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
+## ⚡ Overview
 
-*Intuitive form-based interface for entering your information*
+**LaTexume** is a full-stack web application that combines native **LaTeX document compilation** with **Generative AI** to produce 100% ATS-compliant, publication-ready software engineering resumes.
 
----
+Built on the industry-standard **Jake's Resume** template (trusted by engineers at Google, Meta, Amazon, and Microsoft), LaTexume replaces brittle WYSIWYG formatting with deterministic, pixel-perfect LaTeX typesetting.
 
-### ℹ️ About Page
-<img src="./Client/public/About.png" alt="About Page" width="800px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
-
-*Learn about LaTexume and Jake's Resume template*
-
----
-
-### 📄 Generated Resume Preview
-<img src="./Client/public/myResume.png" alt="Resume Preview" width="600px" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" />
-
-*Professional LaTeX-formatted resume output*
-
-</div>
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
 ```
-React 18.3          - Modern UI library with hooks
-Vite 5.1           - Next-generation frontend tooling
-Tailwind CSS 3.4   - Utility-first CSS framework
-React Router 6.22  - Declarative routing for React
-```
-
-### Backend
-```
-Node.js            - JavaScript runtime
-Express 5.2        - Fast, minimalist web framework
-LaTeX              - Document preparation system
-CORS               - Cross-Origin Resource Sharing
-```
-
-### Template
-```
-Jake's Resume      - Industry-standard LaTeX template
-                    Trusted by FAANG engineers
+┌─────────────────┐     ┌───────────────────┐     ┌───────────────────┐
+│  Form Inputs /  │ ──> │ Server Compilation│ ──> │ ATS-Optimized PDF │
+│ PDF Parser Import│     │  (pdflatex engine)│     │ & Shareable Link  │
+└─────────────────┘     └───────────────────┘     └───────────────────┘
 ```
 
 ---
 
-## 🚀 Getting Started
+## ✨ Key Features
 
-### Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
-- **npm** or **yarn** - Comes with Node.js
-- **LaTeX Distribution** - Required for PDF generation
-  - **Windows**: [MiKTeX](https://miktex.org/) or [TeX Live](https://www.tug.org/texlive/)
-  - **macOS**: [MacTeX](https://www.tug.org/mactex/)
-  - **Linux**: `sudo apt-get install texlive-full` (Ubuntu/Debian)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/latexume.git
-   cd latexume
-   ```
-
-2. **Install Backend Dependencies**
-   ```bash
-   cd Server
-   npm install
-   ```
-
-3. **Install Frontend Dependencies**
-   ```bash
-   cd ../Client
-   npm install
-   ```
-
-4. **Start the Backend Server**
-   ```bash
-   cd ../Server
-   npm run dev
-   ```
-   🟢 Backend runs on `http://localhost:3001`
-
-5. **Start the Frontend (in a new terminal)**
-   ```bash
-   cd Client
-   npm run dev
-   ```
-   🟢 Frontend runs on `http://localhost:5173`
-
-6. **Open your browser**
-   ```
-   Navigate to http://localhost:5173
-   ```
+- 🎨 **Native LaTeX Typesetting Engine**: High-speed `pdflatex` compilation with zero client-side setup required. Choose between **Jake's Resume**, **Classic**, and **Blue Accent** templates with clickable URL hyperlinking.
+- 🤖 **Gemini AI Bullet Point Enhancer**: Transforms basic descriptions into high-impact, action-oriented bullet points with quantified metric placeholders. Includes multi-provider token-light failover (Google Gemini & Groq).
+- 🎯 **ATS Matcher & Job Description Optimizer**: Paste any job description to calculate a real-time **ATS Match Score (0–100%)**, extract matching/missing keywords, and receive actionable suggestions.
+- 📥 **Server-Side PDF Parser**: Import existing PDF resumes with automated text extraction to populate builder fields instantly.
+- 💾 **Cloud Sync & Public Resume Sharing**: Secure JWT authentication (MongoDB + HttpOnly cookies). Save, update, and manage multiple resume profiles, or generate shareable public web links (`/r/:id`).
+- 👁️ **Dual-Pane Canvas & TeX Drawer**: Real-time PDF rendering powered by PDF.js canvas viewer, with toggleable raw LaTeX source code drawer for power users.
 
 ---
 
-## 📖 Usage
+## 📸 Interface Gallery
 
-### Step-by-Step Guide
+<details open>
+<summary><strong>Click to view App Screenshots</strong></summary>
+<br />
 
-1. **Personal Information**
-   - Enter your name, email, phone number
-   - Add professional links (Portfolio, LinkedIn, GitHub, LeetCode)
+| View | Screenshot |
+| :--- | :--- |
+| **Landing Page** | <img src="./Client/public/Home.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
+| **Resume Builder & Preview** | <img src="./Client/public/Builder.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
+| **Template Selector Gallery** | <img src="./Client/public/Template.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
+| **ATS Job Matcher & Keyword Scanner** | <img src="./Client/public/ATS.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
+| **LaTeX PDF Output** | <img src="./Client/public/MyResume.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
+| **About & Mission** | <img src="./Client/public/About.png" width="600" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" /> |
 
-2. **Career Objective**
-   - Write a brief professional summary
-   - Highlight your key strengths and goals
+</details>
 
-3. **Technical Skills**
-   - Organize skills by categories (Languages, Frameworks, Tools, etc.)
-   - Example: `Languages: JavaScript, Python, Java`
+---
 
-4. **Work Experience**
-   - Add job title, company, location, and dates
-   - Include bullet points for achievements and responsibilities
-   - Use action verbs and quantify results
+## 🛠️ Architecture & Tech Stack
 
-5. **Projects**
-   - List personal or academic projects
-   - Specify technologies used
-   - Add live site and GitHub repository links
+```
+Frontend (React 18 + Vite)
+ ├── Tailwind CSS 3.4 (Glassmorphic Dark UI)
+ ├── PDF.js Canvas Viewer
+ └── React Router 6 (Protected Auth Routes)
 
-6. **Education**
-   - Institution name and location
-   - Degree and field of study
-   - Dates attended
+Backend (Node.js + Express 5)
+ ├── pdflatex CLI Compiler
+ ├── Gemini & Groq AI Failover Pipeline
+ ├── PDF Parser & Extraction Engine
+ └── MongoDB / Mongoose Data Layer
+```
 
-7. **Certifications & Achievements**
-   - Add as simple bullet points
-   - Include certification name, organization, and date
+---
 
-8. **Generate PDF**
-   - Click "Generate Resume PDF"
-   - Your professionally formatted resume downloads instantly!
+## 🚀 Quick Start
+
+### 1. Prerequisites
+
+* **Node.js** (v18+)
+* **MongoDB** (Local instance or MongoDB Atlas URI)
+* **pdflatex Engine**:
+  * **macOS**: `brew install --cask mactex`
+  * **Ubuntu/Debian**: `sudo apt install texlive-latex-base texlive-fonts-recommended texlive-latex-extra`
+  * **Windows**: Install [MiKTeX](https://miktex.org/)
+
+### 2. Environment Configuration
+
+Create `Server/.env`:
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/latexume
+CORS_ORIGIN=http://localhost:5173
+
+ACCESS_TOKEN_SECRET=your_access_token_secret
+REFRESH_TOKEN_SECRET=your_refresh_token_secret
+
+GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
+```
+
+Create `Client/.env`:
+```env
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+### 3. Run Locally
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/latexume.git
+cd latexume
+
+# Install and start Server
+cd Server
+npm install
+npm run dev
+
+# In a new terminal, install and start Client
+cd ../Client
+npm install
+npm run dev
+```
 
 ---
 
@@ -232,211 +158,161 @@ Before you begin, ensure you have the following installed:
 ```
 latexume/
 │
-├── Client/                          # Frontend React Application
-│   ├── public/                      # Static assets
-│   │   └── resume-preview.png       # Resume preview image
+├── Client/                             # Frontend React Application (Vite)
+│   ├── public/                         # Static assets & public preview images
+│   │   ├── About.png
+│   │   ├── ATS.png                     # ATS Job Matcher screenshot
+│   │   ├── Builder.png                 # Resume Builder screenshot
+│   │   ├── Home.png                    # Landing page screenshot
+│   │   ├── MyResume.png                # Resume output preview image
+│   │   └── Template.png               # Template gallery screenshot
 │   │
 │   ├── src/
-│   │   ├── components/              # Reusable UI components
-│   │   │   ├── Navbar.jsx          # Navigation bar
-│   │   │   ├── Hero.jsx            # Hero section
-│   │   │   ├── Features.jsx        # Features showcase
-│   │   │   ├── ResumePreview.jsx   # Resume structure preview
-│   │   │   ├── Footer.jsx          # Footer component
-│   │   │   ├── Logo.jsx            # LaTexume logo
-│   │   │   ├── ScrollDown.jsx      # Scroll indicator
-│   │   │   └── TrustedBy.jsx       # Company logos
+│   │   ├── components/                 # Reusable UI Components
+│   │   │   ├── BulletEnhancerModal.jsx # Gemini AI bullet improver modal
+│   │   │   ├── JdMatcherCard.jsx      # Job description matcher UI
+│   │   │   ├── LatexPreviewDrawer.jsx # Raw LaTeX code preview drawer
+│   │   │   ├── PdfCanvasViewer.jsx    # PDF.js canvas viewer
+│   │   │   ├── ResumeImporter.jsx     # PDF upload & parser dialog
+│   │   │   ├── SavedResumesModal.jsx  # User saved resumes dialog
+│   │   │   └── TemplateSelector.jsx   # LaTeX template switcher dropdown
 │   │   │
-│   │   ├── pages/                   # Page components
-│   │   │   ├── Home.jsx            # Landing page
-│   │   │   ├── Builder.jsx         # Resume builder form
-│   │   │   └── About.jsx           # About page
+│   │   ├── pages/                      # Application Views
+│   │   │   ├── About.jsx              # About page & Jake's resume overview
+│   │   │   ├── AtsOptimizer.jsx       # Job description matcher page
+│   │   │   ├── Builder.jsx            # Interactive LaTeX resume builder
+│   │   │   ├── Home.jsx               # Landing page
+│   │   │   ├── Profile.jsx            # User account & saved resumes dashboard
+│   │   │   ├── PublicResume.jsx       # Public shareable resume viewer (`/r/:id`)
+│   │   │   ├── SignIn.jsx             # User login page
+│   │   │   └── SignUp.jsx             # Account registration page
 │   │   │
-│   │   ├── App.jsx                  # Main app component
-│   │   ├── main.jsx                 # Entry point
-│   │   └── index.css                # Global styles
+│   │   ├── App.jsx                     # Application routes & protected route guards
+│   │   └── main.jsx                    # React entry point
 │   │
-│   ├── index.html                   # HTML template
-│   ├── package.json                 # Frontend dependencies
-│   ├── vite.config.js              # Vite configuration
-│   ├── tailwind.config.js          # Tailwind configuration
-│   └── postcss.config.js           # PostCSS configuration
+│   ├── package.json
+│   └── vite.config.js
 │
-├── Server/                          # Backend Node.js Application
-│   ├── lib/                         # Core functionality
-│   │   ├── compiler.js             # LaTeX to PDF compilation
-│   │   ├── latexEscape.js          # LaTeX special character escaping
-│   │   └── templateEngine.js       # Template processing engine
+├── Server/                             # Backend Node.js / Express Application
+│   ├── lib/                            # Core Processing Libraries
+│   │   ├── aiOptimizer.js              # Gemini/Groq AI integration (Bullets & ATS Matcher)
+│   │   ├── compiler.js                 # pdflatex compilation & file cleanup
+│   │   ├── resumeParser.js            # PDF text extraction & data structure builder
+│   │   └── templateEngine.js          # Dynamic LaTeX template renderer
 │   │
-│   ├── routes/                      # API routes
-│   │   └── generateResume.js       # Resume generation endpoint
+│   ├── routes/                         # Feature API Routers
+│   │   ├── ai.routes.js               # `/api/ai/enhance-bullet` & `/api/ai/match-jd`
+│   │   ├── generateResume.js          # `/api/generate-resume` (PDF compiler)
+│   │   └── parseResume.js             # `/api/parse-resume` (PDF parser)
 │   │
-│   ├── templates/                   # LaTeX templates
-│   │   └── jake.tex.js             # Jake's Resume template
+│   ├── templates/                      # LaTeX Templates
+│   │   ├── jake.tex.js                # Jake's Resume LaTeX template
+│   │   ├── classic.tex.js             # Classic LaTeX template
+│   │   └── blueAccent.tex.js          # Blue Accent LaTeX template
 │   │
-│   ├── index.js                     # Server entry point
-│   └── package.json                 # Backend dependencies
+│   ├── index.js                        # Express server entry point
+│   └── package.json
 │
-├── screenshots/                     # Application screenshots
-│   ├── home.png
-│   ├── builder.png
-│   └── about.png
-│
-├── .gitignore                       # Git ignore rules
-└── README.md                        # This file
+└── README.md                           # Main Project Documentation
 ```
 
 ---
 
-## 🔌 API Documentation
+## 🔌 API Reference
 
-### Generate Resume
+<details>
+<summary><code>POST /api/generate-resume</code> — Compile PDF</summary>
+<br />
 
-**Endpoint:** `POST /api/generate-resume`
+Accepts resume schema and returns compiled binary PDF stream.
 
-**Description:** Generates a PDF resume from the provided data using LaTeX.
-
-**Request Body:**
 ```json
 {
+  "template": "jake",
   "header": {
-    "name": "John Doe",
-    "email": "john@example.com",
-    "phone": "+1234567890",
-    "portfolio": "https://johndoe.com",
-    "linkedin": "https://linkedin.com/in/johndoe",
-    "github": "https://github.com/johndoe",
-    "leetcode": "https://leetcode.com/johndoe"
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "github": "https://github.com/janedoe"
   },
-  "objective": "Passionate Full Stack Developer...",
-  "skills": [
-    {
-      "label": "Languages",
-      "skills": "JavaScript, Python, Java"
-    }
-  ],
+  "skills": [{ "label": "Languages", "skills": "TypeScript, Python" }],
   "experience": [
     {
       "title": "Software Engineer",
       "company": "Tech Corp",
-      "location": "San Francisco, CA",
-      "startDate": "Jan 2022",
-      "endDate": "Present",
-      "bullets": [
-        "Developed scalable web applications",
-        "Improved performance by 40%"
-      ]
+      "bullets": ["Architected microservices handling 10M+ requests."]
     }
-  ],
-  "projects": [
-    {
-      "name": "Project Name",
-      "technologies": "React, Node.js",
-      "date": "2024",
-      "bullets": ["Built full-stack application"],
-      "liveLink": "https://project.com",
-      "githubLink": "https://github.com/user/project"
-    }
-  ],
-  "education": [
-    {
-      "institution": "University Name",
-      "location": "City, State",
-      "degree": "Bachelor of Science",
-      "field": "Computer Science",
-      "startDate": "2018",
-      "endDate": "2022"
-    }
-  ],
-  "certifications": [
-    "AWS Certified Developer",
-    "Google Cloud Professional"
   ]
 }
 ```
+</details>
 
-**Response:**
-- **Content-Type:** `application/pdf`
-- **Content-Disposition:** `attachment; filename="resume.pdf"`
-- **Body:** PDF file binary data
+<details>
+<summary><code>POST /api/ai/enhance-bullet</code> — AI Polish</summary>
+<br />
 
-**Error Responses:**
-- `400 Bad Request` - Missing required fields (name, email)
-- `500 Internal Server Error` - LaTeX compilation error
+```json
+// Request
+{ "bullet": "created a backend service for tax reports", "roleTitle": "Software Engineer" }
 
----
+// Response
+{
+  "suggestions": [
+    "Engineered scalable backend service for tax reporting, reducing generation time by 45%.",
+    "Architected automated tax reporting microservice serving 200+ municipal jurisdictions."
+  ]
+}
+```
+</details>
 
-## 🤝 Contributing
+<details>
+<summary><code>POST /api/ai/match-jd</code> — ATS Match Score</summary>
+<br />
 
-Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**!
+```json
+// Request
+{ "resumeData": { /* resume JSON */ }, "jobDescription": "Looking for React, Node.js, and Docker experience..." }
 
-### How to Contribute
+// Response
+{
+  "score": 92,
+  "matchingKeywords": ["react", "node.js", "docker"],
+  "missingKeywords": [],
+  "feedback": ["Quantify impact metrics in project sections."]
+}
+```
+</details>
 
-1. **Fork the Project**
-2. **Create your Feature Branch**
-   ```bash
-   git checkout -b feature/AmazingFeature
-   ```
-3. **Commit your Changes**
-   ```bash
-   git commit -m 'Add some AmazingFeature'
-   ```
-4. **Push to the Branch**
-   ```bash
-   git push origin feature/AmazingFeature
-   ```
-5. **Open a Pull Request**
+<details>
+<summary><code>POST /api/v1/users/*</code> — Authentication Endpoints</summary>
+<br />
 
-### Development Guidelines
+* `POST /api/v1/users/register` — Create account
+* `POST /api/v1/users/login` — Authenticate user
+* `POST /api/v1/users/logout` — Clear session cookies
+* `GET /api/v1/users/me` — Fetch user profile
+</details>
 
-- Follow the existing code style
-- Write meaningful commit messages
-- Update documentation for new features
-- Test your changes thoroughly
-- Ensure all tests pass before submitting PR
+<details>
+<summary><code>POST /api/v1/resumes/*</code> — Cloud Resume Persistence</summary>
+<br />
 
----
-
-## 📝 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-Special thanks to:
-
-- **[Jake Gutierrez](https://github.com/jakegut)** - Creator of Jake's Resume LaTeX template
-- **[React Team](https://reactjs.org/)** - For the amazing frontend framework
-- **[Tailwind Labs](https://tailwindcss.com/)** - For the beautiful styling system
-- **[Vite Team](https://vitejs.dev/)** - For the lightning-fast build tool
-- **[LaTeX Project](https://www.latex-project.org/)** - For the powerful document preparation system
-
----
-
-## 📧 Contact & Support
-
-- **Issues:** [GitHub Issues](../../issues)
-- **Discussions:** [GitHub Discussions](../../discussions)
-- **Email:** support@latexume.com
+* `POST /api/v1/resumes/save` — Save/Update resume draft
+* `GET /api/v1/resumes` — List saved resumes
+* `GET /api/v1/resumes/:id` — Fetch single resume
+* `DELETE /api/v1/resumes/:id` — Delete resume
+* `GET /api/v1/resumes/public/:id` — Fetch public resume link
+</details>
 
 ---
 
-## 🌟 Star History
+## 🤝 Contributing & License
 
-If you find this project useful, please consider giving it a ⭐!
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/latexume&type=Date)](https://star-history.com/#yourusername/latexume&Date)
+Licensed under the [MIT License](LICENSE).
 
----
+<br />
 
 <div align="center">
-
-### Made with ❤️ and LaTeX
-
-**LaTexume** - *Empowering professionals with perfect resumes*
-
-[⬆ Back to Top](#-latexume)
-
+  <sub>Built with ❤️ and LaTeX</sub>
 </div>
