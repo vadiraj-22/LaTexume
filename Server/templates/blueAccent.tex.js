@@ -7,6 +7,7 @@
 export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 
 \\usepackage[hidelinks]{hyperref}
+\\usepackage{lipsum}
 
 \\pdfstringdefDisableCommands{%
   \\def\\color#1{}%
@@ -45,7 +46,7 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
   }
 }
 
-\\newcommand{\\resumeItemSimple}[1]{
+\\newcommand{\\resumeItemWithoutTitle}[1]{
   \\item\\small{
     {#1 \\vspace{-2pt}}
   }
@@ -63,14 +64,14 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 
 \\renewcommand{\\labelitemii}{$\\circ$}
 
-\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
+\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=*]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=0.15in]}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
 \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 `
 
 export function buildTemplate({ header, sectionOrder, ...sectionMap }) {
-  const defaultOrder = ['skills', 'education', 'experience', 'projects', 'certifications', 'objective']
+  const defaultOrder = ['skills', 'education', 'experience', 'projects', 'achievements', 'certifications', 'objective']
   const order = Array.isArray(sectionOrder) && sectionOrder.length > 0 ? sectionOrder : defaultOrder
 
   const bodyContent = order

@@ -26,6 +26,7 @@ export function templateEngine(data) {
         projects: buildBlueProjects(data.projects),
         education: buildBlueEducation(data.education),
         certifications: buildBlueCertifications(data.certifications),
+        achievements: buildBlueAchievements(data.achievements),
       })
 
     case 'classic':
@@ -238,15 +239,24 @@ function buildBlueHeader(header = {}) {
   const linkedin = header.linkedin ? `\\href{${header.linkedin}}{Linkedin: ${getDisplayUrl(header.linkedin)}}` : ''
   const github = header.github ? `\\href{${header.github}}{Github: ${getDisplayUrl(header.github)}}` : ''
   const portfolio = header.portfolio ? `\\href{${header.portfolio}}{Portfolio: ${getDisplayUrl(header.portfolio)}}` : ''
+  const leetcode = header.leetcode ? `\\href{${header.leetcode}}{Leetcode: ${getDisplayUrl(header.leetcode)}}` : ''
   const emailItem = email ? `{Email: \\href{mailto:${email}}{${email}}}` : ''
   const phoneItem = phone ? `{Mobile:~~~${phone}}` : ''
 
+  const leftItems = [linkedin, github, portfolio].filter(Boolean)
+  const rightItems = [emailItem, phoneItem, leetcode].filter(Boolean)
+  
+  const maxRows = Math.max(leftItems.length, rightItems.length)
+  let rows = ''
+  for (let i = 0; i < maxRows; i++) {
+    const left = leftItems[i] || ''
+    const right = rightItems[i] || ''
+    rows += `  ${left} & ${right}\\\\\n`
+  }
+
   return `\\begin{tabular*}{\\textwidth}{l@{\\extracolsep{\\fill}}r}
   \\textbf{{\\LARGE \\color{Blue} ${name}}}\\\\
-  ${linkedin ? linkedin : (portfolio ? portfolio : '')} & ${emailItem}\\\\
-  ${github ? github : ''} & ${phoneItem} \\\\
-  ${linkedin && portfolio ? portfolio : ''}
-\\end{tabular*}`
+${rows}\\end{tabular*}`
 }
 
 function buildBlueObjective(objective = '') {
@@ -266,7 +276,7 @@ function buildBlueSkills(skills = []) {
 
   if (!rows) return ''
 
-  return `\\section{\\color{BlueViolet} Skills Summary}
+  return `\\section{\\color{BlueViolet} Skills}
 \\resumeSubHeadingListStart
 ${rows}
 \\resumeSubHeadingListEnd
@@ -280,9 +290,20 @@ function buildBlueEducation(education = []) {
     const dates = [edu.startDate, edu.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
     const degreeField = [edu.degree, edu.field].filter(Boolean).map(escapeLatex).join(' in ')
 
-    return `  \\resumeSubheading
+    let out = `  \\resumeSubheading
       {\\color{Blue} ${escapeLatex(edu.institution)}}{${escapeLatex(edu.location)}}
       {${degreeField}}{${dates}}`
+
+    if (edu.coursework) {
+      const match = edu.coursework.match(/^([^:]+):\s*(.*)$/)
+      if (match) {
+        out += `\n      {\\scriptsize \\textit{ \\footnotesize{\\newline{}\\textbf{${escapeLatex(match[1])}:} ${escapeLatex(match[2])}}}}`
+      } else {
+        out += `\n      {\\scriptsize \\textit{ \\footnotesize{\\newline{}${escapeLatex(edu.coursework)}}}}`
+      }
+    }
+
+    return out
   }).join('\n\n')
 
   return `\\section{\\color{BlueViolet} Education}
@@ -298,7 +319,13 @@ function buildBlueExperience(experience = []) {
   const entries = experience.map(exp => {
     const bullets = (exp.bullets || [])
       .filter(b => b?.trim())
-      .map(b => `    \\resumeItemSimple{${escapeLatex(b)}}`)
+      .map(b => {
+        const match = b.match(/^([^:]+):\s*(.*)$/)
+        if (match) {
+          return `          \\resumeItem{${escapeLatex(match[1])}}\n          {${escapeLatex(match[2])}}`
+        }
+        return `          \\resumeItemWithoutTitle{${escapeLatex(b)}}`
+      })
       .join('\n')
 
     const dates = [exp.startDate, exp.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
@@ -321,7 +348,7 @@ function buildBlueProjects(projects = []) {
   if (!projects?.length) return ''
 
   const entries = projects.map(proj => {
-    const bulletsText = (proj.bullets || []).filter(b => b?.trim()).map(escapeLatex).join(' ')
+    const bulletsText = (proj.bullets || []).filter(b => b?.trim()).map(escapeLatex).join('\\newline ')
     const techText = proj.technologies ? `\\newline Tech: ${escapeLatex(proj.technologies)}` : ''
 
     const links = []
@@ -332,7 +359,7 @@ function buildBlueProjects(projects = []) {
       links.push(`GitHub: \\href{${proj.githubLink}}{${getDisplayUrl(proj.githubLink)}}`)
     }
 
-    const linksText = links.length > 0 ? `\\newline \\color{BlueViolet} ${links.join(', ')}` : ''
+    const linksText = links.length > 0 ? `\\newline \\color{BlueViolet} ${links.join(', \\hspace{7pt} ')}` : ''
     const content = `${bulletsText}${techText}${linksText}`
 
     return `\\resumeSubItem{\\color{Blue} ${escapeLatex(proj.name)}}{${content}}`
@@ -343,6 +370,38 @@ function buildBlueProjects(projects = []) {
 ${entries}
 \\resumeSubHeadingListEnd
 \\vspace{-2pt}`
+}
+
+function buildBlueAchievements(achievements = []) {
+  if (!achievements?.length) return ''
+
+  const entries = achievements
+    .map(c => {
+      if (typeof c === 'string') return c
+      if (typeof c === 'object' && c !== null) {
+        return [c.name, c.issuer, c.date].filter(Boolean).join(' - ')
+      }
+      return ''
+    })
+    .filter(c => c?.trim())
+    .map(c => {
+      const match = c.match(/^([^:]+):\s*(.*)$/)
+      if (match) {
+        return `\\resumeSubItem{\\color{Blue} ${escapeLatex(match[1])}}{\\newline ${escapeLatex(match[2])}}`
+      }
+      return `\\resumeItemWithoutTitle{${escapeLatex(c)}}`
+    })
+    .join('\n\\vspace{2pt}\n')
+
+  if (!entries) return ''
+
+  return `\\section{\\color{BlueViolet} Achievements}
+\\resumeSubHeadingListStart
+\\vspace{2pt}
+${entries}
+\\vspace{2pt}
+\\resumeSubHeadingListEnd
+\\vspace{-5pt}`
 }
 
 function buildBlueCertifications(certifications = []) {
@@ -357,14 +416,14 @@ function buildBlueCertifications(certifications = []) {
       return ''
     })
     .filter(c => c?.trim())
-    .map(c => `  \\resumeItemSimple{${escapeLatex(c)}}`)
+    .map(c => `\\item {${escapeLatex(c)}}`)
     .join('\n')
 
   if (!entries) return ''
 
   return `\\section{\\color{BlueViolet} Certifications}
-\\resumeSubHeadingListStart
+\\begin{description}[font=$\\bullet$]
 ${entries}
-\\resumeSubHeadingListEnd
-\\vspace{-2pt}`
+\\vspace{-5pt}
+\\end{description}`
 }

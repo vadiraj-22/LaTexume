@@ -54,14 +54,16 @@ const Builder = () => {
       degree: '', 
       field: '', 
       startDate: '', 
-      endDate: '' 
+      endDate: '',
+      coursework: ''
     }],
     certifications: [''],
-    sectionOrder: ['objective', 'skills', 'experience', 'projects', 'education', 'certifications'],
+    achievements: [''],
+    sectionOrder: ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications'],
   })
 
   const moveSection = (sectionKey, direction) => {
-    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
+    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
     const idx = currentOrder.indexOf(sectionKey)
     if (idx === -1) return
     const targetIdx = direction === 'up' ? idx - 1 : idx + 1
@@ -221,6 +223,7 @@ const Builder = () => {
         projects: [...prev.projects.filter((p) => p.name), ...(parsedData.projects || [])],
         education: [...prev.education.filter((ed) => ed.institution || ed.degree), ...(parsedData.education || [])],
         certifications: [...prev.certifications.filter(Boolean), ...(parsedData.certifications || [])],
+        achievements: [...(prev.achievements || []).filter(Boolean), ...(parsedData.achievements || [])],
       }))
     }
 
@@ -272,6 +275,12 @@ const Builder = () => {
     const newCertifications = [...formData.certifications]
     newCertifications[index] = value
     setFormData({ ...formData, certifications: newCertifications })
+  }
+
+  const handleAchievementChange = (index, value) => {
+    const newAchievements = [...(formData.achievements || [])]
+    newAchievements[index] = value
+    setFormData({ ...formData, achievements: newAchievements })
   }
 
   const addSkill = () => {
@@ -340,13 +349,13 @@ const Builder = () => {
   const addEducation = () => {
     setFormData({
       ...formData,
-      education: [...formData.education, { institution: '', location: '', degree: '', field: '', startDate: '', endDate: '' }]
+      education: [...formData.education, { institution: '', location: '', degree: '', field: '', startDate: '', endDate: '', coursework: '' }]
     })
   }
 
   const removeEducation = (index) => {
     const newEducation = formData.education.filter((_, i) => i !== index)
-    setFormData({ ...formData, education: newEducation.length > 0 ? newEducation : [{ institution: '', location: '', degree: '', field: '', startDate: '', endDate: '' }] })
+    setFormData({ ...formData, education: newEducation.length > 0 ? newEducation : [{ institution: '', location: '', degree: '', field: '', startDate: '', endDate: '', coursework: '' }] })
   }
 
   const addCertification = () => {
@@ -359,6 +368,18 @@ const Builder = () => {
   const removeCertification = (index) => {
     const newCertifications = formData.certifications.filter((_, i) => i !== index)
     setFormData({ ...formData, certifications: newCertifications.length > 0 ? newCertifications : [''] })
+  }
+
+  const addAchievement = () => {
+    setFormData({
+      ...formData,
+      achievements: [...(formData.achievements || []), '']
+    })
+  }
+
+  const removeAchievement = (index) => {
+    const newAchievements = (formData.achievements || []).filter((_, i) => i !== index)
+    setFormData({ ...formData, achievements: newAchievements.length > 0 ? newAchievements : [''] })
   }
 
   const handleSubmit = async (e) => {
@@ -666,7 +687,8 @@ const Builder = () => {
                 experience: 'Experience',
                 projects: 'Projects',
                 education: 'Education',
-                certifications: 'Certifications & Achievements',
+                achievements: 'Achievements',
+                certifications: 'Certifications',
               }
 
               return (
@@ -979,6 +1001,10 @@ const Builder = () => {
                               <label className={labelCls}>End Date</label>
                               <input type="text" placeholder="May 2024" value={edu.endDate} onChange={(e) => handleEducationChange(eduIdx, 'endDate', e.target.value)} className={inputCls} />
                             </div>
+                            <div className="sm:col-span-2">
+                              <label className={labelCls}>Core Coursework (Optional)</label>
+                              <input type="text" placeholder="Data Structures, Algorithms, OS, DBMS" value={edu.coursework} onChange={(e) => handleEducationChange(eduIdx, 'coursework', e.target.value)} className={inputCls} />
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -991,7 +1017,7 @@ const Builder = () => {
                   {/* CERTIFICATIONS CARD */}
                   {key === 'certifications' && (
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-400 mb-4">Add your certifications, honors, awards, or achievements as bullet points</p>
+                      <p className="text-xs sm:text-sm text-gray-400 mb-4">Add your certifications as bullet points</p>
                       <div className="space-y-3">
                         {formData.certifications.map((cert, certIdx) => (
                           <div key={certIdx} className="flex items-center gap-2">
@@ -1014,7 +1040,38 @@ const Builder = () => {
                         ))}
                       </div>
                       <button type="button" onClick={addCertification} className={addBtnCls}>
-                        <span>+ Add Certification / Achievement</span>
+                        <span>+ Add Certification</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ACHIEVEMENTS CARD */}
+                  {key === 'achievements' && (
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-400 mb-4">Add your honors, awards, or achievements as bullet points</p>
+                      <div className="space-y-3">
+                        {(formData.achievements || []).map((ach, achIdx) => (
+                          <div key={achIdx} className="flex items-center gap-2">
+                            <span className="text-[#A6FF5D] font-bold text-lg select-none">•</span>
+                            <input
+                              type="text"
+                              placeholder="Solved 500+ DSA Problems on LeetCode"
+                              value={ach}
+                              onChange={(e) => handleAchievementChange(achIdx, e.target.value)}
+                              className={inputCls}
+                            />
+                            {(formData.achievements || []).length > 1 && (
+                              <button type="button" onClick={() => removeAchievement(achIdx)} className={removeBtnCls} title="Delete achievement">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button" onClick={addAchievement} className={addBtnCls}>
+                        <span>+ Add Achievement</span>
                       </button>
                     </div>
                   )}

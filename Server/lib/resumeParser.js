@@ -88,10 +88,15 @@ const GEMINI_JSON_SCHEMA = {
           field: { type: 'string' },
           startDate: { type: 'string' },
           endDate: { type: 'string' },
+          coursework: { type: 'string' },
         },
       },
     },
     certifications: {
+      type: 'array',
+      items: { type: 'string' },
+    },
+    achievements: {
       type: 'array',
       items: { type: 'string' },
     },
@@ -275,9 +280,10 @@ async function parsePdfWithGemini(fileBuffer, apiKey) {
 RULES:
 - Extract ONLY real data. NEVER fabricate or invent information.
 - Extract EVERY bullet point under experience and projects.
-- Split company name and location into separate fields (e.g. "InvictoLabs" = company, "Bengaluru, India" = location).
-- Each achievement/certification must be its own separate string in the certifications array.
-- Bullet descriptions starting with verbs (Enabled, Implemented, Built) are NOT project names.`
+- Split company name and location into separate fields.
+- Put achievements and certifications into their respective separate arrays. Do not merge them.
+- Extract 'Core Coursework' into the coursework field in the education array.
+- Bullet descriptions starting with verbs are NOT project names.`
 
   for (const modelName of GEMINI_MODELS) {
     try {
@@ -309,9 +315,10 @@ async function parseWithGemini(text, apiKey) {
 RULES:
 - Extract ONLY real data. NEVER fabricate or invent information.
 - Extract EVERY bullet point under experience and projects.
-- Split company name and location into separate fields (e.g. "InvictoLabs" = company, "Bengaluru, India" = location).
-- Each achievement/certification must be its own separate string in the certifications array.
-- Bullet descriptions starting with verbs (Enabled, Implemented, Built) are NOT project names.
+- Split company name and location into separate fields.
+- Put achievements and certifications into their respective separate arrays. Do not merge them.
+- Extract 'Core Coursework' into the coursework field in the education array.
+- Bullet descriptions starting with verbs are NOT project names.
 
 Resume Text:
 ${text}`
@@ -392,13 +399,15 @@ OUTPUT FORMAT - Return ONLY valid JSON with this exact structure:
       "degree": "B.Tech / M.Tech / PUC / etc.",
       "field": "Computer Science / Electronics / etc.",
       "startDate": "YYYY or Mon YYYY",
-      "endDate": "YYYY or Mon YYYY or Present"
+      "endDate": "YYYY or Mon YYYY or Present",
+      "coursework": "Extracted coursework string if present"
     }
   ],
   "certifications": [
-    "Each achievement, certification, award, or honor as its OWN separate string",
-    "Do NOT combine multiple points into one string",
-    "Include any section titled Achievements, Certifications, Awards, Honors, etc."
+    "Each certification as its OWN separate string"
+  ],
+  "achievements": [
+    "Each achievement, award, or honor as its OWN separate string"
   ]
 }
 
@@ -407,7 +416,8 @@ FIELD EXTRACTION RULES:
 - EXPERIENCE BULLETS: Extract every single dash/bullet point under each job. Do NOT skip any.
 - PROJECT BULLETS: Extract every single dash/bullet point under each project. Do NOT skip any.
 - PROJECTS: Only extract real project names. Bullet point descriptions that start with verbs (Enabled, Implemented, Built, Developed, etc.) are NOT project names - they are bullet points belonging to the project above them.
-- CERTIFICATIONS/ACHIEVEMENTS: Each line/bullet is a SEPARATE entry in the array. If the resume has 4 achievements, return 4 strings.
+- CERTIFICATIONS/ACHIEVEMENTS: Put them in their respective arrays. Do not merge them.
+- COURSEWORK: Extract 'Core Coursework: ...' into the coursework field.
 - SKILLS: Group by the category label used in the resume (e.g., "Languages", "Frameworks/Libraries", "Developer Tools", "Technical Skills").
 - DATES: Use the exact format from the resume. Prefer "Mon YYYY" format.
 - LINKS: Extract ALL URLs (portfolio, live demo, github, linkedin, leetcode, etc.)`
@@ -460,6 +470,7 @@ function parseWithRules(text) {
   const projects = extractProjects(sections)
   const education = extractEducation(sections)
   const certifications = extractCertifications(sections)
+  const achievements = extractAchievements(sections)
 
   return {
     header,
@@ -469,6 +480,7 @@ function parseWithRules(text) {
     projects,
     education,
     certifications,
+    achievements,
   }
 }
 
@@ -835,7 +847,10 @@ function extractEducation(sections) {
     if (!line) continue
 
     const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
-    if (clean.toLowerCase().startsWith('core coursework:')) continue
+    if (clean.toLowerCase().startsWith('core coursework:')) {
+      if (current) current.coursework = clean
+      continue
+    }
 
     const dateMatch = clean.match(/\b(20\d{2})\s*[-–—]\s*(20\d{2})\b/)
 
@@ -873,6 +888,7 @@ function extractEducation(sections) {
         field: '',
         startDate: '',
         endDate: '',
+        coursework: '',
       }
     } else if (current) {
       if (dateMatch && !current.startDate) {
@@ -910,12 +926,8 @@ function extractEducation(sections) {
 }
 
 function extractCertifications(sections) {
-  const lines = [
-    ...(sections['CERTIFICATIONS'] || []),
-    ...(sections['ACHIEVEMENTS'] || []),
-  ]
-
-  if (lines.length === 0) return ['']
+  const lines = sections['CERTIFICATIONS'] || []
+  if (lines.length === 0) return []
 
   const result = []
   for (let i = 0; i < lines.length; i++) {
@@ -925,8 +937,22 @@ function extractCertifications(sections) {
     const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
     result.push(clean)
   }
+  return result
+}
 
-  return result.length > 0 ? result : ['']
+function extractAchievements(sections) {
+  const lines = sections['ACHIEVEMENTS'] || []
+  if (lines.length === 0) return []
+
+  const result = []
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line) continue
+
+    const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
+    result.push(clean)
+  }
+  return result
 }
 
 function sanitizeParsedData(data) {
@@ -979,10 +1005,14 @@ function sanitizeParsedData(data) {
           field: ed.field || '',
           startDate: ed.startDate || '',
           endDate: ed.endDate || '',
+          coursework: ed.coursework || '',
         }))
-      : [{ institution: '', location: '', degree: '', field: '', startDate: '', endDate: '' }],
+      : [{ institution: '', location: '', degree: '', field: '', startDate: '', endDate: '', coursework: '' }],
     certifications: Array.isArray(data?.certifications) && data.certifications.length > 0
       ? data.certifications.filter(Boolean)
+      : [''],
+    achievements: Array.isArray(data?.achievements) && data.achievements.length > 0
+      ? data.achievements.filter(Boolean)
       : [''],
   }
 }

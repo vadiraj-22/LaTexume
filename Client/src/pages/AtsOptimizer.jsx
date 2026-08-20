@@ -286,10 +286,10 @@ const runLocalKeywordMatch = (jdText, rData) => {
         </div>
 
         {/* Main 2-Column Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           {/* Left Column: Job Description Input & Local Keyword Pills */}
-          <div className="bg-zinc-950 p-6 sm:p-8 rounded-3xl border border-zinc-800 space-y-6 shadow-2xl">
-            <div>
+          <div className="bg-zinc-950 p-6 sm:p-8 rounded-3xl border border-zinc-800 space-y-6 shadow-2xl flex flex-col">
+            <div className="flex flex-col flex-1">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider">
                   Paste Target Job Description (JD)
@@ -306,8 +306,7 @@ const runLocalKeywordMatch = (jdText, rData) => {
                 placeholder="Paste the job requirements, responsibilities, or skills list here..."
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                rows="10"
-                className="w-full bg-white/[0.04] text-white placeholder-white/20 text-sm p-4 rounded-2xl border border-zinc-700 focus:border-[#A6FF5D] focus:outline-none transition resize-y min-h-[220px]"
+                className="w-full bg-white/[0.04] text-white placeholder-white/20 text-sm p-4 rounded-2xl border border-zinc-700 focus:border-[#A6FF5D] focus:outline-none transition resize-none flex-1 min-h-[220px]"
               />
             </div>
 
