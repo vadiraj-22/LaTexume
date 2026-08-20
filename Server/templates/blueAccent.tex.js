@@ -14,19 +14,12 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 }
 
 \\usepackage{latexsym}
-\\usepackage[empty]{fullpage}
+\\usepackage[a4paper, margin=0.5in]{geometry}
 \\usepackage{titlesec}
 \\usepackage{marvosym}
 \\usepackage[usenames,dvipsnames]{color}
 \\usepackage{verbatim}
 \\usepackage{enumitem}
-
-% Adjust margins
-\\addtolength{\\oddsidemargin}{-0.530in}
-\\addtolength{\\evensidemargin}{-0.375in}
-\\addtolength{\\textwidth}{1in}
-\\addtolength{\\topmargin}{-.45in}
-\\addtolength{\\textheight}{1in}
 
 \\urlstyle{rm}
 
@@ -54,7 +47,7 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 
 \\newcommand{\\resumeSubheading}[4]{
   \\vspace{-1pt}\\item
-    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
+    \\begin{tabular*}{1.0\\textwidth}{l@{\\extracolsep{\\fill}}r}
       \\textbf{#1} & #2 \\\\
       \\textit{#3} & \\textit{#4} \\\\
     \\end{tabular*}\\vspace{-5pt}
