@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -86,7 +86,7 @@ const Builder = () => {
     const draggedKey = e.dataTransfer.getData('text/plain')
     if (!draggedKey || draggedKey === targetKey) return
 
-    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
+    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
     const draggedIdx = currentOrder.indexOf(draggedKey)
     const targetIdx = currentOrder.indexOf(targetKey)
     if (draggedIdx === -1 || targetIdx === -1) return
@@ -106,7 +106,19 @@ const Builder = () => {
   const [currentResumeTitle, setCurrentResumeTitle] = useState('')
   const [isSavedResumesOpen, setIsSavedResumesOpen] = useState(false)
   const [isPreviewDrawerOpen, setIsPreviewDrawerOpen] = useState(false)
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false)
+  const templateDropdownRef = useRef(null)
   const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (templateDropdownRef.current && !templateDropdownRef.current.contains(event.target)) {
+        setIsTemplateDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Sync template choice from URL parameter if present
   useEffect(() => {
@@ -507,7 +519,7 @@ const Builder = () => {
         )}
 
         {/* Page Heading & Action Toolbar */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 animate-fade-in-down bg-zinc-950/80 backdrop-blur-xl p-6 sm:p-7 rounded-3xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.15)] hover:border-[#A6FF5D]/50 transition-all duration-300">
+        <div className="relative z-50 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 animate-fade-in-down bg-zinc-950/80 backdrop-blur-xl p-6 sm:p-7 rounded-3xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.15)] hover:border-[#A6FF5D]/50 transition-all duration-300">
           <div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
               Build Your LaTeX Resume
@@ -520,29 +532,58 @@ const Builder = () => {
           {/* Compact Action Toolbar (No empty bar gap) */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Template Switcher */}
-            <div className="bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-500/30 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm shadow-md">
-              <svg className="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h3a1 1 0 011 1v6a1 1 0 01-1 1h-3a1 1 0 01-1-1v-6z" />
-              </svg>
-              <span className="text-purple-300/70 shrink-0">Template:</span>
-              <select
-                value={formData.templateId || 'jake'}
-                onChange={(e) => setFormData((prev) => ({ ...prev, templateId: e.target.value }))}
-                className="bg-transparent text-white font-semibold outline-none cursor-pointer text-xs sm:text-sm pr-1 border-none focus:ring-0"
+            <div ref={templateDropdownRef} className="relative bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium rounded-xl transition-all duration-300 flex items-center shadow-md">
+              <button 
+                type="button"
+                onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                className="w-full flex items-center gap-2 px-3.5 py-1.5 cursor-pointer text-xs sm:text-sm"
               >
-                <option value="jake" className="bg-zinc-900 text-white">Jake's Clean</option>
-                <option value="blueAccent" className="bg-zinc-900 text-white">Blue Accent</option>
-                <option value="classic" className="bg-zinc-900 text-white">Classic Serif</option>
-              </select>
+                <svg className="w-4 h-4 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h3a1 1 0 011 1v6a1 1 0 01-1 1h-3a1 1 0 01-1-1v-6z" />
+                </svg>
+                <span className="text-zinc-400 shrink-0">Template:</span>
+                <span className="text-white font-semibold">
+                  {formData.templateId === 'blueAccent' ? 'Blue Accent' : formData.templateId === 'classic' ? 'Classic Serif' : "Jake's Clean"}
+                </span>
+                <svg className={`w-3 h-3 ml-1 transition-transform ${isTemplateDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isTemplateDropdownOpen && (
+                <div className="absolute top-full mt-1.5 left-0 w-full min-w-[150px] bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-xl overflow-hidden z-50">
+                  <button
+                    type="button"
+                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'jake' })); setIsTemplateDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'jake' ? 'bg-zinc-800 text-white' : 'text-zinc-300'}`}
+                  >
+                    Jake's Clean
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'blueAccent' })); setIsTemplateDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'blueAccent' ? 'bg-zinc-800 text-white' : 'text-zinc-300'}`}
+                  >
+                    Blue Accent
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'classic' })); setIsTemplateDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'classic' ? 'bg-zinc-800 text-white' : 'text-zinc-300'}`}
+                  >
+                    Classic Serif
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* ATS Matcher */}
             <Link
               to="/ats-optimizer"
-              className="bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
               title="Target Job Description & ATS Optimizer"
             >
-              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="9" strokeWidth="2" />
                 <circle cx="12" cy="12" r="4" strokeWidth="2" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v3M12 18v3M3 12h3M18 12h3" />
@@ -554,9 +595,9 @@ const Builder = () => {
             <button
               type="button"
               onClick={handleSaveToCloud}
-              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
             >
-              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
               </svg>
               <span>Save Draft</span>
@@ -566,9 +607,9 @@ const Builder = () => {
             <button
               type="button"
               onClick={() => setIsSavedResumesOpen(true)}
-              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 font-medium px-3.5 py-1.5 rounded-xl transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
             >
-              <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
               </svg>
               <span>My Resumes</span>
@@ -678,8 +719,8 @@ const Builder = () => {
             </div>
 
             {/* Dynamic Reorderable Sections */}
-            {(formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']).map((key, index) => {
-              const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
+            {(formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']).map((key, index) => {
+              const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
               
               const SECTION_TITLES = {
                 objective: 'Objective',

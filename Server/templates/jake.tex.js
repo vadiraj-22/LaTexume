@@ -98,7 +98,7 @@ export const PREAMBLE = `%-------------------------
  * @returns {string} - Complete .tex document
  */
 export function buildTemplate({ header, sectionOrder, ...sectionMap }) {
-  const defaultOrder = ['objective', 'skills', 'experience', 'projects', 'education', 'certifications']
+  const defaultOrder = ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
   const order = Array.isArray(sectionOrder) && sectionOrder.length > 0 ? sectionOrder : defaultOrder
 
   const bodyContent = order

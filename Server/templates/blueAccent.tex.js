@@ -14,7 +14,15 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 }
 
 \\usepackage{latexsym}
-\\usepackage[a4paper, margin=0.5in]{geometry}
+\\usepackage[empty]{fullpage}
+
+% Adjust margins
+\\addtolength{\\oddsidemargin}{-0.5in}
+\\addtolength{\\evensidemargin}{-0.5in}
+\\addtolength{\\textwidth}{1in}
+\\addtolength{\\topmargin}{-.5in}
+\\addtolength{\\textheight}{1.0in}
+\\pagestyle{empty}
 \\usepackage{titlesec}
 \\usepackage{marvosym}
 \\usepackage[usenames,dvipsnames]{color}
@@ -47,7 +55,7 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 
 \\newcommand{\\resumeSubheading}[4]{
   \\vspace{-1pt}\\item
-    \\begin{tabular*}{1.0\\textwidth}{l@{\\extracolsep{\\fill}}r}
+    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
       \\textbf{#1} & #2 \\\\
       \\textit{#3} & \\textit{#4} \\\\
     \\end{tabular*}\\vspace{-5pt}
@@ -57,7 +65,7 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 
 \\renewcommand{\\labelitemii}{$\\circ$}
 
-\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=*]}
+\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
 \\newcommand{\\resumeItemListStart}{\\begin{itemize}}
 \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}

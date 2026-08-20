@@ -159,9 +159,9 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
         const page = await pdfDoc.getPage(pageNum)
         if (isCancelled) return
 
-        // Compute scale to fit container width smoothly (max 750px for ideal reading)
+        // Compute scale to fit container width smoothly
         const unscaledViewport = page.getViewport({ scale: 1.0 })
-        const targetWidth = Math.min((containerWidth || 400) - 24, 750)
+        const targetWidth = (containerWidth || 400) - 24
         const scale = Math.max(0.5, targetWidth / unscaledViewport.width)
         const viewport = page.getViewport({ scale })
 

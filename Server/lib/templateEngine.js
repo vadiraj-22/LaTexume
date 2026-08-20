@@ -39,6 +39,7 @@ export function templateEngine(data) {
         projects: buildJakeProjects(data.projects),
         education: buildJakeEducation(data.education),
         certifications: buildJakeCertifications(data.certifications),
+        achievements: buildJakeAchievements(data.achievements),
       })
 
     case 'jake':
@@ -52,6 +53,7 @@ export function templateEngine(data) {
         projects: buildJakeProjects(data.projects),
         education: buildJakeEducation(data.education),
         certifications: buildJakeCertifications(data.certifications),
+        achievements: buildJakeAchievements(data.achievements),
       })
   }
 }
@@ -215,16 +217,52 @@ function buildJakeCertifications(certifications = []) {
       return ''
     })
     .filter(c => c?.trim())
-    .map(c => `  \\resumeItem{${escapeLatex(c)}}`)
+    .map(c => {
+      const match = c.match(/^([^:]+):\s*(.*)$/)
+      if (match) {
+        return `  \\resumeItem{\\textbf{${escapeLatex(match[1])}:} ${escapeLatex(match[2])}}`
+      }
+      return `  \\resumeItem{${escapeLatex(c)}}`
+    })
     .join('\n')
 
   if (!entries) return ''
 
   return `%-----------CERTIFICATIONS-----------
-\\section{Certifications and Achievements}
-\\resumeSubHeadingListStart
+\\section{Certifications}
+\\resumeItemListStart
 ${entries}
-\\resumeSubHeadingListEnd`
+\\resumeItemListEnd`
+}
+
+function buildJakeAchievements(achievements = []) {
+  if (!achievements?.length) return ''
+
+  const entries = achievements
+    .map(a => {
+      if (typeof a === 'string') return a
+      if (typeof a === 'object' && a !== null) {
+        return [a.name, a.issuer, a.date].filter(Boolean).join(' - ')
+      }
+      return ''
+    })
+    .filter(a => a?.trim())
+    .map(a => {
+      const match = a.match(/^([^:]+):\s*(.*)$/)
+      if (match) {
+        return `  \\resumeItem{\\textbf{${escapeLatex(match[1])}:} ${escapeLatex(match[2])}}`
+      }
+      return `  \\resumeItem{${escapeLatex(a)}}`
+    })
+    .join('\n')
+
+  if (!entries) return ''
+
+  return `%-----------ACHIEVEMENTS-----------
+\\section{Achievements}
+\\resumeItemListStart
+${entries}
+\\resumeItemListEnd`
 }
 
 // ---------------------------------------------------------------------------
@@ -348,22 +386,47 @@ function buildBlueProjects(projects = []) {
   if (!projects?.length) return ''
 
   const entries = projects.map(proj => {
-    const bulletsText = (proj.bullets || []).filter(b => b?.trim()).map(escapeLatex).join('\\newline ')
-    const techText = proj.technologies ? `\\newline Tech: ${escapeLatex(proj.technologies)}` : ''
+    const title = `  \\vspace{-1pt}\\item
+    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
+      \\textbf{\\color{Blue} ${escapeLatex(proj.name)}} & \\\\
+    \\end{tabular*}\\vspace{-5pt}`;
 
-    const links = []
+    const bullets = (proj.bullets || [])
+      .filter(b => b?.trim())
+      .map(b => {
+        const match = b.match(/^([^:]+):\s*(.*)$/)
+        if (match) {
+          return `          \\resumeItem{${escapeLatex(match[1])}}{${escapeLatex(match[2])}}`
+        }
+        return `          \\resumeItemWithoutTitle{${escapeLatex(b)}}`
+      })
+      .join('\n');
+
+    let extraBullets = [];
+    if (proj.technologies) {
+      extraBullets.push(`\\textbf{Tech:} ${escapeLatex(proj.technologies)}`);
+    }
+
+    const links = [];
     if (proj.liveLink) {
-      links.push(`Live: \\href{${proj.liveLink}}{${getDisplayUrl(proj.liveLink)}}`)
+      links.push(`\\href{${proj.liveLink}}{Live: ${getDisplayUrl(proj.liveLink)}}`);
     }
     if (proj.githubLink) {
-      links.push(`GitHub: \\href{${proj.githubLink}}{${getDisplayUrl(proj.githubLink)}}`)
+      links.push(`\\href{${proj.githubLink}}{GitHub: ${getDisplayUrl(proj.githubLink)}}`);
+    }
+    if (links.length > 0) {
+      extraBullets.push(`\\color{BlueViolet} ${links.join(' $|$ ')}`);
     }
 
-    const linksText = links.length > 0 ? `\\newline \\color{BlueViolet} ${links.join(', \\hspace{7pt} ')}` : ''
-    const content = `${bulletsText}${techText}${linksText}`
+    const extraBulletsStr = extraBullets.map(b => `          \\resumeItemWithoutTitle{${b}}`).join('\n');
 
-    return `\\resumeSubItem{\\color{Blue} ${escapeLatex(proj.name)}}{${content}}`
-  }).join('\n\\vspace{2pt}\n')
+    const allBullets = [bullets, extraBulletsStr].filter(Boolean).join('\n');
+
+    return `${title}
+    \\resumeItemListStart
+${allBullets}
+    \\resumeItemListEnd`;
+  }).join('\n\\vspace{-5pt}\n')
 
   return `\\section{\\color{BlueViolet} Projects}
 \\resumeSubHeadingListStart
