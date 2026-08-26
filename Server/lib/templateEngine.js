@@ -388,7 +388,7 @@ function buildBlueProjects(projects = []) {
   const entries = projects.map(proj => {
     const title = `  \\vspace{-1pt}\\item
     \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
-      \\textbf{\\color{Blue} ${escapeLatex(proj.name)}} & \\\\
+      \\textbf{\\color{Blue} ${escapeLatex(proj.name)}} & ${escapeLatex(proj.date || '')}\\\\
     \\end{tabular*}\\vspace{-5pt}`;
 
     const bullets = (proj.bullets || [])
@@ -426,7 +426,7 @@ function buildBlueProjects(projects = []) {
     \\resumeItemListStart
 ${allBullets}
     \\resumeItemListEnd`;
-  }).join('\n\\vspace{-5pt}\n')
+  }).join('\n\n')
 
   return `\\section{\\color{BlueViolet} Projects}
 \\resumeSubHeadingListStart

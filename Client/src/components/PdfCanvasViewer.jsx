@@ -6,11 +6,35 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
   const containerRef = useRef(null)
+  const [containerWidth, setContainerWidth] = useState(0)
   const [numPages, setNumPages] = useState(0)
   const [rendering, setRendering] = useState(false)
   const [renderError, setRenderError] = useState('')
   const [pages, setPages] = useState([]) // Array of rendered page canvas data or element refs
   const pdfDocRef = useRef(null)
+
+  // Track container width accurately with ResizeObserver
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const handleResize = (entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect?.width || containerRef.current?.clientWidth
+        if (width && width > 0) {
+          setContainerWidth(width)
+        }
+      }
+    }
+
+    const observer = new ResizeObserver(handleResize)
+    observer.observe(containerRef.current)
+
+    if (containerRef.current.clientWidth > 0) {
+      setContainerWidth(containerRef.current.clientWidth)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   // Effect to load PDF document when pdfUrl changes
   useEffect(() => {
@@ -54,7 +78,7 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
   }, [pdfUrl])
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-start overflow-y-auto relative bg-zinc-950 p-2 sm:p-4">
+    <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-start overflow-y-auto relative bg-zinc-950 p-2 sm:p-4">
       {/* Loading state overlay */}
       {(loading || rendering) && (
         <div className="absolute inset-0 z-20 bg-zinc-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
@@ -116,13 +140,13 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
 
       {/* PDF Rendered Pages */}
       {pdfUrl && !error && pages.length > 0 && (
-        <div ref={containerRef} className="w-full flex flex-col items-center gap-4 py-2">
+        <div className="w-full flex flex-col items-center gap-4 py-2">
           {pages.map((pageNum) => (
             <PdfSinglePageCanvas
               key={pageNum}
               pdfDoc={pdfDocRef.current}
               pageNum={pageNum}
-              containerWidth={containerRef.current?.clientWidth || 400}
+              containerWidth={containerWidth}
             />
           ))}
           {/* Quick Action Toolbar underneath canvas */}
@@ -148,6 +172,7 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
 
 function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
   const canvasRef = useRef(null)
+  const renderTaskRef = useRef(null)
   const [rendered, setRendered] = useState(false)
 
   useEffect(() => {
@@ -156,31 +181,54 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
 
     const renderPage = async () => {
       try {
+        // Cancel previous render task if still active
+        if (renderTaskRef.current) {
+          try {
+            renderTaskRef.current.cancel()
+          } catch (_) {}
+          renderTaskRef.current = null
+        }
+
         const page = await pdfDoc.getPage(pageNum)
-        if (isCancelled) return
+        if (isCancelled || !canvasRef.current) return
 
         // Compute scale to fit container width smoothly
         const unscaledViewport = page.getViewport({ scale: 1.0 })
-        const targetWidth = (containerWidth || 400) - 24
-        const scale = Math.max(0.5, targetWidth / unscaledViewport.width)
-        const viewport = page.getViewport({ scale })
+        const availableWidth = Math.max(300, (containerWidth || 550) - 24)
+        const cssScale = Math.min(1.4, availableWidth / unscaledViewport.width)
+        const displayViewport = page.getViewport({ scale: cssScale })
+
+        // High-DPI super-sampling factor (at least 2x or screen devicePixelRatio)
+        const dpr = Math.max(window.devicePixelRatio || 1, 2)
+        const renderViewport = page.getViewport({ scale: cssScale * dpr })
 
         const canvas = canvasRef.current
-        const context = canvas.getContext('2d')
-        canvas.height = viewport.height
-        canvas.width = viewport.width
+        const context = canvas.getContext('2d', { alpha: false })
+
+        // Set backing store dimensions (high resolution)
+        canvas.width = Math.floor(renderViewport.width)
+        canvas.height = Math.floor(renderViewport.height)
+
+        // Set display CSS size (crisp vector rendering)
+        canvas.style.width = `${Math.floor(displayViewport.width)}px`
+        canvas.style.height = `${Math.floor(displayViewport.height)}px`
 
         const renderContext = {
           canvasContext: context,
-          viewport: viewport,
+          viewport: renderViewport,
         }
 
-        await page.render(renderContext).promise
+        const renderTask = page.render(renderContext)
+        renderTaskRef.current = renderTask
+
+        await renderTask.promise
         if (!isCancelled) {
           setRendered(true)
         }
       } catch (e) {
-        console.warn(`Page ${pageNum} render error:`, e)
+        if (e?.name !== 'RenderingCancelledException') {
+          console.warn(`Page ${pageNum} render error:`, e)
+        }
       }
     }
 
@@ -188,12 +236,18 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
 
     return () => {
       isCancelled = true
+      if (renderTaskRef.current) {
+        try {
+          renderTaskRef.current.cancel()
+        } catch (_) {}
+        renderTaskRef.current = null
+      }
     }
   }, [pdfDoc, pageNum, containerWidth])
 
   return (
-    <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-zinc-700/50 max-w-full transition-all duration-200">
-      <canvas ref={canvasRef} className="block max-w-full h-auto mx-auto" />
+    <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-zinc-700/50 max-w-full transition-all duration-200 inline-block">
+      <canvas ref={canvasRef} className="block mx-auto" />
     </div>
   )
 }
