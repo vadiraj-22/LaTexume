@@ -18,6 +18,18 @@ const labelCls = "block text-xs font-semibold text-gray-300 mb-1.5 uppercase tra
 const addBtnCls = "inline-flex items-center gap-2 text-sm font-semibold text-[#A6FF5D] bg-[#A6FF5D]/10 hover:bg-[#A6FF5D]/20 border border-[#A6FF5D]/30 px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-pointer mt-3"
 const removeBtnCls = "text-red-400 hover:text-red-300 hover:bg-red-500/15 border border-transparent hover:border-red-500/30 p-2.5 rounded-xl transition-all duration-200 shrink-0"
 
+const SECTION_METADATA = {
+  objective: { title: 'Objective', label: 'Objective' },
+  skills: { title: 'Technical Skills', label: 'Technical Skills' },
+  experience: { title: 'Experience', label: 'Experience' },
+  projects: { title: 'Projects', label: 'Projects' },
+  education: { title: 'Education', label: 'Education' },
+  achievements: { title: 'Achievements', label: 'Achievements' },
+  certifications: { title: 'Certifications', label: 'Certifications' },
+}
+
+const DEFAULT_SECTION_ORDER = ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
+
 const Builder = () => {
   const [formData, setFormData] = useState({
     templateId: 'jake',
@@ -59,11 +71,15 @@ const Builder = () => {
     }],
     certifications: [''],
     achievements: [''],
-    sectionOrder: ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications'],
+    sectionOrder: DEFAULT_SECTION_ORDER,
   })
 
+  const [draggedSectionKey, setDraggedSectionKey] = useState(null)
+  const [dragOverSectionKey, setDragOverSectionKey] = useState(null)
+  const [dropPosition, setDropPosition] = useState(null) // 'above' | 'below'
+
   const moveSection = (sectionKey, direction) => {
-    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
+    const currentOrder = formData.sectionOrder || DEFAULT_SECTION_ORDER
     const idx = currentOrder.indexOf(sectionKey)
     if (idx === -1) return
     const targetIdx = direction === 'up' ? idx - 1 : idx + 1
@@ -77,25 +93,87 @@ const Builder = () => {
     setFormData((prev) => ({ ...prev, sectionOrder: updated }))
   }
 
+  const moveSectionToExtremity = (sectionKey, position) => {
+    const currentOrder = formData.sectionOrder || DEFAULT_SECTION_ORDER
+    const filtered = currentOrder.filter((k) => k !== sectionKey)
+    const updated = position === 'top' ? [sectionKey, ...filtered] : [...filtered, sectionKey]
+    setFormData((prev) => ({ ...prev, sectionOrder: updated }))
+  }
+
+  const resetSectionOrder = () => {
+    setFormData((prev) => ({ ...prev, sectionOrder: DEFAULT_SECTION_ORDER }))
+    setToastMessage('Section order reset to recommended default')
+    setTimeout(() => setToastMessage(''), 3000)
+  }
+
   const handleDragStartSection = (e, sectionKey) => {
+    e.stopPropagation()
     e.dataTransfer.setData('text/plain', sectionKey)
+    e.dataTransfer.effectAllowed = 'move'
+    setDraggedSectionKey(sectionKey)
+  }
+
+  const handleDragEndSection = () => {
+    setDraggedSectionKey(null)
+    setDragOverSectionKey(null)
+    setDropPosition(null)
+  }
+
+  const handleCardDragOver = (e, targetKey) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (!draggedSectionKey || draggedSectionKey === targetKey) {
+      if (dragOverSectionKey) {
+        setDragOverSectionKey(null)
+        setDropPosition(null)
+      }
+      return
+    }
+    const rect = e.currentTarget.getBoundingClientRect()
+    const offset = e.clientY - rect.top
+    const pos = offset < rect.height / 2 ? 'above' : 'below'
+    if (dragOverSectionKey !== targetKey || dropPosition !== pos) {
+      setDragOverSectionKey(targetKey)
+      setDropPosition(pos)
+    }
+  }
+
+  const handleCardDragLeave = (e, targetKey) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      if (dragOverSectionKey === targetKey) {
+        setDragOverSectionKey(null)
+        setDropPosition(null)
+      }
+    }
   }
 
   const handleDropSection = (e, targetKey) => {
     e.preventDefault()
-    const draggedKey = e.dataTransfer.getData('text/plain')
+    e.stopPropagation()
+    const draggedKey = e.dataTransfer.getData('text/plain') || draggedSectionKey
+    const pos = dropPosition
+
+    setDraggedSectionKey(null)
+    setDragOverSectionKey(null)
+    setDropPosition(null)
+
     if (!draggedKey || draggedKey === targetKey) return
 
-    const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
+    const currentOrder = formData.sectionOrder || DEFAULT_SECTION_ORDER
     const draggedIdx = currentOrder.indexOf(draggedKey)
-    const targetIdx = currentOrder.indexOf(targetKey)
-    if (draggedIdx === -1 || targetIdx === -1) return
+    if (draggedIdx === -1) return
 
-    const updated = [...currentOrder]
-    updated.splice(draggedIdx, 1)
-    updated.splice(targetIdx, 0, draggedKey)
+    const filtered = currentOrder.filter((k) => k !== draggedKey)
+    const targetIdx = filtered.indexOf(targetKey)
+    if (targetIdx === -1) return
 
-    setFormData((prev) => ({ ...prev, sectionOrder: updated }))
+    const insertIdx = pos === 'below' ? targetIdx + 1 : targetIdx
+    filtered.splice(insertIdx, 0, draggedKey)
+
+    setFormData((prev) => ({ ...prev, sectionOrder: filtered }))
+    const title = SECTION_METADATA[draggedKey]?.title || draggedKey
+    setToastMessage(`Reordered section: ${title}`)
+    setTimeout(() => setToastMessage(''), 2500)
   }
 
   const [loading, setLoading] = useState(false)
@@ -718,64 +796,163 @@ const Builder = () => {
               </div>
             </div>
 
+            {/* Section Hierarchy & Quick Reorder Ribbon */}
+            <div className="bg-gray-950/80 backdrop-blur-xl p-4 sm:p-5 rounded-3xl border border-white/10 shadow-2xl space-y-3 animate-fade-in-up">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#A6FF5D] shadow-[0_0_8px_#A6FF5D]" />
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-200">
+                    Section Hierarchy & Order
+                  </h3>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#A6FF5D]/10 text-[#A6FF5D] font-semibold border border-[#A6FF5D]/30">
+                    {(formData.sectionOrder || DEFAULT_SECTION_ORDER).length} sections
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetSectionOrder}
+                  className="text-xs text-zinc-400 hover:text-white hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Reset to recommended standard resume order"
+                >
+                  <svg className="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>Reset Default</span>
+                </button>
+              </div>
+
+              <p className="text-xs text-zinc-400">
+                Drag chips below or grab the <span className="text-[#A6FF5D] font-mono font-semibold">⠿ Drag Handle</span> on any section to reorder. Text and word selection inside inputs is fully preserved.
+              </p>
+
+              {/* Quick Interactive Reorder Chips */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {(formData.sectionOrder || DEFAULT_SECTION_ORDER).map((key, idx) => {
+                  const meta = SECTION_METADATA[key] || { title: key, label: key }
+                  const isBeingDragged = draggedSectionKey === key
+                  const isDropTarget = dragOverSectionKey === key
+
+                  return (
+                    <div
+                      key={`chip-${key}`}
+                      draggable
+                      onDragStart={(e) => handleDragStartSection(e, key)}
+                      onDragEnd={handleDragEndSection}
+                      onDragOver={(e) => handleCardDragOver(e, key)}
+                      onDrop={(e) => handleDropSection(e, key)}
+                      onClick={() => {
+                        const el = document.getElementById(`section-card-${key}`)
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }}
+                      className={`group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-grab active:cursor-grabbing transition-all select-none duration-150 ${
+                        isBeingDragged
+                          ? 'opacity-40 border-dashed border-[#A6FF5D] bg-[#A6FF5D]/10 scale-95'
+                          : isDropTarget
+                          ? 'border-[#A6FF5D] bg-[#A6FF5D]/20 text-[#A6FF5D] shadow-[0_0_12px_rgba(166,255,93,0.3)] scale-105'
+                          : 'bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border-white/10 hover:border-white/30'
+                      }`}
+                      title={`Click to scroll, or drag to reorder ${meta.title}`}
+                    >
+                      <span className="text-[10px] font-mono font-bold text-zinc-400 group-hover:text-[#A6FF5D]">
+                        #{idx + 1}
+                      </span>
+                      <span>{meta.label}</span>
+                      <span className="text-zinc-500 group-hover:text-[#A6FF5D] text-[11px] ml-0.5">⠿</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Dynamic Reorderable Sections */}
-            {(formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']).map((key, index) => {
-              const currentOrder = formData.sectionOrder || ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
-              
-              const SECTION_TITLES = {
-                objective: 'Objective',
-                skills: 'Technical Skills',
-                experience: 'Experience',
-                projects: 'Projects',
-                education: 'Education',
-                achievements: 'Achievements',
-                certifications: 'Certifications',
-              }
+            {(formData.sectionOrder || DEFAULT_SECTION_ORDER).map((key, index) => {
+              const currentOrder = formData.sectionOrder || DEFAULT_SECTION_ORDER
+              const meta = SECTION_METADATA[key] || { title: key, label: key }
+              const isBeingDragged = draggedSectionKey === key
+              const isDropTarget = dragOverSectionKey === key
 
               return (
-                <div
-                  key={key}
-                  draggable
-                  onDragStart={(e) => handleDragStartSection(e, key)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => handleDropSection(e, key)}
-                  className={cardCls + " transition-all duration-200 border border-white/10 hover:border-emerald-500/30"}
-                >
-                  {/* Reorder Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-6 select-none">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="text-zinc-400 hover:text-white cursor-grab font-mono text-xs px-2.5 py-1 rounded bg-white/5 border border-white/10 transition flex items-center gap-1.5"
-                        title="Drag and drop to reorder section"
-                      >
-                        <span className="text-emerald-400">⠿</span>
-                        <span className="font-sans font-semibold">Drag Section</span>
+                <div key={key} className="relative group">
+                  {/* Drop Indicator Above */}
+                  {isDropTarget && dropPosition === 'above' && (
+                    <div className="h-2 w-full bg-gradient-to-r from-transparent via-[#A6FF5D] to-transparent rounded-full shadow-[0_0_14px_#A6FF5D] my-2 animate-pulse flex items-center justify-center">
+                      <span className="bg-[#A6FF5D] text-gray-950 font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-lg">
+                        Drop {meta.title} Here
                       </span>
-                      <h2 className="text-xl sm:text-2xl font-bold text-white">
-                        {SECTION_TITLES[key]}
-                      </h2>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => moveSection(key, 'up')}
-                        disabled={index === 0}
-                        className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1 rounded-lg border border-white/10 transition cursor-pointer"
-                        title="Move section up"
-                      >
-                        ▲ Up
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveSection(key, 'down')}
-                        disabled={index === currentOrder.length - 1}
-                        className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1 rounded-lg border border-white/10 transition cursor-pointer"
-                        title="Move section down"
-                      >
-                        ▼ Down
-                      </button>
+                  )}
+
+                  <div
+                    id={`section-card-${key}`}
+                    onDragOver={(e) => handleCardDragOver(e, key)}
+                    onDragLeave={(e) => handleCardDragLeave(e, key)}
+                    onDrop={(e) => handleDropSection(e, key)}
+                    className={`${cardCls} transition-all duration-200 border ${
+                      isBeingDragged
+                        ? 'opacity-30 border-dashed border-[#A6FF5D]/60 scale-[0.99]'
+                        : isDropTarget
+                        ? 'border-[#A6FF5D]/80 ring-2 ring-[#A6FF5D]/30 shadow-[0_0_25px_rgba(166,255,93,0.2)]'
+                        : 'border-white/10 hover:border-emerald-500/30'
+                    }`}
+                  >
+                    {/* Reorder Header */}
+                    <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-3 mb-6 gap-3 select-none">
+                      <div className="flex items-center gap-3">
+                        {/* Dedicated Drag Handle - isolated to avoid text selection conflicts */}
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStartSection(e, key)}
+                          onDragEnd={handleDragEndSection}
+                          className="text-zinc-400 hover:text-white cursor-grab active:cursor-grabbing font-mono text-xs px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-[#A6FF5D]/15 border border-white/10 hover:border-[#A6FF5D]/40 transition-all flex items-center gap-1.5 shadow-sm group/handle"
+                          title="Drag this handle to reorder section"
+                        >
+                          <span className="text-[#A6FF5D] text-sm group-hover/handle:scale-110 transition-transform">⠿</span>
+                          <span className="font-sans font-semibold text-zinc-300 group-hover/handle:text-white hidden sm:inline">Drag</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-[#A6FF5D] font-bold">#{index + 1}</span>
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                          {meta.title}
+                        </h2>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveSectionToExtremity(key, 'top')}
+                          disabled={index === 0}
+                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1.5 rounded-xl border border-white/10 transition cursor-pointer hidden md:inline-flex items-center"
+                          title="Move to top of resume"
+                        >
+                          ⤒ Top
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveSection(key, 'up')}
+                          disabled={index === 0}
+                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1.5 rounded-xl border border-white/10 transition cursor-pointer flex items-center gap-1"
+                          title="Move section up"
+                        >
+                          ▲ <span className="hidden sm:inline">Up</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveSection(key, 'down')}
+                          disabled={index === currentOrder.length - 1}
+                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1.5 rounded-xl border border-white/10 transition cursor-pointer flex items-center gap-1"
+                          title="Move section down"
+                        >
+                          ▼ <span className="hidden sm:inline">Down</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveSectionToExtremity(key, 'bottom')}
+                          disabled={index === currentOrder.length - 1}
+                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1.5 rounded-xl border border-white/10 transition cursor-pointer hidden md:inline-flex items-center"
+                          title="Move to bottom of resume"
+                        >
+                          ⤓ Bottom
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
                   {/* OBJECTIVE CARD */}
                   {key === 'objective' && (
@@ -1117,8 +1294,18 @@ const Builder = () => {
                     </div>
                   )}
                 </div>
-              )
-            })}
+
+                {/* Drop Indicator Below */}
+                {isDropTarget && dropPosition === 'below' && (
+                  <div className="h-2 w-full bg-gradient-to-r from-transparent via-[#A6FF5D] to-transparent rounded-full shadow-[0_0_14px_#A6FF5D] my-2 animate-pulse flex items-center justify-center">
+                    <span className="bg-[#A6FF5D] text-gray-950 font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-lg">
+                      Drop {meta.title} Here
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
 
             {/* Submit Button */}
             <div className="flex justify-center animate-fade-in-up pt-4">
