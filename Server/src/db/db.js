@@ -12,8 +12,6 @@ const connectDB = async () => {
     }
 
     try {
-        const uri = process.env.MONGODB_URI.replace(/\/+$/, '');
-        await mongoose.connect(`${uri}/${DB_NAME}`);
         const rawUri = process.env.MONGODB_URI.trim();
         const uri = rawUri.replace(/\/+$/, '');
         const connectionString = uri.includes(DB_NAME) ? uri : `${uri}/${DB_NAME}`;
@@ -44,7 +42,6 @@ const connectDB = async () => {
         }
     } catch (error) {
         console.error("MongoDB connection error:", error.message);
-        // Don't exit in serverless environments - throw error instead
         throw error;
     }
 }

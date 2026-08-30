@@ -13,7 +13,6 @@ import resumeRouter from './src/routes/resume.routes.js'
 const app = express()
 const PORT = process.env.PORT ?? 3000
 
-// Log environment setup
 // ─── Environment summary ──────────────────────────────────────────────────────
 console.log('🚀 Environment:', {
   NODE_ENV: process.env.NODE_ENV,
@@ -23,8 +22,6 @@ console.log('🚀 Environment:', {
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'not set',
 })
 
-// ─── Middleware ───────────────────────────────────────────────────────────────
-// CORS configuration - must be FIRST middleware
 // ─── Allowed Origins List ─────────────────────────────────────────────────────
 const defaultAllowedOrigins = [
   'https://latexume.vercel.app',
@@ -60,13 +57,6 @@ const isOriginAllowed = (origin) => {
 // Ensure CORS headers on ALL responses (including OPTIONS preflights and error responses)
 app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer?.split('/').slice(0, 3).join('/')
-  
-  // Allow all vercel.app domains
-  if (origin?.includes('vercel.app') || origin?.includes('localhost')) {
-    res.header('Access-Control-Allow-Origin', origin)
-    res.header('Access-Control-Allow-Credentials', 'true')
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS')
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
 
   if (isOriginAllowed(origin)) {
     if (origin) {
@@ -83,31 +73,23 @@ app.use((req, res, next) => {
     )
     res.setHeader('Access-Control-Max-Age', '86400')
   }
-  
 
   // Preflight fast-exit
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200)
     return res.status(200).end()
   }
-  
 
   next()
 })
 
-// Additional CORS middleware as fallback
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
-        return callback(null, true)
     origin: (origin, callback) => {
       if (isOriginAllowed(origin)) {
         callback(null, true)
       } else {
         callback(new Error('Not allowed by CORS'))
       }
-      callback(new Error('Not allowed by CORS'))
     },
     credentials: true,
   })
@@ -166,7 +148,6 @@ app.use('/api/v1/users', userRouter)                  // Auth (register / login 
 app.use('/api/v1/resumes', resumeRouter)               // Resume Persistence (Save/Load/Delete)
 
 // ─── Global error handler ────────────────────────────────────────────────────
-app.use((err, _req, res, _next) => {
 app.use((err, req, res, _next) => {
   let statusCode = err.statusCode || 500
   let message = err.message || 'Internal Server Error'
@@ -185,7 +166,6 @@ app.use((err, req, res, _next) => {
     message = `User with this ${field} already exists`
   }
 
-  // Log unexpected internal server errors (5xx), omit expected client operational responses (4xx)
   if (statusCode >= 500) {
     console.error(`[${statusCode}] ${message}`, err)
   }
@@ -197,34 +177,9 @@ app.use((err, req, res, _next) => {
   })
 })
 
-// ─── Initialize Database Connection ───────────────────────────────────────
-// For serverless: connect on first use, don't crash on init
-let dbConnected = false
-const ensureDBConnected = async () => {
-  if (!dbConnected) {
-    try {
-      await connectDB()
-      dbConnected = true
-    } catch (err) {
-      console.error('❌  MongoDB connection failed:', err)
-      // Don't exit in serverless - let request handlers deal with it
-      if (process.env.NODE_ENV !== 'production') {
-        throw err
-      }
-    }
-  }
-}
-
-// Try to connect on startup (async, don't await)
-ensureDBConnected().catch(() => {
-  console.warn('⚠️  Skipping initial DB connection - will retry on first request')
-})
-
-// Only listen locally (not on Vercel serverless)
 // Only listen locally (not in serverless environment)
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`✅  LaTexume API running on http://localhost:${PORT}`)
     console.log(`✅ LaTexume API running on http://localhost:${PORT}`)
   })
 }
