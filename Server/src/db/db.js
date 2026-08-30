@@ -30,8 +30,9 @@ const connectDB = async () => {
             // Ignore if collection does not exist yet
         }
     } catch (error) {
-        console.log("MongoDB connection error", error);
-        process.exit(1);
+        console.error("MongoDB connection error:", error.message);
+        // Don't exit in serverless environments - throw error instead
+        throw error;
     }
 }
 

@@ -81,20 +81,35 @@ app.use((err, _req, res, _next) => {
   })
 })
 
-// ─── Start server after DB connection ────────────────────────────────────────
-connectDB()
-  .then(() => {
-    // Only listen locally (not on Vercel serverless)
-    if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-      app.listen(PORT, () => {
-        console.log(`✅  LaTexume API running on http://localhost:${PORT}`)
-      })
+// ─── Initialize Database Connection ───────────────────────────────────────
+// For serverless: connect on first use, don't crash on init
+let dbConnected = false
+const ensureDBConnected = async () => {
+  if (!dbConnected) {
+    try {
+      await connectDB()
+      dbConnected = true
+    } catch (err) {
+      console.error('❌  MongoDB connection failed:', err)
+      // Don't exit in serverless - let request handlers deal with it
+      if (process.env.NODE_ENV !== 'production') {
+        throw err
+      }
     }
+  }
+}
+
+// Try to connect on startup (async, don't await)
+ensureDBConnected().catch(() => {
+  console.warn('⚠️  Skipping initial DB connection - will retry on first request')
+})
+
+// Only listen locally (not on Vercel serverless)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`✅  LaTexume API running on http://localhost:${PORT}`)
   })
-  .catch((err) => {
-    console.error('❌  MongoDB connection failed:', err)
-    process.exit(1)
-  })
+}
 
 // Export for Vercel serverless functions
 export default app
