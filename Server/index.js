@@ -178,7 +178,7 @@ app.use((err, req, res, _next) => {
 })
 
 // Only listen locally (not in serverless environment)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`✅ LaTexume API running on http://localhost:${PORT}`)
   })

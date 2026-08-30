@@ -1,16 +1,32 @@
-import { createRequire } from 'module'
 import zlib from 'zlib'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import Groq from 'groq-sdk'
 
-const require = createRequire(import.meta.url)
-const pdf = require('pdf-parse')
+let _pdf = null
+let _pdfjsLib = null
 
-let pdfjsLib = null
-try {
-  pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
-} catch (e) {
-  console.warn('[ResumeParser] pdfjs-dist import warning:', e.message)
+async function getPdfParse() {
+  if (_pdf) return _pdf
+  try {
+    const { createRequire } = await import('module')
+    const require = createRequire(import.meta.url)
+    _pdf = require('pdf-parse')
+    return _pdf
+  } catch (err) {
+    console.warn('[ResumeParser] pdf-parse load warning:', err.message)
+    return null
+  }
+}
+
+async function getPdfJsLib() {
+  if (_pdfjsLib) return _pdfjsLib
+  try {
+    _pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+    return _pdfjsLib
+  } catch (err) {
+    console.warn('[ResumeParser] pdfjs-dist import warning:', err.message)
+    return null
+  }
 }
 
 const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-3.1-pro-preview']
@@ -183,10 +199,11 @@ export async function parseResume({ fileBuffer, resumeText }) {
 async function extractTextFromPdf(fileBuffer) {
   let extractedText = ''
 
-  if (pdfjsLib && pdfjsLib.getDocument) {
+  const pdfjs = await getPdfJsLib()
+  if (pdfjs && pdfjs.getDocument) {
     try {
       const data = new Uint8Array(fileBuffer)
-      const loadingTask = pdfjsLib.getDocument({ data, useSystemFonts: true })
+      const loadingTask = pdfjs.getDocument({ data, useSystemFonts: true })
       const pdfDocument = await loadingTask.promise
 
       let fullText = ''
@@ -217,11 +234,14 @@ async function extractTextFromPdf(fileBuffer) {
     return extractedText
   }
 
-  try {
-    const pdfData = await pdf(fileBuffer)
-    extractedText = pdfData.text || ''
-  } catch (err2) {
-    console.warn('[ResumeParser] Standard pdf-parse failed:', err2.message)
+  const parsePdf = await getPdfParse()
+  if (parsePdf) {
+    try {
+      const pdfData = await parsePdf(fileBuffer)
+      extractedText = pdfData.text || ''
+    } catch (err2) {
+      console.warn('[ResumeParser] Standard pdf-parse failed:', err2.message)
+    }
   }
 
   if (extractedText && extractedText.trim().length > 30) {
