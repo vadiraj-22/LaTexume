@@ -22,45 +22,37 @@ console.log('🚀 Environment:', {
 })
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000',
-  'https://latexume.vercel.app',
-]
+// CORS configuration - must be FIRST middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin || req.headers.referer?.split('/').slice(0, 3).join('/')
+  
+  // Allow all vercel.app domains
+  if (origin?.includes('vercel.app') || origin?.includes('localhost')) {
+    res.header('Access-Control-Allow-Origin', origin)
+    res.header('Access-Control-Allow-Credentials', 'true')
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS')
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+  }
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200)
+  }
+  
+  next()
+})
 
-// CORS must be first
+// Additional CORS middleware as fallback
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true)
-      
-      // Check if origin is allowed
-      if (
-        allowedOrigins.includes(origin) ||
-        /\.vercel\.app$/.test(origin) ||
-        origin.startsWith('http://localhost:')
-      ) {
+      if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
         return callback(null, true)
       }
-      
-      // Allow all origins in development
-      if (process.env.NODE_ENV !== 'production') {
-        return callback(null, true)
-      }
-      
-      return callback(new Error('Not allowed by CORS'))
+      callback(new Error('Not allowed by CORS'))
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200, // For legacy browsers
   })
 )
-
-// Handle preflight requests explicitly
-app.options('*', cors())
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '16kb' }))
 app.use(express.static('public'))
