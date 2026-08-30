@@ -26,6 +26,7 @@ router.post('/enhance-bullet', async (req, res, next) => {
  */
 router.post('/match-jd', async (req, res, next) => {
   try {
+    const { resumeData, jobDescription } = req.body
     const result = await matchJobDescription({ resumeData: resumeData || {}, jobDescription })
     return res.json({ success: true, result, match: result })
   } catch (err) {

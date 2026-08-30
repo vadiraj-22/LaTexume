@@ -12,6 +12,15 @@ import resumeRouter from './src/routes/resume.routes.js'
 const app = express()
 const PORT = process.env.PORT ?? 3000
 
+// Log environment setup
+console.log('🚀 Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: PORT,
+  VERCEL: !!process.env.VERCEL,
+  MONGODB_URI: process.env.MONGODB_URI ? '✅ Set' : '❌ MISSING',
+  CORS_ORIGIN: process.env.CORS_ORIGIN || 'not set',
+})
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:5173',
@@ -43,6 +52,14 @@ app.use(express.static('public'))
 app.use(cookieParser())
 
 // ─── Health check ─────────────────────────────────────────────────────────────
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'LaTexume API is running',
+    timestamp: new Date().toISOString(),
+  })
+})
+
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
