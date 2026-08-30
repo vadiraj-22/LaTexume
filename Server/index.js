@@ -84,11 +84,17 @@ app.use((err, _req, res, _next) => {
 // ─── Start server after DB connection ────────────────────────────────────────
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`✅  LaTexume API running on http://localhost:${PORT}`)
-    })
+    // Only listen locally (not on Vercel serverless)
+    if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`✅  LaTexume API running on http://localhost:${PORT}`)
+      })
+    }
   })
   .catch((err) => {
     console.error('❌  MongoDB connection failed:', err)
     process.exit(1)
   })
+
+// Export for Vercel serverless functions
+export default app
