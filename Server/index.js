@@ -2,6 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import mongoose from 'mongoose'
 import connectDB from './src/db/db.js'
 import generateResumeRouter from './routes/generateResume.js'
 import parseResumeRouter from './routes/parseResume.js'
@@ -13,6 +14,7 @@ const app = express()
 const PORT = process.env.PORT ?? 3000
 
 // Log environment setup
+// ─── Environment summary ──────────────────────────────────────────────────────
 console.log('🚀 Environment:', {
   NODE_ENV: process.env.NODE_ENV,
   PORT: PORT,
@@ -23,6 +25,39 @@ console.log('🚀 Environment:', {
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 // CORS configuration - must be FIRST middleware
+// ─── Allowed Origins List ─────────────────────────────────────────────────────
+const defaultAllowedOrigins = [
+  'https://latexume.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+]
+
+const getAllowedOrigins = () => {
+  const origins = [...defaultAllowedOrigins]
+  if (process.env.CORS_ORIGIN) {
+    process.env.CORS_ORIGIN.split(',').forEach((orig) => {
+      const trimmed = orig.trim()
+      if (trimmed && !origins.includes(trimmed)) {
+        origins.push(trimmed)
+      }
+    })
+  }
+  return origins
+}
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true
+  const allowed = getAllowedOrigins()
+  if (allowed.includes(origin)) return true
+  if (origin.endsWith('.vercel.app')) return true
+  if (origin.includes('localhost') || origin.includes('127.0.0.1')) return true
+  return false
+}
+
+// ─── CORS Middleware ──────────────────────────────────────────────────────────
+// Ensure CORS headers on ALL responses (including OPTIONS preflights and error responses)
 app.use((req, res, next) => {
   const origin = req.headers.origin || req.headers.referer?.split('/').slice(0, 3).join('/')
   
@@ -32,12 +67,31 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true')
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS')
     res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+
+  if (isOriginAllowed(origin)) {
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin)
+    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD'
+    )
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma'
+    )
+    res.setHeader('Access-Control-Max-Age', '86400')
   }
   
+
+  // Preflight fast-exit
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200)
+    return res.status(200).end()
   }
   
+
   next()
 })
 
@@ -47,16 +101,45 @@ app.use(
     origin: function (origin, callback) {
       if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
         return callback(null, true)
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
       }
       callback(new Error('Not allowed by CORS'))
     },
     credentials: true,
   })
 )
+
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '16kb' }))
 app.use(express.static('public'))
 app.use(cookieParser())
+
+// ─── Database Middleware (Ensures Serverless Connects Per Request) ────────────
+let dbPromise = null
+const ensureDBConnected = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return
+  }
+  if (!dbPromise) {
+    dbPromise = connectDB().finally(() => {
+      dbPromise = null
+    })
+  }
+  return dbPromise
+}
+
+app.use(async (_req, _res, next) => {
+  try {
+    await ensureDBConnected()
+  } catch (err) {
+    console.error('Database connection error in middleware:', err.message)
+  }
+  next()
+})
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => {
@@ -84,8 +167,16 @@ app.use('/api/v1/resumes', resumeRouter)               // Resume Persistence (Sa
 
 // ─── Global error handler ────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
+app.use((err, req, res, _next) => {
   let statusCode = err.statusCode || 500
   let message = err.message || 'Internal Server Error'
+
+  // Ensure CORS headers on error responses
+  const origin = req.headers.origin
+  if (origin && isOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+  }
 
   // Handle MongoDB duplicate key error (E11000)
   if (err.code === 11000) {
@@ -98,6 +189,7 @@ app.use((err, _req, res, _next) => {
   if (statusCode >= 500) {
     console.error(`[${statusCode}] ${message}`, err)
   }
+
   res.status(statusCode).json({
     success: false,
     message,
@@ -129,9 +221,11 @@ ensureDBConnected().catch(() => {
 })
 
 // Only listen locally (not on Vercel serverless)
+// Only listen locally (not in serverless environment)
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`✅  LaTexume API running on http://localhost:${PORT}`)
+    console.log(`✅ LaTexume API running on http://localhost:${PORT}`)
   })
 }
 

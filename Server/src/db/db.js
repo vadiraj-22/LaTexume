@@ -2,9 +2,22 @@ import mongoose from "mongoose";
 import { DB_NAME } from "../constants.js";
 
 const connectDB = async () => {
+    if (mongoose.connection.readyState === 1) {
+        return;
+    }
+
+    if (!process.env.MONGODB_URI) {
+        console.warn("⚠️ MONGODB_URI is not set. Database operations will fail.");
+        return;
+    }
+
     try {
         const uri = process.env.MONGODB_URI.replace(/\/+$/, '');
         await mongoose.connect(`${uri}/${DB_NAME}`);
+        const rawUri = process.env.MONGODB_URI.trim();
+        const uri = rawUri.replace(/\/+$/, '');
+        const connectionString = uri.includes(DB_NAME) ? uri : `${uri}/${DB_NAME}`;
+        await mongoose.connect(connectionString);
         console.log(`MongoDB Connected DB HOST: ${mongoose.connection.host}`);
 
         // Automatically drop legacy username_1 index if present in users collection
