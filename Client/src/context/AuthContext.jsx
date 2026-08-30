@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+let API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
+// Remove trailing slash if present
+if (API_BASE.endsWith('/')) {
+  API_BASE = API_BASE.slice(0, -1)
+}
 
 const AuthContext = createContext(null)
 

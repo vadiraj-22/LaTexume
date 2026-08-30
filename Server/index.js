@@ -29,11 +29,14 @@ const allowedOrigins = [
   'https://latexume.vercel.app',
 ]
 
+// CORS must be first
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow server-to-server or tools without origin header
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true)
+      
+      // Check if origin is allowed
       if (
         allowedOrigins.includes(origin) ||
         /\.vercel\.app$/.test(origin) ||
@@ -41,11 +44,23 @@ app.use(
       ) {
         return callback(null, true)
       }
-      return callback(null, origin)
+      
+      // Allow all origins in development
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, true)
+      }
+      
+      return callback(new Error('Not allowed by CORS'))
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200, // For legacy browsers
   })
 )
+
+// Handle preflight requests explicitly
+app.options('*', cors())
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '16kb' }))
 app.use(express.static('public'))
