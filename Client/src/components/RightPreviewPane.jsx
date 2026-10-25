@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import PdfCanvasViewer from './PdfCanvasViewer'
+import { API_URL } from '../config/api'
 
 export default function RightPreviewPane({ formData }) {
   const [activeTab, setActiveTab] = useState('pdf') // 'pdf' | 'tex'
@@ -10,8 +11,6 @@ export default function RightPreviewPane({ formData }) {
   const [pdfError, setPdfError] = useState('')
   const [copied, setCopied] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
   // Fetch compiled PDF
   const fetchPdf = async () => {

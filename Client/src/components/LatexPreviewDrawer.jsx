@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import PdfCanvasViewer from './PdfCanvasViewer'
+import { API_URL } from '../config/api'
 
 export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
   const [activeTab, setActiveTab] = useState('pdf') // 'pdf' | 'tex'
@@ -9,8 +10,6 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
   const [loadingTex, setLoadingTex] = useState(false)
   const [pdfError, setPdfError] = useState('')
   const [copied, setCopied] = useState(false)
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
   // Compile PDF Blob
   const fetchPdf = async () => {
@@ -89,12 +88,12 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col md:flex-row justify-end">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col md:flex-row justify-end overflow-hidden">
       {/* Backdrop overlay area */}
       <div className="hidden md:block flex-1" onClick={onClose} />
 
       {/* Drawer Container */}
-      <div className="w-full md:w-[650px] lg:w-[750px] h-full bg-zinc-950 border-l border-zinc-800 flex flex-col shadow-2xl animate-fade-in-right">
+      <div className="w-full md:w-[650px] lg:w-[750px] h-[100dvh] md:h-full bg-zinc-950 border-l border-zinc-800 flex flex-col shadow-2xl animate-fade-in-right">
         {/* Top Bar */}
         <div className="p-3 sm:p-4 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2">
@@ -166,7 +165,7 @@ export default function LatexPreviewDrawer({ isOpen, onClose, formData }) {
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-hidden p-2 sm:p-4">
+        <div className="flex-1 overflow-hidden p-2 sm:p-4 min-h-0">
           {/* TAB 1: PDF Canvas Viewer */}
           {activeTab === 'pdf' && (
             <div className="w-full h-full bg-zinc-900 rounded-xl overflow-hidden flex flex-col border border-zinc-800">

@@ -109,8 +109,13 @@ function buildJakeObjective(objective = '') {
 function buildJakeSkills(skills = []) {
   if (!skills?.length) return ''
   const rows = skills
-    .filter(s => s.label?.trim())
-    .map(s => `    \\textbf{${escapeLatex(s.label)}:} ${escapeLatex(s.skills)}`)
+    .filter(s => s && (s.label?.trim() || s.skills?.trim()))
+    .map(s => {
+      const label = s.label?.trim() ? `\\textbf{${escapeLatex(s.label)}:}` : ''
+      const val = escapeLatex(s.skills) || ''
+      return `    ${[label, val].filter(Boolean).join(' ')}`
+    })
+    .filter(Boolean)
     .join(' \\\\\n')
 
   if (!rows) return ''
@@ -127,21 +132,32 @@ ${rows}
 function buildJakeExperience(experience = []) {
   if (!experience?.length) return ''
 
-  const entries = experience.map(exp => {
-    const bullets = (exp.bullets || [])
-      .filter(b => b?.trim())
+  const validExps = experience.filter(exp => {
+    if (!exp) return false
+    const hasText = exp.title?.trim() || exp.company?.trim() || exp.location?.trim() || exp.startDate?.trim() || exp.endDate?.trim()
+    const hasBullets = (exp.bullets || []).some(b => b?.trim())
+    return Boolean(hasText || hasBullets)
+  })
+
+  if (!validExps.length) return ''
+
+  const entries = validExps.map(exp => {
+    const validBullets = (exp.bullets || []).filter(b => b?.trim())
+    const bullets = validBullets
       .map(b => `    \\resumeItem{${escapeLatex(b)}}`)
       .join('\n')
 
     const dates = [exp.startDate, exp.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
+    const bulletsSection = bullets
+      ? `\n  \\resumeItemListStart\n${bullets}\n  \\resumeItemListEnd`
+      : ''
 
     return `  \\resumeSubheading
     {${escapeLatex(exp.title)}}{${dates}}
-    {${escapeLatex(exp.company)}}{${escapeLatex(exp.location)}}
-  \\resumeItemListStart
-${bullets}
-  \\resumeItemListEnd`
+    {${escapeLatex(exp.company)}}{${escapeLatex(exp.location)}}${bulletsSection}`
   }).join('\n\n')
+
+  if (!entries.trim()) return ''
 
   return `%-----------EXPERIENCE-----------
 \\section{Experience}
@@ -186,7 +202,16 @@ function cleanProjectBullets(proj) {
 function buildJakeProjects(projects = []) {
   if (!projects?.length) return ''
 
-  const entries = projects.map(proj => {
+  const validProjects = projects.filter(proj => {
+    if (!proj) return false
+    const hasText = proj.name?.trim() || proj.technologies?.trim() || proj.date?.trim() || proj.liveLink?.trim() || proj.githubLink?.trim()
+    const hasBullets = (proj.bullets || []).some(b => b?.trim())
+    return Boolean(hasText || hasBullets)
+  })
+
+  if (!validProjects.length) return ''
+
+  const entries = validProjects.map(proj => {
     const { cleanBullets, effectiveTech } = cleanProjectBullets(proj)
 
     const bullets = cleanBullets
@@ -205,15 +230,18 @@ function buildJakeProjects(projects = []) {
       ? `    \\resumeItem{${links.join(' $|$ ')}}` 
       : ''
 
-    const allBullets = linksBullet ? `${bullets}\n${linksBullet}` : bullets
+    const allBullets = [bullets, linksBullet].filter(Boolean).join('\n')
     const title = `\\textbf{${escapeLatex(proj.name)}}${effectiveTech ? ` $|$ \\emph{\\small ${escapeLatex(effectiveTech)}}` : ''}`
 
+    const bulletsSection = allBullets
+      ? `\n  \\resumeItemListStart\n${allBullets}\n  \\resumeItemListEnd`
+      : ''
+
     return `  \\resumeProjectHeading
-    {${title}}{${escapeLatex(proj.date)}}
-  \\resumeItemListStart
-${allBullets}
-  \\resumeItemListEnd`
+    {${title}}{${escapeLatex(proj.date)}}${bulletsSection}`
   }).join('\n\n')
+
+  if (!entries.trim()) return ''
 
   return `%-----------PROJECTS-----------
 \\section{Projects}
@@ -225,18 +253,27 @@ ${entries}
 function buildJakeEducation(education = []) {
   if (!education?.length) return ''
 
-  const entries = education.map(edu => {
+  const validEducation = education.filter(edu => {
+    if (!edu) return false
+    return Boolean(edu.institution?.trim() || edu.location?.trim() || edu.degree?.trim() || edu.field?.trim() || edu.coursework?.trim())
+  })
+
+  if (!validEducation.length) return ''
+
+  const entries = validEducation.map(edu => {
     const dates = [edu.startDate, edu.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
     const degreeField = [edu.degree, edu.field].filter(Boolean).map(escapeLatex).join(' in ')
 
     const courseworkBullet = edu.coursework?.trim()
-      ? `  \\resumeItemListStart\n    \\resumeItem{${escapeLatex(edu.coursework)}}\n  \\resumeItemListEnd`
+      ? `\n  \\resumeItemListStart\n    \\resumeItem{${escapeLatex(edu.coursework)}}\n  \\resumeItemListEnd`
       : ''
 
     return `  \\resumeSubheading
     {${escapeLatex(edu.institution)}}{${escapeLatex(edu.location)}}
-    {${degreeField}}{${dates}}${courseworkBullet ? `\n${courseworkBullet}` : ''}`
+    {${degreeField}}{${dates}}${courseworkBullet}`
   }).join('\n\n')
+
+  if (!entries.trim()) return ''
 
   return `%-----------EDUCATION-----------
 \\section{Education}
@@ -364,7 +401,14 @@ ${rows}
 function buildBlueEducation(education = []) {
   if (!education?.length) return ''
 
-  const entries = education.map(edu => {
+  const validEducation = education.filter(edu => {
+    if (!edu) return false
+    return Boolean(edu.institution?.trim() || edu.location?.trim() || edu.degree?.trim() || edu.field?.trim() || edu.coursework?.trim())
+  })
+
+  if (!validEducation.length) return ''
+
+  const entries = validEducation.map(edu => {
     const dates = [edu.startDate, edu.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
     const degreeField = [edu.degree, edu.field].filter(Boolean).map(escapeLatex).join(' in ')
 
@@ -372,7 +416,7 @@ function buildBlueEducation(education = []) {
       {\\color{Blue} ${escapeLatex(edu.institution)}}{${escapeLatex(edu.location)}}
       {${degreeField}}{${dates}}`
 
-    if (edu.coursework) {
+    if (edu.coursework?.trim()) {
       const match = edu.coursework.match(/^([^:]+):\s*(.*)$/)
       if (match) {
         out += `\n      {\\scriptsize \\textit{ \\footnotesize{\\newline{}\\textbf{${escapeLatex(match[1])}:} ${escapeLatex(match[2])}}}}`
@@ -384,6 +428,8 @@ function buildBlueEducation(education = []) {
     return out
   }).join('\n\n')
 
+  if (!entries.trim()) return ''
+
   return `\\section{\\color{BlueViolet} Education}
 \\resumeSubHeadingListStart
 ${entries}
@@ -394,9 +440,18 @@ ${entries}
 function buildBlueExperience(experience = []) {
   if (!experience?.length) return ''
 
-  const entries = experience.map(exp => {
-    const bullets = (exp.bullets || [])
-      .filter(b => b?.trim())
+  const validExps = experience.filter(exp => {
+    if (!exp) return false
+    const hasText = exp.title?.trim() || exp.company?.trim() || exp.location?.trim() || exp.startDate?.trim() || exp.endDate?.trim()
+    const hasBullets = (exp.bullets || []).some(b => b?.trim())
+    return Boolean(hasText || hasBullets)
+  })
+
+  if (!validExps.length) return ''
+
+  const entries = validExps.map(exp => {
+    const validBullets = (exp.bullets || []).filter(b => b?.trim())
+    const bullets = validBullets
       .map(b => {
         const match = b.match(/^([^:]+):\s*(.*)$/)
         if (match) {
@@ -407,13 +462,15 @@ function buildBlueExperience(experience = []) {
       .join('\n')
 
     const dates = [exp.startDate, exp.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
+    const bulletsSection = bullets
+      ? `\n    \\resumeItemListStart\n${bullets}\n    \\resumeItemListEnd`
+      : ''
 
     return `  \\resumeSubheading{\\color{Blue} ${escapeLatex(exp.company)}}{${escapeLatex(exp.location)}}
-    {${escapeLatex(exp.title)}}{${dates}}
-    \\resumeItemListStart
-${bullets}
-    \\resumeItemListEnd`
+    {${escapeLatex(exp.title)}}{${dates}}${bulletsSection}`
   }).join('\n\n')
+
+  if (!entries.trim()) return ''
 
   return `\\section{\\color{BlueViolet} Experience}
 \\resumeSubHeadingListStart
@@ -425,7 +482,16 @@ ${entries}
 function buildBlueProjects(projects = []) {
   if (!projects?.length) return ''
 
-  const entries = projects.map(proj => {
+  const validProjects = projects.filter(proj => {
+    if (!proj) return false
+    const hasText = proj.name?.trim() || proj.technologies?.trim() || proj.date?.trim() || proj.liveLink?.trim() || proj.githubLink?.trim()
+    const hasBullets = (proj.bullets || []).some(b => b?.trim())
+    return Boolean(hasText || hasBullets)
+  })
+
+  if (!validProjects.length) return ''
+
+  const entries = validProjects.map(proj => {
     const { cleanBullets, effectiveTech } = cleanProjectBullets(proj)
 
     const title = `  \\vspace{-1pt}\\item
@@ -462,12 +528,14 @@ function buildBlueProjects(projects = []) {
     const extraBulletsStr = extraBullets.map(b => `          \\resumeItemWithoutTitle{${b}}`).join('\n');
 
     const allBullets = [bullets, extraBulletsStr].filter(Boolean).join('\n');
+    const bulletsSection = allBullets
+      ? `\n    \\resumeItemListStart\n${allBullets}\n    \\resumeItemListEnd`
+      : '';
 
-    return `${title}
-    \\resumeItemListStart
-${allBullets}
-    \\resumeItemListEnd`;
+    return `${title}${bulletsSection}`;
   }).join('\n\n')
+
+  if (!entries.trim()) return ''
 
   return `\\section{\\color{BlueViolet} Projects}
 \\resumeSubHeadingListStart

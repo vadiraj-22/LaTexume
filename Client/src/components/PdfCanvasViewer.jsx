@@ -17,6 +17,15 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
   useEffect(() => {
     if (!containerRef.current) return
 
+    const updateWidth = () => {
+      if (containerRef.current) {
+        const w = containerRef.current.clientWidth
+        if (w > 0) setContainerWidth(w)
+      }
+    }
+
+    updateWidth()
+
     const handleResize = (entries) => {
       for (const entry of entries) {
         const width = entry.contentRect?.width || containerRef.current?.clientWidth
@@ -28,12 +37,12 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
 
     const observer = new ResizeObserver(handleResize)
     observer.observe(containerRef.current)
+    window.addEventListener('resize', updateWidth)
 
-    if (containerRef.current.clientWidth > 0) {
-      setContainerWidth(containerRef.current.clientWidth)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', updateWidth)
     }
-
-    return () => observer.disconnect()
   }, [])
 
   // Effect to load PDF document when pdfUrl changes
@@ -192,9 +201,12 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
         const page = await pdfDoc.getPage(pageNum)
         if (isCancelled || !canvasRef.current) return
 
-        // Compute scale to fit container width smoothly
+        // Compute scale to fit container width smoothly (responsive on mobile screens)
         const unscaledViewport = page.getViewport({ scale: 1.0 })
-        const availableWidth = Math.max(300, (containerWidth || 550) - 24)
+        const effectiveContainerW = containerWidth > 0
+          ? containerWidth
+          : (typeof window !== 'undefined' ? window.innerWidth - 32 : 550)
+        const availableWidth = Math.max(160, Math.min(effectiveContainerW - 16, 750))
         const cssScale = Math.min(1.4, availableWidth / unscaledViewport.width)
         const displayViewport = page.getViewport({ scale: cssScale })
 
@@ -209,9 +221,10 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
         canvas.width = Math.floor(renderViewport.width)
         canvas.height = Math.floor(renderViewport.height)
 
-        // Set display CSS size (crisp vector rendering)
+        // Set display CSS size (crisp vector rendering, responsive max-width)
         canvas.style.width = `${Math.floor(displayViewport.width)}px`
         canvas.style.height = `${Math.floor(displayViewport.height)}px`
+        canvas.style.maxWidth = '100%'
 
         const renderContext = {
           canvasContext: context,
@@ -246,8 +259,8 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
   }, [pdfDoc, pageNum, containerWidth])
 
   return (
-    <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-zinc-700/50 max-w-full transition-all duration-200 inline-block">
-      <canvas ref={canvasRef} className="block mx-auto" />
+    <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-zinc-700/50 max-w-full transition-all duration-200 flex justify-center">
+      <canvas ref={canvasRef} className="block mx-auto max-w-full h-auto" />
     </div>
   )
 }
