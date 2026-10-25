@@ -13,7 +13,9 @@ import { buildTemplate as buildClassic } from '../templates/classic.tex.js'
  */
 export function templateEngine(data) {
   const templateId = data.templateId || 'jake'
-  const sectionOrder = data.sectionOrder || []
+  const sectionOrder = (Array.isArray(data.sectionOrder) && data.sectionOrder.length > 0)
+    ? data.sectionOrder
+    : ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
 
   switch (templateId) {
     case 'blueAccent':
@@ -148,12 +150,46 @@ ${entries}
 \\resumeSubHeadingListEnd`
 }
 
+const STANDALONE_LINK_REGEX = /^[•\-\*◦▪▫–—\s]*((Live(\s*Site|\s*Demo)?)|GitHub|Demo|Code)(\s*\|\s*((Live(\s*Site|\s*Demo)?)|GitHub|Demo|Code|\s*))*$/i
+
+function cleanProjectBullets(proj) {
+  let effectiveTech = (proj.technologies || '').trim()
+  const cleanBullets = []
+
+  const rawBullets = (proj.bullets || []).filter(b => b && typeof b === 'string' && b.trim())
+  for (const b of rawBullets) {
+    const trimmed = b.trim()
+    const techMatch = trimmed.match(/^(?:tech|technologies|tech stack)\s*:\s*(.*)$/i)
+    if (techMatch) {
+      if (!effectiveTech) effectiveTech = techMatch[1].trim()
+      continue // Skip rendering as a regular bullet
+    }
+
+    if (effectiveTech && trimmed.toLowerCase() === effectiveTech.toLowerCase()) {
+      continue // Skip exact duplicate of technologies
+    }
+
+    if (/^(?:live|github|demo|repo)\s*:\s*/i.test(trimmed)) {
+      continue // Skip redundant links bullet
+    }
+
+    if (STANDALONE_LINK_REGEX.test(trimmed)) {
+      continue // Skip standalone link headers without URLs
+    }
+
+    cleanBullets.push(trimmed)
+  }
+
+  return { cleanBullets, effectiveTech }
+}
+
 function buildJakeProjects(projects = []) {
   if (!projects?.length) return ''
 
   const entries = projects.map(proj => {
-    const bullets = (proj.bullets || [])
-      .filter(b => b?.trim())
+    const { cleanBullets, effectiveTech } = cleanProjectBullets(proj)
+
+    const bullets = cleanBullets
       .map(b => `    \\resumeItem{${escapeLatex(b)}}`)
       .join('\n')
 
@@ -170,7 +206,7 @@ function buildJakeProjects(projects = []) {
       : ''
 
     const allBullets = linksBullet ? `${bullets}\n${linksBullet}` : bullets
-    const title = `\\textbf{${escapeLatex(proj.name)}}${proj.technologies ? ` $|$ \\emph{\\small ${escapeLatex(proj.technologies)}}` : ''}`
+    const title = `\\textbf{${escapeLatex(proj.name)}}${effectiveTech ? ` $|$ \\emph{\\small ${escapeLatex(effectiveTech)}}` : ''}`
 
     return `  \\resumeProjectHeading
     {${title}}{${escapeLatex(proj.date)}}
@@ -193,9 +229,13 @@ function buildJakeEducation(education = []) {
     const dates = [edu.startDate, edu.endDate].filter(Boolean).map(escapeLatex).join(' -- ')
     const degreeField = [edu.degree, edu.field].filter(Boolean).map(escapeLatex).join(' in ')
 
+    const courseworkBullet = edu.coursework?.trim()
+      ? `  \\resumeItemListStart\n    \\resumeItem{${escapeLatex(edu.coursework)}}\n  \\resumeItemListEnd`
+      : ''
+
     return `  \\resumeSubheading
     {${escapeLatex(edu.institution)}}{${escapeLatex(edu.location)}}
-    {${degreeField}}{${dates}}`
+    {${degreeField}}{${dates}}${courseworkBullet ? `\n${courseworkBullet}` : ''}`
   }).join('\n\n')
 
   return `%-----------EDUCATION-----------
@@ -314,7 +354,7 @@ function buildBlueSkills(skills = []) {
 
   if (!rows) return ''
 
-  return `\\section{\\color{BlueViolet} Skills}
+  return `\\section{\\color{BlueViolet} Technical Skills}
 \\resumeSubHeadingListStart
 ${rows}
 \\resumeSubHeadingListEnd
@@ -386,13 +426,14 @@ function buildBlueProjects(projects = []) {
   if (!projects?.length) return ''
 
   const entries = projects.map(proj => {
+    const { cleanBullets, effectiveTech } = cleanProjectBullets(proj)
+
     const title = `  \\vspace{-1pt}\\item
     \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
       \\textbf{\\color{Blue} ${escapeLatex(proj.name)}} & ${escapeLatex(proj.date || '')}\\\\
     \\end{tabular*}\\vspace{-5pt}`;
 
-    const bullets = (proj.bullets || [])
-      .filter(b => b?.trim())
+    const bullets = cleanBullets
       .map(b => {
         const match = b.match(/^([^:]+):\s*(.*)$/)
         if (match) {
@@ -403,8 +444,8 @@ function buildBlueProjects(projects = []) {
       .join('\n');
 
     let extraBullets = [];
-    if (proj.technologies) {
-      extraBullets.push(`\\textbf{Tech:} ${escapeLatex(proj.technologies)}`);
+    if (effectiveTech) {
+      extraBullets.push(`\\textbf{Tech:} ${escapeLatex(effectiveTech)}`);
     }
 
     const links = [];
@@ -479,14 +520,20 @@ function buildBlueCertifications(certifications = []) {
       return ''
     })
     .filter(c => c?.trim())
-    .map(c => `\\item {${escapeLatex(c)}}`)
+    .map(c => {
+      const match = c.match(/^([^:]+):\s*(.*)$/)
+      if (match) {
+        return `  \\resumeItem{\\color{Blue} ${escapeLatex(match[1])}}{${escapeLatex(match[2])}}`
+      }
+      return `  \\resumeItemWithoutTitle{${escapeLatex(c)}}`
+    })
     .join('\n')
 
   if (!entries) return ''
 
   return `\\section{\\color{BlueViolet} Certifications}
-\\begin{description}[font=$\\bullet$]
+\\resumeItemListStart
 ${entries}
-\\vspace{-5pt}
-\\end{description}`
+\\resumeItemListEnd
+\\vspace{-2pt}`
 }

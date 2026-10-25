@@ -37,6 +37,7 @@ export default function AtsOptimizer() {
   const [extractedKeywords, setExtractedKeywords] = useState([])
   const [toastMessage, setToastMessage] = useState('')
   const [isSampleResume, setIsSampleResume] = useState(false)
+  const [keywordFilter, setKeywordFilter] = useState('all') // 'all' | 'missing' | 'matched'
 
   // Load current resume draft from localStorage on mount
   useEffect(() => {
@@ -129,16 +130,21 @@ const runLocalKeywordMatch = (jdText, rData) => {
     if (jobDescription && resumeData) {
       const kw = runLocalKeywordMatch(jobDescription, resumeData)
       setExtractedKeywords(kw)
+    } else {
+      setExtractedKeywords([])
     }
   }, [jobDescription, resumeData])
 
   const handleAddSkill = (skillName) => {
     if (!resumeData) return
     const updated = { ...resumeData }
-    const skillsList = updated.skills || []
+    const skillsList = updated.skills ? [...updated.skills] : []
     if (skillsList.length > 0) {
       const existing = skillsList[0].skills
-      skillsList[0].skills = existing ? `${existing}, ${skillName}` : skillName
+      skillsList[0] = {
+        ...skillsList[0],
+        skills: existing ? `${existing}, ${skillName}` : skillName,
+      }
     } else {
       skillsList.push({ label: 'Skills', skills: skillName })
     }
@@ -147,7 +153,11 @@ const runLocalKeywordMatch = (jdText, rData) => {
     setResumeData(updated)
     localStorage.setItem('latexume_draft', JSON.stringify(updated))
 
-    setToastMessage(`Added "${skillName}" to your Resume Skills!`)
+    // Refresh match status
+    const kw = runLocalKeywordMatch(jobDescription, updated)
+    setExtractedKeywords(kw)
+
+    setToastMessage(`✓ Added "${skillName}" to your Resume Skills!`)
     setTimeout(() => setToastMessage(''), 4000)
   }
 
@@ -161,12 +171,15 @@ const runLocalKeywordMatch = (jdText, rData) => {
     }
 
     const updated = { ...resumeData }
-    const skillsList = updated.skills || []
+    const skillsList = updated.skills ? [...updated.skills] : []
     const newSkillsStr = missing.join(', ')
 
     if (skillsList.length > 0) {
       const existing = skillsList[0].skills
-      skillsList[0].skills = existing ? `${existing}, ${newSkillsStr}` : newSkillsStr
+      skillsList[0] = {
+        ...skillsList[0],
+        skills: existing ? `${existing}, ${newSkillsStr}` : newSkillsStr,
+      }
     } else {
       skillsList.push({ label: 'Skills', skills: newSkillsStr })
     }
@@ -183,9 +196,27 @@ const runLocalKeywordMatch = (jdText, rData) => {
     setTimeout(() => setToastMessage(''), 5000)
   }
 
+  const handleCopyMissingKeywords = () => {
+    const missing = extractedKeywords.filter((k) => !k.matched).map((k) => k.keyword)
+    if (!missing.length) {
+      setToastMessage('No missing keywords to copy!')
+      setTimeout(() => setToastMessage(''), 4000)
+      return
+    }
+    navigator.clipboard.writeText(missing.join(', '))
+    setToastMessage(`✓ Copied ${missing.length} missing keywords to clipboard!`)
+    setTimeout(() => setToastMessage(''), 4000)
+  }
+
   const handleFillSampleJd = () => {
     const sample = `We are seeking a Senior Full Stack Engineer proficient in React, TypeScript, Node.js, Express, Docker, PostgreSQL, AWS, and REST APIs. Experience with CI/CD pipelines, System Design, GraphQL, Microservices, and Redis is highly preferred. The ideal candidate will architect scalable cloud backend microservices and build responsive frontend user interfaces.`
     setJobDescription(sample)
+  }
+
+  const handleClearJd = () => {
+    setJobDescription('')
+    setMatchResult(null)
+    setExtractedKeywords([])
   }
 
   const handleRunAiAnalysis = async () => {
@@ -226,6 +257,77 @@ const runLocalKeywordMatch = (jdText, rData) => {
     }
   }
 
+  // Calculations for display
+  const matchedList = extractedKeywords.filter((k) => k.matched)
+  const missingList = extractedKeywords.filter((k) => !k.matched)
+  const realTimeScore = extractedKeywords.length > 0 ? Math.round((matchedList.length / extractedKeywords.length) * 100) : 0
+  const activeScore = matchResult ? matchResult.score : realTimeScore
+
+  const filteredKeywords = extractedKeywords.filter((kw) => {
+    if (keywordFilter === 'missing') return !kw.matched
+    if (keywordFilter === 'matched') return kw.matched
+    return true
+  })
+
+  // Circular gauge SVG renderer
+  const renderCircularGauge = (score) => {
+    const radius = 38
+    const circumference = 2 * Math.PI * radius
+    const strokeDashoffset = circumference - (score / 100) * circumference
+    const strokeColor = score >= 80 ? '#A6FF5D' : score >= 60 ? '#facc15' : '#f87171'
+    const ratingText = score >= 85 ? 'Outstanding Match' : score >= 70 ? 'Strong Match' : score >= 50 ? 'Moderate Match' : 'Needs Optimization'
+
+    return (
+      <div className="flex items-center gap-5">
+        <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+          <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              stroke="currentColor"
+              strokeWidth="8"
+              className="text-zinc-800"
+              fill="transparent"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              stroke={strokeColor}
+              strokeWidth="8"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-black text-white">{score}%</span>
+            <span className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold">Match</span>
+          </div>
+        </div>
+        <div>
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border"
+            style={{ color: strokeColor, borderColor: `${strokeColor}40`, backgroundColor: `${strokeColor}15` }}
+          >
+            {ratingText}
+          </span>
+          <h3 className="text-lg font-bold text-white mt-1">
+            {matchResult ? 'Deep AI Semantic Score' : 'Real-Time ATS Overlap'}
+          </h3>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            {matchResult 
+              ? 'Evaluated across experience, impact verbs, and technical taxonomy.'
+              : `${matchedList.length} of ${extractedKeywords.length} required skills verified in resume.`}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-transparent text-white flex flex-col selection:bg-[#A6FF5D] selection:text-black">
       <SEO
@@ -237,9 +339,9 @@ const runLocalKeywordMatch = (jdText, rData) => {
       <main className="flex-1 pt-36 sm:pt-40 pb-16 px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32 max-w-7xl mx-auto w-full">
         {/* Toast */}
         {toastMessage && (
-          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/40 rounded-2xl text-emerald-400 flex items-center justify-between shadow-lg">
-            <span>{toastMessage}</span>
-            <button onClick={() => setToastMessage('')} className="text-emerald-400/70 hover:text-emerald-400">✕</button>
+          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/40 rounded-2xl text-emerald-400 flex items-center justify-between shadow-lg animate-fade-in">
+            <span className="text-sm font-semibold">{toastMessage}</span>
+            <button onClick={() => setToastMessage('')} className="text-emerald-400/70 hover:text-emerald-400 text-sm">✕</button>
           </div>
         )}
 
@@ -253,7 +355,7 @@ const runLocalKeywordMatch = (jdText, rData) => {
               Target Job Description Matcher
             </h1>
             <p className="text-zinc-200 text-sm sm:text-base mt-1 font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
-              Extract missing keywords & run AI ATS scoring against your target job posting.
+              Extract missing keywords &amp; run deep AI ATS scoring against your target job posting.
             </p>
           </div>
           <Link
@@ -287,20 +389,32 @@ const runLocalKeywordMatch = (jdText, rData) => {
 
         {/* Main 2-Column Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {/* Left Column: Job Description Input & Local Keyword Pills */}
+          
+          {/* Left Column: Job Description Input & Action Toolbar */}
           <div className="bg-zinc-950 p-6 sm:p-8 rounded-3xl border border-zinc-800 space-y-6 shadow-2xl flex flex-col">
             <div className="flex flex-col flex-1">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider">
                   Paste Target Job Description (JD)
                 </label>
-                <button
-                  type="button"
-                  onClick={handleFillSampleJd}
-                  className="text-xs text-[#A6FF5D] hover:underline font-semibold cursor-pointer"
-                >
-                  + Load Sample JD
-                </button>
+                <div className="flex items-center gap-3">
+                  {jobDescription && (
+                    <button
+                      type="button"
+                      onClick={handleClearJd}
+                      className="text-xs text-zinc-400 hover:text-red-400 transition font-medium cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleFillSampleJd}
+                    className="text-xs text-[#A6FF5D] hover:underline font-semibold cursor-pointer"
+                  >
+                    + Load Sample SWE JD
+                  </button>
+                </div>
               </div>
               <textarea
                 placeholder="Paste the job requirements, responsibilities, or skills list here..."
@@ -308,16 +422,79 @@ const runLocalKeywordMatch = (jdText, rData) => {
                 onChange={(e) => setJobDescription(e.target.value)}
                 className="w-full bg-white/[0.04] text-white placeholder-white/20 text-sm p-4 rounded-2xl border border-zinc-700 focus:border-[#A6FF5D] focus:outline-none transition resize-none flex-1 min-h-[220px]"
               />
+
+              {/* Action Toolbar directly below textarea */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+                <span className="text-xs text-zinc-400">
+                  {jobDescription.length > 0 ? `${jobDescription.length} characters` : 'Zero tokens required for real-time match'}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleRunAiAnalysis}
+                  disabled={loading || !jobDescription.trim()}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-lg ${
+                    loading || !jobDescription.trim()
+                      ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
+                      : 'bg-zinc-800 hover:bg-zinc-700 text-[#A6FF5D] border border-[#A6FF5D]/40 hover:border-[#A6FF5D]'
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-[#A6FF5D] border-t-transparent rounded-full animate-spin" />
+                      <span>Analyzing Job Match...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🤖 Run Deep AI Analysis</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Local Keyword Overlap (Zero Token) */}
+            {/* Extracted Keywords Area */}
             {extractedKeywords.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                  Extracted Job Keywords (Click + to add individual skills)
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {extractedKeywords.map((kw, idx) => (
+              <div className="space-y-3 pt-4 border-t border-zinc-800/80">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    Extracted Job Keywords ({extractedKeywords.length})
+                  </p>
+
+                  {/* Filter Tabs */}
+                  <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setKeywordFilter('all')}
+                      className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                        keywordFilter === 'all' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      All ({extractedKeywords.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setKeywordFilter('missing')}
+                      className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                        keywordFilter === 'missing' ? 'bg-red-500/20 text-red-300 shadow-sm' : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      Missing ({missingList.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setKeywordFilter('matched')}
+                      className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                        keywordFilter === 'matched' ? 'bg-emerald-500/20 text-emerald-300 shadow-sm' : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      Matched ({matchedList.length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* Keyword Pills */}
+                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+                  {filteredKeywords.map((kw, idx) => (
                     <span
                       key={idx}
                       className={`text-xs px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition ${
@@ -341,20 +518,31 @@ const runLocalKeywordMatch = (jdText, rData) => {
                   ))}
                 </div>
 
-                {/* Big Full-Width Hero Action Button at Bottom */}
-                {extractedKeywords.some((k) => !k.matched) ? (
-                  <button
-                    type="button"
-                    onClick={handleAddAllMissingSkills}
-                    className="w-full bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold py-4 px-6 rounded-2xl transition-all duration-200 shadow-xl shadow-[#A6FF5D]/20 hover:scale-[1.01] active:scale-95 cursor-pointer flex items-center justify-center gap-2 text-base border border-[#A6FF5D] mt-4"
-                  >
-                    <span>✨ Add All Missing Skills to Resume</span>
-                  </button>
-                ) : (
-                  <div className="w-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 text-[#A6FF5D] font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 text-sm mt-4">
-                    <span>✓ All Target Job Keywords Added to Resume!</span>
-                  </div>
-                )}
+                {/* Bulk Actions */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  {missingList.length > 0 ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleAddAllMissingSkills}
+                        className="flex-1 bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold py-3.5 px-4 rounded-2xl transition-all duration-200 shadow-xl shadow-[#A6FF5D]/20 hover:scale-[1.01] active:scale-95 cursor-pointer flex items-center justify-center gap-2 text-sm border border-[#A6FF5D]"
+                      >
+                        <span>✨ Add {missingList.length} Missing Skills to Resume</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopyMissingKeywords}
+                        className="px-4 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-semibold rounded-2xl border border-zinc-800 text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <span>📋 Copy List</span>
+                      </button>
+                    </>
+                  ) : (
+                    <div className="w-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 text-[#A6FF5D] font-bold py-3 px-6 rounded-2xl flex items-center justify-center gap-2 text-sm">
+                      <span>✓ All Target Job Keywords Present in Resume!</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -362,117 +550,131 @@ const runLocalKeywordMatch = (jdText, rData) => {
 
           {/* Right Column: Real-Time & AI Analysis Results Dashboard */}
           <div className="bg-zinc-950 p-6 sm:p-8 rounded-3xl border border-zinc-800 space-y-6 shadow-2xl min-h-[460px] flex flex-col justify-start">
+            
+            {/* Empty State */}
             {!matchResult && !loading && extractedKeywords.length === 0 && (
               <div className="text-center text-zinc-400 space-y-2 my-auto py-12">
-                <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-xl text-zinc-500 mb-3">
+                <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-2xl text-zinc-500 mb-3 shadow-inner">
                   🎯
                 </div>
-                <p className="text-base font-bold text-white">AI ATS Match Score Dashboard</p>
-                <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                  Paste your target job description on the left (or click "+ Load Sample JD") to instantly calculate your ATS match score & missing keywords.
+                <p className="text-lg font-bold text-white">AI ATS Match Score Dashboard</p>
+                <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                  Paste your target job description on the left (or click "+ Load Sample SWE JD") to calculate your ATS match score &amp; discover missing keywords.
                 </p>
               </div>
             )}
 
+            {/* Loading State */}
             {loading && (
               <div className="text-center space-y-3 my-auto py-12">
-                <div className="w-9 h-9 border-2 border-[#A6FF5D] border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-xs text-zinc-300 font-medium animate-pulse">Running Deep AI ATS semantic match & scoring...</p>
+                <div className="w-10 h-10 border-2 border-[#A6FF5D] border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-sm text-zinc-200 font-semibold animate-pulse">Running Deep AI ATS semantic match &amp; scoring...</p>
+                <p className="text-xs text-zinc-500">Checking domain relevance, action verbs, and quantifiable impact.</p>
               </div>
             )}
 
             {/* Instant Real-Time Keyword Dashboard (When JD is pasted but AI scan not run yet) */}
-            {!matchResult && !loading && extractedKeywords.length > 0 && (() => {
-              const matchedKw = extractedKeywords.filter(k => k.matched)
-              const missingKw = extractedKeywords.filter(k => !k.matched)
-              const realTimeScore = Math.round((matchedKw.length / extractedKeywords.length) * 100)
-              
-              return (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-                    <div>
-                      <span className="text-[10px] font-bold text-[#A6FF5D] uppercase bg-[#A6FF5D]/10 px-2.5 py-0.5 rounded-full border border-[#A6FF5D]/30 tracking-wider">
-                        Real-Time Keyword Match
-                      </span>
-                      <h2 className="text-3xl font-extrabold text-white mt-1.5">
-                        {realTimeScore}% <span className="text-xs text-[#A6FF5D] font-normal">Keyword Match</span>
-                      </h2>
-                      <p className="text-xs text-zinc-400 mt-1">
-                        {matchedKw.length} of {extractedKeywords.length} key job terms found in your resume.
-                      </p>
-                    </div>
-                    <div className="w-16 h-16 rounded-2xl bg-[#A6FF5D]/10 border border-[#A6FF5D]/40 flex items-center justify-center text-[#A6FF5D] font-extrabold text-xl shadow-lg">
-                      {realTimeScore}%
-                    </div>
-                  </div>
-
-                  {missingKw.length > 0 && (
-                    <div>
-                      <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">
-                        Missing Target Keywords ({missingKw.length})
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {missingKw.map((kw, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleAddSkill(kw.keyword)}
-                            className="text-xs bg-red-500/10 text-red-300 border border-red-500/30 hover:border-red-400 px-3 py-1.5 rounded-xl font-medium transition cursor-pointer flex items-center gap-1.5 group"
-                          >
-                            <span>{kw.keyword}</span>
-                            <span className="text-[#A6FF5D] font-bold group-hover:scale-110 transition">+ Add</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {matchedKw.length > 0 && (
-                    <div>
-                      <p className="text-xs font-bold text-[#A6FF5D] uppercase tracking-wider mb-2">
-                        Matched Keywords ({matchedKw.length})
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {matchedKw.map((kw, idx) => (
-                          <span key={idx} className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
-                            ✓ {kw.keyword}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-3 border-t border-zinc-800 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
-                    <span>💡 Click "+ Add" on missing skills to auto-update your resume</span>
-                    <Link to="/builder" className="text-[#A6FF5D] hover:underline font-bold">
-                      Open Builder →
-                    </Link>
-                  </div>
+            {!matchResult && !loading && extractedKeywords.length > 0 && (
+              <div className="space-y-6 animate-fade-in">
+                {/* SVG Gauge Header */}
+                <div className="border-b border-zinc-800 pb-5">
+                  {renderCircularGauge(realTimeScore)}
                 </div>
-              )
-            })()}
 
-            {matchResult && !loading && (
-              <div className="space-y-6">
-                {/* Score Header */}
-                <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+                {/* Missing Keywords Section */}
+                {missingList.length > 0 && (
                   <div>
-                    <p className="text-xs text-zinc-400 uppercase font-semibold">ATS Compatibility Score</p>
-                    <h2 className="text-3xl font-extrabold text-white mt-1">
-                      {matchResult.score}% <span className="text-xs text-[#A6FF5D] font-normal">Match</span>
-                    </h2>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-bold text-red-400 uppercase tracking-wider">
+                        Missing Target Keywords ({missingList.length})
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleAddAllMissingSkills}
+                        className="text-xs text-[#A6FF5D] hover:underline font-bold cursor-pointer"
+                      >
+                        + Add All Missing
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {missingList.map((kw, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleAddSkill(kw.keyword)}
+                          className="text-xs bg-red-500/10 text-red-300 border border-red-500/30 hover:border-red-400 px-3 py-1.5 rounded-xl font-medium transition cursor-pointer flex items-center gap-1.5 group"
+                        >
+                          <span>{kw.keyword}</span>
+                          <span className="text-[#A6FF5D] font-bold group-hover:scale-110 transition">+ Add</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="w-16 h-16 rounded-full bg-[#A6FF5D]/10 border border-[#A6FF5D]/40 flex items-center justify-center text-[#A6FF5D] font-extrabold text-xl">
-                    {matchResult.score}%
+                )}
+
+                {/* Matched Keywords Section */}
+                {matchedList.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold text-[#A6FF5D] uppercase tracking-wider mb-2">
+                      Matched Keywords ({matchedList.length})
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {matchedList.map((kw, idx) => (
+                        <span key={idx} className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+                          ✓ {kw.keyword}
+                        </span>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {/* Deep AI Callout Banner */}
+                <div className="p-4 bg-zinc-900/90 border border-zinc-800 rounded-2xl flex items-center justify-between gap-3 text-xs">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-white">Want deeper AI semantic scoring?</p>
+                    <p className="text-zinc-400">Evaluate bullet action verbs, quantifiable metrics, and senior role alignment.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRunAiAnalysis}
+                    className="px-3.5 py-2 bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold rounded-xl transition cursor-pointer shrink-0"
+                  >
+                    Analyze with AI
+                  </button>
+                </div>
+
+                <div className="pt-3 border-t border-zinc-800 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
+                  <span>💡 Click "+ Add" on missing skills to auto-update your resume</span>
+                  <Link to="/builder" className="text-[#A6FF5D] hover:underline font-bold">
+                    Open Builder →
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* AI Deep Analysis Result Dashboard */}
+            {matchResult && !loading && (
+              <div className="space-y-6 animate-fade-in">
+                {/* SVG Gauge Header */}
+                <div className="border-b border-zinc-800 pb-5">
+                  {renderCircularGauge(matchResult.score)}
                 </div>
 
                 {/* Missing Keywords */}
                 {matchResult.missingKeywords?.length > 0 && (
                   <div>
-                    <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">
-                      Missing Keywords
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-bold text-red-400 uppercase tracking-wider">
+                        Missing Keywords ({matchResult.missingKeywords.length})
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleAddAllMissingSkills}
+                        className="text-xs text-[#A6FF5D] hover:underline font-bold cursor-pointer"
+                      >
+                        + Add to Resume
+                      </button>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {matchResult.missingKeywords.map((kw, idx) => (
                         <button
@@ -489,17 +691,33 @@ const runLocalKeywordMatch = (jdText, rData) => {
                   </div>
                 )}
 
-                {/* AI Improvement Suggestions */}
-                {matchResult.suggestions?.length > 0 && (
+                {/* Matched Keywords from AI */}
+                {matchResult.matchingKeywords?.length > 0 && (
                   <div>
                     <p className="text-xs font-bold text-[#A6FF5D] uppercase tracking-wider mb-2">
-                      AI Suggestions
+                      Matching Qualifications ({matchResult.matchingKeywords.length})
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {matchResult.matchingKeywords.map((kw, idx) => (
+                        <span key={idx} className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+                          ✓ {kw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Improvement Suggestions */}
+                {matchResult.suggestions?.length > 0 && (
+                  <div className="bg-zinc-900/70 p-4 rounded-2xl border border-zinc-800 space-y-2.5">
+                    <p className="text-xs font-bold text-[#A6FF5D] uppercase tracking-wider">
+                      🤖 AI Suggestions for Your Resume
                     </p>
                     <ul className="space-y-2 text-xs text-zinc-300">
                       {matchResult.suggestions.map((sug, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <span className="text-[#A6FF5D] font-bold">•</span>
-                          <span>{sug}</span>
+                          <span className="text-[#A6FF5D] font-bold shrink-0">•</span>
+                          <span className="leading-relaxed">{sug}</span>
                         </li>
                       ))}
                     </ul>
@@ -510,7 +728,7 @@ const runLocalKeywordMatch = (jdText, rData) => {
                 <div className="pt-4 border-t border-zinc-800">
                   <Link
                     to="/builder"
-                    className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition"
+                    className="w-full bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold py-3.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-[#A6FF5D]/20 cursor-pointer"
                   >
                     <span>Open Resume Builder with Updated Skills →</span>
                   </Link>

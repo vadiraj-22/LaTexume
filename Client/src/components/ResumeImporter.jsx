@@ -205,6 +205,12 @@ const ResumeImporter = ({ isOpen, onClose, onImportData }) => {
                     <span className="text-gray-400 block text-xs truncate">{parsedResult.data.header.email}</span>
                   </div>
                   <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                    <span className="text-gray-400 block text-xs">Career Summary / Objective</span>
+                    <span className="text-white font-medium truncate block">
+                      {parsedResult.data.objective ? `${parsedResult.data.objective.slice(0, 45)}...` : 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="bg-white/5 p-3 rounded-lg border border-white/10">
                     <span className="text-gray-400 block text-xs">Skills Categories</span>
                     <span className="text-white font-medium">{parsedResult.data.skills.length} categories extracted</span>
                   </div>
@@ -220,9 +226,11 @@ const ResumeImporter = ({ isOpen, onClose, onImportData }) => {
                     <span className="text-gray-400 block text-xs">Education</span>
                     <span className="text-white font-medium">{parsedResult.data.education.length} entry(ies) found</span>
                   </div>
-                  <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                  <div className="bg-white/5 p-3 rounded-lg border border-white/10 md:col-span-2">
                     <span className="text-gray-400 block text-xs">Certifications & Achievements</span>
-                    <span className="text-white font-medium">{parsedResult.data.certifications.length} bullet(s) found</span>
+                    <span className="text-white font-medium">
+                      {(parsedResult.data.certifications?.length || 0) + (parsedResult.data.achievements?.length || 0)} item(s) found
+                    </span>
                   </div>
                 </div>
               </div>

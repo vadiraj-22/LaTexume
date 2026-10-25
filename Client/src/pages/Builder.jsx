@@ -30,6 +30,93 @@ const SECTION_METADATA = {
 
 const DEFAULT_SECTION_ORDER = ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
 
+const SAMPLE_RESUME_BUILDER = {
+  header: {
+    name: 'Alex Rivera',
+    phone: '+1 (555) 019-2834',
+    email: 'alex.rivera@example.com',
+    portfolio: 'https://alexrivera.dev',
+    linkedin: 'https://linkedin.com/in/alexrivera',
+    github: 'https://github.com/alexrivera',
+    leetcode: 'https://leetcode.com/alexrivera',
+  },
+  objective: 'Senior Full Stack Software Engineer with 6+ years of experience architecting high-throughput microservices, distributed cloud systems, and real-time reactive web applications. Proven track record driving 99.99% service availability.',
+  skills: [
+    { label: 'Languages', skills: 'TypeScript, JavaScript, Python, Go, Java, SQL, C++' },
+    { label: 'Frontend', skills: 'React, Next.js, Redux, TailwindCSS, Vue.js, GraphQL, WebSockets' },
+    { label: 'Backend & Cloud', skills: 'Node.js, Express, FastAPI, PostgreSQL, MongoDB, Docker, AWS, Redis, Kubernetes' },
+    { label: 'Developer Tools', skills: 'Git, GitHub Actions, CI/CD, Jest, Vite, Linux, NGINX, LaTeX' },
+  ],
+  experience: [
+    {
+      company: 'Apex Cloud Systems',
+      title: 'Senior Full Stack Engineer',
+      location: 'San Francisco, CA',
+      startDate: 'Jun 2022',
+      endDate: 'Present',
+      bullets: [
+        'Architected high-throughput microservices in TypeScript and Node.js, handling 5M+ daily active API requests with 99.99% service uptime.',
+        'Engineered real-time data sync pipeline using WebSockets and Redis Pub/Sub, reducing data delivery latency by 68%.',
+        'Spearheaded frontend migration to Next.js 14 and TailwindCSS, improving Google Lighthouse performance score from 62 to 98.',
+      ],
+    },
+    {
+      company: 'Nexus Tech Labs',
+      title: 'Software Engineer',
+      location: 'San Jose, CA',
+      startDate: 'Jul 2020',
+      endDate: 'May 2022',
+      bullets: [
+        'Developed serverless REST and GraphQL APIs deployed on AWS Lambda & PostgreSQL, reducing infrastructure costs by $45,000 annually.',
+        'Implemented automated CI/CD deployment workflows using GitHub Actions and Docker, reducing release cycle time from 3 days to 15 minutes.',
+        'Collaborated with security auditors to implement OAuth2 / JWT role-based access controls for 150,000+ active enterprise accounts.',
+      ],
+    },
+  ],
+  projects: [
+    {
+      name: 'LaTexume Platform',
+      technologies: 'React, Node.js, Express, Docker, MongoDB',
+      date: '2024',
+      liveLink: 'https://latexume.vercel.app',
+      githubLink: 'https://github.com/alexrivera/latexume',
+      bullets: [
+        'Built open-source LaTeX resume generator with live PDF preview, ATS keyword matching, and AI bullet optimization.',
+        'Containerized LaTeX compilation environment in Docker to achieve sub-second PDF generation speeds across 100,000+ downloads.',
+      ],
+    },
+    {
+      name: 'Distributed Vector DB Visualizer',
+      technologies: 'Python, FastAPI, React, D3.js, Embeddings',
+      date: '2023',
+      liveLink: 'https://vectorviz.dev',
+      githubLink: 'https://github.com/alexrivera/vector-viz',
+      bullets: [
+        'Created interactive 3D spatial visualization tool for high-dimensional vector embeddings, adopted by 3,000+ ML developers.',
+      ],
+    },
+  ],
+  education: [
+    {
+      institution: 'University of California, Berkeley',
+      degree: 'B.S. in Computer Science & Engineering',
+      field: 'GPA: 3.89 / 4.0',
+      location: 'Berkeley, CA',
+      startDate: 'Aug 2016',
+      endDate: 'May 2020',
+      coursework: 'Data Structures, Operating Systems, Algorithms, Distributed Systems',
+    },
+  ],
+  certifications: [
+    'AWS Certified Solutions Architect – Associate (2023)',
+    'Certified Kubernetes Application Developer (CKAD) – CNCF (2022)',
+  ],
+  achievements: [
+    'Winner – Global Cloud Hackathon 2023: Built real-time collaborative workspace tool (1st place out of 450+ teams)',
+    'Published author: "Architecting Resilient Microservices with TypeScript and Redis" on InfoQ',
+  ],
+}
+
 const Builder = () => {
   const [formData, setFormData] = useState({
     templateId: 'jake',
@@ -187,6 +274,75 @@ const Builder = () => {
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false)
   const templateDropdownRef = useRef(null)
   const [searchParams] = useSearchParams()
+  const [collapsedSections, setCollapsedSections] = useState({})
+
+  const toggleCollapseSection = (key) => {
+    setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  // Calculate dynamic ATS Completeness / Readiness Score (0-100)
+  const calculateAtsScore = () => {
+    let score = 0
+    if (formData.header?.name?.trim()) score += 10
+    if (formData.header?.email?.trim()) score += 8
+    if (formData.header?.phone?.trim()) score += 4
+    if (formData.header?.linkedin || formData.header?.github || formData.header?.portfolio) score += 4
+    if (formData.objective?.trim()?.length > 40) score += 14
+    else if (formData.objective?.trim()) score += 7
+
+    const validSkills = (formData.skills || []).filter((s) => s.skills?.trim())
+    if (validSkills.length >= 2) score += 20
+    else if (validSkills.length === 1) score += 12
+
+    const validExp = (formData.experience || []).filter((e) => e.company?.trim() || e.title?.trim())
+    const hasBullets = validExp.some((e) => (e.bullets || []).some((b) => b?.trim()?.length > 15))
+    if (validExp.length >= 1 && hasBullets) score += 20
+    else if (validExp.length >= 1) score += 10
+
+    const validEdu = (formData.education || []).filter((e) => e.institution?.trim() || e.degree?.trim())
+    if (validEdu.length >= 1) score += 10
+
+    const validProj = (formData.projects || []).filter((p) => p.name?.trim())
+    const validCert = (formData.certifications || []).filter((c) => typeof c === 'string' ? c?.trim() : c?.name?.trim())
+    if (validProj.length >= 1 || validCert.length >= 1) score += 10
+
+    return Math.min(score, 100)
+  }
+
+  const atsScore = calculateAtsScore()
+
+  const handleLoadSampleData = () => {
+    if (formData.header?.name && !window.confirm('Populate form with sample data? This will overwrite unsaved fields.')) {
+      return
+    }
+    setFormData({
+      ...SAMPLE_RESUME_BUILDER,
+      templateId: formData.templateId || 'jake',
+      sectionOrder: DEFAULT_SECTION_ORDER,
+    })
+    setToastMessage('⚡ Realistic software engineer resume loaded!')
+    setTimeout(() => setToastMessage(''), 4000)
+  }
+
+  const handleClearForm = () => {
+    if (!window.confirm('Are you sure you want to clear all form fields?')) return
+    setFormData({
+      templateId: formData.templateId || 'jake',
+      header: { name: '', phone: '', email: '', portfolio: '', linkedin: '', github: '', leetcode: '' },
+      objective: '',
+      skills: [{ label: '', skills: '' }],
+      experience: [{ title: '', company: '', location: '', startDate: '', endDate: '', bullets: [''] }],
+      projects: [{ name: '', technologies: '', date: '', bullets: [''], liveLink: '', githubLink: '' }],
+      education: [{ institution: '', location: '', degree: '', field: '', startDate: '', endDate: '', coursework: '' }],
+      certifications: [''],
+      achievements: [''],
+      sectionOrder: DEFAULT_SECTION_ORDER,
+    })
+    setCurrentResumeId(null)
+    setCurrentResumeTitle('')
+    setToastMessage('Form cleared.')
+    setTimeout(() => setToastMessage(''), 3000)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -213,14 +369,78 @@ const Builder = () => {
     }
   }, [formData])
 
-  // Load local draft on mount if form is uninitialized
+  // Helper to sanitize project items and remove duplicate Tech: / Link: bullets
+  const sanitizeProjectItem = (p) => {
+    if (!p) return { name: '', technologies: '', date: '', bullets: [''], liveLink: '', githubLink: '' }
+    let technologies = (p.technologies || '').trim()
+    let liveLink = p.liveLink || ''
+    let githubLink = p.githubLink || ''
+    const cleanBullets = []
+
+    for (const b of (p.bullets || [])) {
+      if (!b || typeof b !== 'string') continue
+      const trimmed = b.trim()
+      if (!trimmed) continue
+
+      const techMatch = trimmed.match(/^(?:tech|technologies|tech stack)\s*:\s*(.*)$/i)
+      if (techMatch) {
+        if (!technologies) technologies = techMatch[1].trim()
+        continue
+      }
+
+      if (technologies && trimmed.toLowerCase() === technologies.toLowerCase()) {
+        continue
+      }
+
+      const liveMatch = trimmed.match(/live:\s*([^\s,|]+)/i)
+      if (liveMatch && !liveLink) {
+        liveLink = liveMatch[1].trim()
+        continue
+      }
+
+      const githubMatch = trimmed.match(/github:\s*([^\s,|]+)/i)
+      if (githubMatch && !githubLink) {
+        githubLink = githubMatch[1].trim()
+        continue
+      }
+
+      if (/^(?:live|github|demo|repo)\s*:\s*/i.test(trimmed)) {
+        continue
+      }
+
+      if (/^[•\-\*◦▪▫–—\s]*((Live(\s*Site|\s*Demo)?)|GitHub|Demo|Code)(\s*\|\s*((Live(\s*Site|\s*Demo)?)|GitHub|Demo|Code|\s*))*$/i.test(trimmed)) {
+        continue
+      }
+
+      cleanBullets.push(trimmed)
+    }
+
+    return {
+      ...p,
+      technologies,
+      liveLink,
+      githubLink,
+      bullets: cleanBullets.length > 0 ? cleanBullets : [''],
+    }
+  }
+
+  // Load local draft on mount if form is uninitialized, cleaning any duplicate bullets
   useEffect(() => {
     const savedDraft = localStorage.getItem('latexume_draft')
     if (savedDraft) {
       try {
         const parsed = JSON.parse(savedDraft)
         if (parsed.header && !formData.header.name && !formData.header.email) {
-          setFormData(parsed)
+          const cleanedProjects = Array.isArray(parsed.projects)
+            ? parsed.projects.map(sanitizeProjectItem)
+            : parsed.projects
+          const updatedDraft = {
+            ...parsed,
+            projects: cleanedProjects,
+            sectionOrder: parsed.sectionOrder || DEFAULT_SECTION_ORDER,
+          }
+          setFormData(updatedDraft)
+          localStorage.setItem('latexume_draft', JSON.stringify(updatedDraft))
         }
       } catch (e) {
         // Ignore JSON errors
@@ -270,7 +490,10 @@ const Builder = () => {
   }
 
   const handleLoadSavedResume = (loadedFormData, resumeId, title) => {
-    setFormData(loadedFormData)
+    setFormData({
+      ...loadedFormData,
+      sectionOrder: loadedFormData.sectionOrder || DEFAULT_SECTION_ORDER,
+    })
     setCurrentResumeId(resumeId)
     setCurrentResumeTitle(title)
     setToastMessage(`Loaded "${title}" into builder!`)
@@ -291,29 +514,37 @@ const Builder = () => {
   }
 
   const handleImportData = (parsedData, mode = 'replace') => {
+    const cleanParsed = {
+      ...parsedData,
+      projects: (parsedData.projects || []).map(sanitizeProjectItem),
+    }
+
     if (mode === 'replace') {
       setFormData({
         templateId: formData.templateId || 'jake',
-        ...parsedData,
+        ...cleanParsed,
+        sectionOrder: cleanParsed.sectionOrder || formData.sectionOrder || DEFAULT_SECTION_ORDER,
       })
     } else {
       setFormData((prev) => ({
+        ...prev,
         header: {
-          name: parsedData.header.name || prev.header.name,
-          phone: parsedData.header.phone || prev.header.phone,
-          email: parsedData.header.email || prev.header.email,
-          portfolio: parsedData.header.portfolio || prev.header.portfolio,
-          linkedin: parsedData.header.linkedin || prev.header.linkedin,
-          github: parsedData.header.github || prev.header.github,
-          leetcode: parsedData.header.leetcode || prev.header.leetcode,
+          name: cleanParsed.header.name || prev.header.name,
+          phone: cleanParsed.header.phone || prev.header.phone,
+          email: cleanParsed.header.email || prev.header.email,
+          portfolio: cleanParsed.header.portfolio || prev.header.portfolio,
+          linkedin: cleanParsed.header.linkedin || prev.header.linkedin,
+          github: cleanParsed.header.github || prev.header.github,
+          leetcode: cleanParsed.header.leetcode || prev.header.leetcode,
         },
-        objective: parsedData.objective || prev.objective,
-        skills: [...prev.skills.filter((s) => s.label || s.skills), ...(parsedData.skills || [])],
-        experience: [...prev.experience.filter((e) => e.title || e.company), ...(parsedData.experience || [])],
-        projects: [...prev.projects.filter((p) => p.name), ...(parsedData.projects || [])],
-        education: [...prev.education.filter((ed) => ed.institution || ed.degree), ...(parsedData.education || [])],
-        certifications: [...prev.certifications.filter(Boolean), ...(parsedData.certifications || [])],
-        achievements: [...(prev.achievements || []).filter(Boolean), ...(parsedData.achievements || [])],
+        objective: cleanParsed.objective || prev.objective,
+        skills: [...prev.skills.filter((s) => s.label || s.skills), ...(cleanParsed.skills || [])],
+        experience: [...prev.experience.filter((e) => e.title || e.company), ...(cleanParsed.experience || [])],
+        projects: [...prev.projects.filter((p) => p.name).map(sanitizeProjectItem), ...(cleanParsed.projects || [])],
+        education: [...prev.education.filter((ed) => ed.institution || ed.degree), ...(cleanParsed.education || [])],
+        certifications: [...prev.certifications.filter(Boolean), ...(cleanParsed.certifications || [])],
+        achievements: [...(prev.achievements || []).filter(Boolean), ...(cleanParsed.achievements || [])],
+        sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
       }))
     }
 
@@ -597,18 +828,42 @@ const Builder = () => {
         )}
 
         {/* Page Heading & Action Toolbar */}
-        <div className="relative z-50 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 animate-fade-in-down bg-zinc-950/80 backdrop-blur-xl p-6 sm:p-7 rounded-3xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.15)] hover:border-[#A6FF5D]/50 transition-all duration-300">
+        <div className="relative z-50 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 animate-fade-in-down bg-zinc-950/80 backdrop-blur-xl p-5 sm:p-7 rounded-3xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.15)] hover:border-[#A6FF5D]/50 transition-all duration-300">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-black bg-[#A6FF5D] px-2.5 py-0.5 rounded-full shadow-sm">
+                Pro LaTeX Editor
+              </span>
+              <span className="text-xs text-zinc-400 font-mono hidden sm:inline">
+                Real-time Live Sync
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
               Build Your LaTeX Resume
             </h1>
-            <p className="text-zinc-200 text-xs sm:text-sm mt-1 font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
-              Reorder sections via ⠿ Drag or ▲/▼ • Real-time side-by-side LaTeX preview
+            <p className="text-zinc-300 text-xs sm:text-sm mt-1 font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+              Reorder sections via ⠿ Drag or ▲/▼ • Instant sub-second PDF compilation
             </p>
           </div>
 
-          {/* Compact Action Toolbar (No empty bar gap) */}
+          {/* Compact Action Toolbar */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Real-time ATS Readiness Meter */}
+            <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700/80 shadow-md">
+              <div className="relative flex items-center justify-center">
+                <span className={`w-2.5 h-2.5 rounded-full ${atsScore >= 80 ? 'bg-[#A6FF5D] shadow-[0_0_8px_#A6FF5D]' : atsScore >= 50 ? 'bg-amber-400 shadow-[0_0_8px_#fbbf24]' : 'bg-red-400 shadow-[0_0_8px_#f87171]'} animate-pulse`} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider leading-none">ATS Readiness</span>
+                <span className="text-xs font-bold text-white leading-none mt-0.5">
+                  <span className={atsScore >= 80 ? 'text-[#A6FF5D]' : atsScore >= 50 ? 'text-amber-400' : 'text-red-400'}>
+                    {atsScore}%
+                  </span>
+                  {' '}<span className="text-zinc-400 font-normal hidden sm:inline">• {atsScore >= 80 ? 'Ready ⚡' : atsScore >= 50 ? 'Good' : 'Needs Info'}</span>
+                </span>
+              </div>
+            </div>
+
             {/* Template Switcher */}
             <div ref={templateDropdownRef} className="relative bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium rounded-xl transition-all duration-300 flex items-center shadow-md">
               <button 
@@ -616,7 +871,7 @@ const Builder = () => {
                 onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
                 className="w-full flex items-center gap-2 px-3.5 py-1.5 cursor-pointer text-xs sm:text-sm"
               >
-                <svg className="w-4 h-4 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-[#A6FF5D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h3a1 1 0 011 1v6a1 1 0 01-1 1h-3a1 1 0 01-1-1v-6z" />
                 </svg>
                 <span className="text-zinc-400 shrink-0">Template:</span>
@@ -629,36 +884,47 @@ const Builder = () => {
               </button>
               
               {isTemplateDropdownOpen && (
-                <div className="absolute top-full mt-1.5 left-0 w-full min-w-[150px] bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-xl overflow-hidden z-50">
+                <div className="absolute top-full mt-1.5 left-0 w-full min-w-[160px] bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-xl overflow-hidden z-50">
                   <button
                     type="button"
-                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'jake' })); setIsTemplateDropdownOpen(false); }}
-                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'jake' ? 'bg-zinc-800 text-white' : 'text-zinc-300'}`}
+                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'jake', sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER })); setIsTemplateDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'jake' ? 'bg-zinc-800 text-[#A6FF5D]' : 'text-zinc-300'}`}
                   >
-                    Jake's Clean
+                    Jake's Clean (Standard)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'blueAccent' })); setIsTemplateDropdownOpen(false); }}
-                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'blueAccent' ? 'bg-zinc-800 text-white' : 'text-zinc-300'}`}
+                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'blueAccent', sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER })); setIsTemplateDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'blueAccent' ? 'bg-zinc-800 text-blue-400' : 'text-zinc-300'}`}
                   >
-                    Blue Accent
+                    Blue Accent (Modern)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'classic' })); setIsTemplateDropdownOpen(false); }}
-                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'classic' ? 'bg-zinc-800 text-white' : 'text-zinc-300'}`}
+                    onClick={() => { setFormData(prev => ({ ...prev, templateId: 'classic', sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER })); setIsTemplateDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-zinc-800 transition ${formData.templateId === 'classic' ? 'bg-zinc-800 text-amber-400' : 'text-zinc-300'}`}
                   >
-                    Classic Serif
+                    Classic Serif (Executive)
                   </button>
                 </div>
               )}
             </div>
 
+            {/* Quick Sample Data */}
+            <button
+              type="button"
+              onClick={handleLoadSampleData}
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-1.5 text-xs sm:text-sm cursor-pointer shadow-md"
+              title="Populate form with comprehensive sample software engineer resume"
+            >
+              <span className="text-[#A6FF5D]">⚡</span>
+              <span>Sample Data</span>
+            </button>
+
             {/* ATS Matcher */}
             <Link
               to="/ats-optimizer"
-              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-1.5 text-xs sm:text-sm cursor-pointer shadow-md"
               title="Target Job Description & ATS Optimizer"
             >
               <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -673,7 +939,7 @@ const Builder = () => {
             <button
               type="button"
               onClick={handleSaveToCloud}
-              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-1.5 text-xs sm:text-sm cursor-pointer shadow-md"
             >
               <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -685,7 +951,7 @@ const Builder = () => {
             <button
               type="button"
               onClick={() => setIsSavedResumesOpen(true)}
-              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-2 text-xs sm:text-sm cursor-pointer shadow-md"
+              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-[#A6FF5D]/50 font-medium px-3.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-1.5 text-xs sm:text-sm cursor-pointer shadow-md"
             >
               <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -703,6 +969,17 @@ const Builder = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span>Auto-Fill</span>
+            </button>
+
+            {/* Clear Form */}
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="bg-zinc-900 hover:bg-red-500/15 text-zinc-400 hover:text-red-400 border border-zinc-700/80 hover:border-red-500/30 font-medium px-2.5 py-1.5 rounded-xl transition-all duration-300 flex items-center gap-1 text-xs cursor-pointer shadow-md"
+              title="Clear all fields"
+            >
+              <span>🗑️</span>
+              <span className="hidden sm:inline">Clear</span>
             </button>
           </div>
         </div>
@@ -910,19 +1187,27 @@ const Builder = () => {
                           <span className="font-sans font-semibold text-zinc-300 group-hover/handle:text-white hidden sm:inline">Drag</span>
                           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-[#A6FF5D] font-bold">#{index + 1}</span>
                         </div>
-                        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                          {meta.title}
+                        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                          <span>{meta.title}</span>
                         </h2>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
+                          onClick={() => toggleCollapseSection(key)}
+                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-xl border border-white/10 transition cursor-pointer flex items-center gap-1 font-medium"
+                          title={collapsedSections[key] ? 'Expand section' : 'Collapse section'}
+                        >
+                          <span>{collapsedSections[key] ? '▾ Expand' : '▴ Fold'}</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => moveSectionToExtremity(key, 'top')}
                           disabled={index === 0}
-                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1.5 rounded-xl border border-white/10 transition cursor-pointer hidden md:inline-flex items-center"
+                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2 py-1.5 rounded-xl border border-white/10 transition cursor-pointer hidden md:inline-flex items-center"
                           title="Move to top of resume"
                         >
-                          ⤒ Top
+                          ⤒
                         </button>
                         <button
                           type="button"
@@ -946,13 +1231,28 @@ const Builder = () => {
                           type="button"
                           onClick={() => moveSectionToExtremity(key, 'bottom')}
                           disabled={index === currentOrder.length - 1}
-                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2.5 py-1.5 rounded-xl border border-white/10 transition cursor-pointer hidden md:inline-flex items-center"
+                          className="text-xs bg-white/5 hover:bg-white/15 text-zinc-300 disabled:opacity-20 px-2 py-1.5 rounded-xl border border-white/10 transition cursor-pointer hidden md:inline-flex items-center"
                           title="Move to bottom of resume"
                         >
-                          ⤓ Bottom
+                          ⤓
                         </button>
                       </div>
                     </div>
+
+                    {/* Section Body (Collapsible) */}
+                    {collapsedSections[key] ? (
+                      <div
+                        onClick={() => toggleCollapseSection(key)}
+                        className="py-3.5 px-4 rounded-2xl bg-white/[0.02] border border-white/5 text-xs text-zinc-400 cursor-pointer hover:bg-white/[0.06] hover:text-white transition flex items-center justify-between group"
+                      >
+                        <span className="flex items-center gap-2 font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#A6FF5D]" />
+                          <span>{meta.title} section is folded — click to expand and edit</span>
+                        </span>
+                        <span className="text-[#A6FF5D] font-bold group-hover:underline">Expand ▾</span>
+                      </div>
+                    ) : (
+                      <>
 
                   {/* OBJECTIVE CARD */}
                   {key === 'objective' && (
@@ -1293,6 +1593,8 @@ const Builder = () => {
                       </button>
                     </div>
                   )}
+                  </>
+                )}
                 </div>
 
                 {/* Drop Indicator Below */}

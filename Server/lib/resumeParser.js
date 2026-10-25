@@ -119,6 +119,18 @@ const GEMINI_JSON_SCHEMA = {
   },
 }
 
+const STANDALONE_LINK_REGEX = /^[•\-\*◦▪▫–—\s]*((Live(\s*Site|\s*Demo)?)|GitHub|Demo|Code)(\s*\|\s*((Live(\s*Site|\s*Demo)?)|GitHub|Demo|Code|\s*))*$/i
+
+function normalizeSpacedLetters(text) {
+  if (!text) return ''
+  // 1. Collapse LaTeX small-caps spaced initials: 'O BJECTIVE' -> 'OBJECTIVE', 'V ADIRAJ' -> 'VADIRAJ'
+  let res = text.replace(/\b([A-Z])\s+([A-Z]{2,})\b/g, '$1$2')
+  res = res.replace(/\b([A-Z])\s+([A-Z]{2,})\b/g, '$1$2')
+  // 2. Collapse isolated uppercase single-letter sequences e.g. 'V A D I R A J' -> 'VADIRAJ'
+  res = res.replace(/(?<=\b[A-Z])\s+(?=[A-Z]\b(?:\s+[A-Z]\b)+)/g, '')
+  return res
+}
+
 export async function parseResume({ fileBuffer, resumeText }) {
   if (!fileBuffer && resumeText && resumeText.trim().startsWith('%PDF-')) {
     fileBuffer = Buffer.from(resumeText, 'binary')
@@ -142,7 +154,7 @@ export async function parseResume({ fileBuffer, resumeText }) {
     }
   }
 
-  rawText = rawText.replace(/\r\n/g, '\n').trim()
+  rawText = normalizeSpacedLetters(rawText.replace(/\r\n/g, '\n').trim())
 
   // 2. Try Groq AI keys sequentially
   for (const groqKey of groqKeys) {
@@ -209,20 +221,71 @@ async function extractTextFromPdf(fileBuffer) {
       let fullText = ''
       for (let i = 1; i <= pdfDocument.numPages; i++) {
         const page = await pdfDocument.getPage(i)
+        let annotations = []
+        try {
+          annotations = await page.getAnnotations()
+        } catch {
+          annotations = []
+        }
         const textContent = await page.getTextContent()
 
-        let lastY,
-          pageText = ''
+        const links = (annotations || []).filter((a) => a?.subtype === 'Link' && a?.url)
+
+        // Group text items by line baseline Y
+        const lineBuckets = []
+        let currentBucket = []
+        let lastY = null
+
         for (const item of textContent.items) {
           if (!item.str) continue
-          if (lastY === undefined || Math.abs(lastY - item.transform[5]) < 3) {
-            pageText += item.str + ' '
+          const y = item.transform[5]
+          if (lastY === null || Math.abs(lastY - y) < 3) {
+            currentBucket.push(item)
           } else {
-            pageText += '\n' + item.str + ' '
+            if (currentBucket.length) lineBuckets.push({ y: lastY, items: currentBucket })
+            currentBucket = [item]
           }
-          lastY = item.transform[5]
+          lastY = y
         }
-        fullText += pageText + '\n'
+        if (currentBucket.length) lineBuckets.push({ y: lastY, items: currentBucket })
+
+        for (const bucket of lineBuckets) {
+          let lineText = bucket.items.map((it) => it.str).join(' ').trim()
+          const overlappingLinks = links.filter((l) => {
+            const minY = Math.min(l.rect[1], l.rect[3]) - 2
+            const maxY = Math.max(l.rect[1], l.rect[3]) + 2
+            return bucket.y >= minY && bucket.y <= maxY
+          })
+
+          if (overlappingLinks.length) {
+            // Case 1: Standalone project link bullet: "– Live Site | GitHub"
+            if (STANDALONE_LINK_REGEX.test(lineText)) {
+              const ghLink = overlappingLinks.find((l) => /github\.com/i.test(l.url))?.url
+              const liveLink = overlappingLinks.find((l) => !/github\.com/i.test(l.url) && !l.url.startsWith('mailto:'))?.url
+
+              const parts = []
+              if (liveLink) parts.push(`Live: ${liveLink}`)
+              if (ghLink) parts.push(`GitHub: ${ghLink}`)
+              if (parts.length > 0) {
+                lineText = (lineText.startsWith('–') || lineText.startsWith('•') || lineText.startsWith('-') ? '– ' : '') + parts.join(' | ')
+              }
+            }
+            // Case 2: Header line with clickable "LinkedIn" or "GitHub" words without explicit URL
+            else if (/\b(LinkedIn|GitHub)\b/i.test(lineText) && !lineText.includes('http')) {
+              const ghLink = overlappingLinks.find((l) => /github\.com/i.test(l.url))?.url
+              const liLink = overlappingLinks.find((l) => /linkedin\.com/i.test(l.url))?.url
+
+              if (ghLink && !lineText.toLowerCase().includes('github.com')) {
+                lineText = lineText.replace(/\bGitHub\b/i, ghLink)
+              }
+              if (liLink && !lineText.toLowerCase().includes('linkedin.com')) {
+                lineText = lineText.replace(/\bLinkedIn\b/i, liLink)
+              }
+            }
+          }
+
+          fullText += lineText + '\n'
+        }
       }
       extractedText = fullText
     } catch (err1) {
@@ -527,7 +590,7 @@ function parseHeader(text, lines) {
       !line.toLowerCase().includes('objective') &&
       line.length < 50
     ) {
-      header.name = line.replace(/^[•\-\*]\s*/, '').trim()
+      header.name = line.replace(/^[•\-\*]\s*/, '').replace(/\s+/g, ' ').trim()
       break
     }
   }
@@ -537,6 +600,14 @@ function parseHeader(text, lines) {
 
   const phoneMatch = text.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\+?\d{10,12}/)
   if (phoneMatch) header.phone = phoneMatch[0]
+
+  const portfolioMatch =
+    text.match(/portfolio:\s*([^\s,|]+)/i) ||
+    text.match(/(?:https?:\/\/)?([a-zA-Z0-9_-]+\.vercel\.app|[a-zA-Z0-9_-]+\.dev|[a-zA-Z0-9_-]+\.me|[a-zA-Z0-9_-]+portfolio\.[a-z]{2,})/i)
+  if (portfolioMatch) {
+    const url = portfolioMatch[1] || portfolioMatch[0]
+    header.portfolio = url.startsWith('http') ? url : `https://${url}`
+  }
 
   const linkedinMatch =
     text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9_-]+)/i) ||
@@ -556,10 +627,10 @@ function parseHeader(text, lines) {
   }
 
   const leetcodeMatch =
-    text.match(/(?:https?:\/\/)?(?:www\.)?leetcode\.com\/(?:u\/)?([a-zA-Z0-9_-]+)/i) ||
-    text.match(/leetcode:\s*([a-zA-Z0-9_-]+)/i)
+    text.match(/(?:https?:\/\/)?(?:www\.)?leetcode\.com\/(?:u\/)?([a-zA-Z0-9_ -]+)/i) ||
+    text.match(/leetcode:\s*([a-zA-Z0-9_ -]+)/i)
   if (leetcodeMatch && text.toLowerCase().includes('leetcode')) {
-    const handle = leetcodeMatch[1] || leetcodeMatch[0]
+    const handle = (leetcodeMatch[1] || leetcodeMatch[0]).replace(/\s+/g, '')
     if (handle.toLowerCase() !== 'using') {
       header.leetcode = handle.startsWith('http')
         ? handle
@@ -576,35 +647,47 @@ function splitSections(lines) {
   sectionMap[currentSec] = []
 
   const secHeaders = [
-    'OBJECTIVE',
-    'SUMMARY',
-    'PROFILE',
-    'SKILLS',
-    'TECHNICAL SKILLS',
-    'SKILLS SUMMARY',
-    'EXPERIENCE',
-    'WORK EXPERIENCE',
-    'PROJECTS',
-    'PERSONAL PROJECTS',
-    'EDUCATION',
-    'CERTIFICATIONS',
-    'ACHIEVEMENTS',
+    { key: 'OBJECTIVE', matches: ['OBJECTIVE', 'SUMMARY', 'PROFESSIONAL SUMMARY', 'CAREER OBJECTIVE', 'PROFILE'] },
+    { key: 'SKILLS', matches: ['SKILLS', 'TECHNICAL SKILLS', 'SKILLS SUMMARY', 'CORE COMPETENCIES'] },
+    { key: 'EXPERIENCE', matches: ['EXPERIENCE', 'WORK EXPERIENCE', 'EMPLOYMENT', 'PROFESSIONAL EXPERIENCE', 'WORK HISTORY'] },
+    { key: 'PROJECTS', matches: ['PROJECTS', 'PERSONAL PROJECTS', 'ACADEMIC PROJECTS', 'KEY PROJECTS'] },
+    { key: 'EDUCATION', matches: ['EDUCATION', 'ACADEMIC BACKGROUND', 'QUALIFICATIONS'] },
+    { key: 'ACHIEVEMENTS', matches: ['ACHIEVEMENTS', 'AWARDS', 'HONORS', 'ACCOMPLISHMENTS'] },
+    { key: 'CERTIFICATIONS', matches: ['CERTIFICATIONS', 'CERTIFICATIONS TRAINING', 'CERTIFICATIONS AND TRAINING', 'LICENSES'] },
   ]
 
   for (const line of lines) {
-    const upper = line.toUpperCase().replace(/[^A-Z\s]/g, '').trim()
-    const matchedHeader = secHeaders.find((h) => upper === h || upper.startsWith(h))
+    const cleanLine = line.trim()
+    if (!cleanLine) continue
 
-    if (matchedHeader) {
-      if (matchedHeader.includes('SKILL')) currentSec = 'SKILLS'
-      else if (matchedHeader.includes('EXPERIENCE') || matchedHeader.includes('WORK')) currentSec = 'EXPERIENCE'
-      else if (matchedHeader.includes('PROJECT')) currentSec = 'PROJECTS'
-      else if (matchedHeader.includes('EDUCATION')) currentSec = 'EDUCATION'
-      else if (matchedHeader.includes('CERTIFICATION') || matchedHeader.includes('ACHIEVEMENT'))
-        currentSec = 'CERTIFICATIONS'
-      else if (matchedHeader.includes('OBJECTIVE') || matchedHeader.includes('SUMMARY') || matchedHeader.includes('PROFILE'))
-        currentSec = 'OBJECTIVE'
+    const upper = cleanLine.toUpperCase().replace(/[^A-Z\s]/g, '').replace(/\s+/g, ' ').trim()
+    const upperNoSpace = upper.replace(/\s+/g, '')
 
+    // A section header must be short (<= 35 characters) and match a known section title
+    let foundSec = null
+    if (upper.length <= 35) {
+      for (const group of secHeaders) {
+        if (
+          group.matches.some((m) => {
+            const mNoSpace = m.replace(/\s+/g, '')
+            return (
+              upper === m ||
+              upper === `${m}S` ||
+              upper.startsWith(`${m} `) ||
+              upper.endsWith(` ${m}`) ||
+              upperNoSpace === mNoSpace ||
+              upperNoSpace === `${mNoSpace}S`
+            )
+          })
+        ) {
+          foundSec = group.key
+          break
+        }
+      }
+    }
+
+    if (foundSec) {
+      currentSec = foundSec
       if (!sectionMap[currentSec]) sectionMap[currentSec] = []
     } else {
       if (!sectionMap[currentSec]) sectionMap[currentSec] = []
@@ -703,51 +786,59 @@ function extractExperience(sections) {
     const line = lines[i].trim()
     if (!line) continue
 
-    const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
+    const isBulletStart = /^[•\-\*◦▪▫–—]\s*/.test(line)
+    const clean = line.replace(/^[•\-\*◦▪▫–—]\s*/, '').trim()
     const dateMatch = clean.match(dateRegex)
 
-    const isNewJobLine = dateMatch || line.startsWith('•')
+    const isNewJobHeader = !current || (dateMatch && current.bullets.length > 0)
 
-    if (isNewJobLine) {
+    if (isNewJobHeader) {
       if (current && (current.title || current.company)) {
         list.push(current)
-        current = null
       }
-
-      if (!current) {
-        current = {
-          title: '',
-          company: '',
-          location: '',
-          startDate: '',
-          endDate: '',
-          bullets: [],
-        }
+      current = {
+        title: '',
+        company: '',
+        location: '',
+        startDate: '',
+        endDate: '',
+        bullets: [],
       }
+    }
 
+    if (current && current.bullets.length === 0 && !isBulletStart) {
       if (dateMatch) {
-        current.title = clean.replace(dateRegex, '').trim()
-        const dates = dateMatch[0].split(/–|-|—|to/i)
+        const dateStr = dateMatch[0]
+        const dates = dateStr.split(/–|-|—|to/i)
         current.startDate = dates[0]?.trim() || ''
         current.endDate = dates[1]?.trim() || ''
+
+        const remaining = clean.replace(dateRegex, '').trim()
+        if (remaining) {
+          if (!current.title) {
+            current.title = remaining
+          } else if (!current.company) {
+            const { company, location } = splitCompanyAndLocation(remaining)
+            current.company = company
+            if (location) current.location = location
+          }
+        }
       } else {
-        const { company, location } = splitCompanyAndLocation(clean)
-        current.company = company
-        current.location = location
+        if (!current.company) {
+          const { company, location } = splitCompanyAndLocation(clean)
+          current.company = company
+          current.location = location
+        } else if (!current.title) {
+          current.title = clean
+        }
       }
     } else if (current) {
-      if (!current.company && !current.location && !line.startsWith('–') && !line.startsWith('-') && !line.startsWith('◦')) {
-        const { company, location } = splitCompanyAndLocation(clean)
-        current.company = company
-        current.location = location
-      } else {
-        const bulletText = clean.replace(/^(Role Overview|Impact|Collaboration|In Virtual Internship):\s*/i, '').replace(/^[–\-•\*◦]\s*/, '').trim()
-        if (bulletText) {
-          if (current.bullets.length > 0 && !line.startsWith('–') && !line.startsWith('-') && !line.startsWith('◦') && !line.startsWith('•')) {
-            current.bullets[current.bullets.length - 1] += ' ' + bulletText
-          } else {
-            current.bullets.push(bulletText)
-          }
+      const bulletText = clean.replace(/^(?:Role Overview|Impact|Collaboration|AI Title Automation|In Virtual Internship)\s*:\s*/i, '').trim()
+      if (bulletText) {
+        if (current.bullets.length > 0 && !isBulletStart) {
+          current.bullets[current.bullets.length - 1] += ' ' + bulletText
+        } else {
+          current.bullets.push(bulletText)
         }
       }
     }
@@ -766,20 +857,29 @@ function extractProjects(sections) {
 
   const list = []
   let current = null
-  let parsingBullets = false
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim()
     if (!line) continue
 
-    const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
-    const isBulletStart = line.startsWith('•') || line.startsWith('-') || line.startsWith('◦') || line.startsWith('*')
-    const isTechOrLink = /^(Tech|Live|GitHub|http|https):/i.test(clean)
+    const isBulletStart = /^[•\-\*◦▪▫–—]\s*/.test(line)
+    const clean = line.replace(/^[•\-\*◦▪▫–—]\s*/, '').trim()
+    const isTechOrLink = /^(?:Tech|Technologies|Tech Stack|Live|GitHub|http|https)\s*:/i.test(clean) || /Live(?:\s+Site)?\s*\|\s*GitHub/i.test(clean)
 
-    // A line is a header if it's not a bullet, not tech/link, and we either aren't in a project yet, 
-    // or it has project-like markers (pipe, em-dash, year)
-    const hasProjectMarkers = clean.includes('|') || clean.match(/\b20\d{2}\b/) || clean.includes('–') || clean.includes('—')
-    const isHeader = !isBulletStart && !isTechOrLink && (!current || hasProjectMarkers || (!parsingBullets && !current.bullets.length))
+    let isHeader = false
+    if (!isTechOrLink) {
+      if (isBulletStart) {
+        if (clean.includes('|') || /^[A-Z][A-Za-z0-9\s]{1,40}\s*[-–—]\s*[A-Z]/.test(clean)) {
+          isHeader = true
+        }
+      } else {
+        if (clean.includes('|') || /^[A-Z][A-Za-z0-9\s]{1,40}\s*[-–—]\s*[A-Z]/.test(clean)) {
+          isHeader = true
+        } else if (!current && clean.length < 50) {
+          isHeader = true
+        }
+      }
+    }
 
     if (isHeader) {
       if (current && current.name) {
@@ -797,15 +897,15 @@ function extractProjects(sections) {
         const yearMatch = right.match(/\b(20\d{2})\b/)
         if (yearMatch) {
           datePart = yearMatch[1]
-          techPart = right.replace(/\b20\d{2}\b/, '').trim()
+          techPart = right.replace(/\b20\d{2}\b/, '').replace(/^.*?—\s*/, '').trim()
         } else {
-          techPart = right.trim()
+          techPart = right.replace(/^.*?—\s*/, '').trim()
         }
       } else if (clean.includes('–') || clean.includes('—')) {
         const parts = clean.split(/–|—/)
         projName = parts[0].trim()
         if (parts[1] && parts[1].match(/\b20\d{2}\b/)) {
-            datePart = parts[1].trim()
+          datePart = parts[1].match(/\b20\d{2}\b/)[0]
         }
       } else if (clean.includes(':')) {
         projName = clean.split(':')[0].trim()
@@ -819,23 +919,21 @@ function extractProjects(sections) {
         liveLink: '',
         githubLink: '',
       }
-      parsingBullets = false
     } else if (current) {
-      if (clean.toLowerCase().startsWith('tech:')) {
-        current.technologies = clean.replace(/^tech:\s*/i, '').trim()
-      } else if (clean.toLowerCase().includes('live:') || clean.toLowerCase().includes('github:')) {
-        const liveMatch = clean.match(/live:\s*([^\s,]+)/i)
+      if (/^(?:tech|technologies|tech stack)\s*:/i.test(clean)) {
+        current.technologies = clean.replace(/^(?:tech|technologies|tech stack)\s*:\s*/i, '').trim()
+      } else if (clean.toLowerCase().includes('live:') || clean.toLowerCase().includes('live site:') || clean.toLowerCase().includes('github:')) {
+        const liveMatch = clean.match(/(?:live|live site):\s*([^\s,|]+)/i)
         if (liveMatch) {
           const link = liveMatch[1].trim()
           current.liveLink = link.startsWith('http') ? link : `https://${link}`
         }
-        const githubMatch = clean.match(/github:\s*([^\s,]+)/i)
+        const githubMatch = clean.match(/github:\s*([^\s,|]+)/i)
         if (githubMatch) {
           const link = githubMatch[1].trim()
           current.githubLink = link.startsWith('http') ? link : `https://${link}`
         }
       } else {
-        parsingBullets = true
         const bulletText = clean
         if (bulletText) {
           if (current.bullets.length > 0 && !isBulletStart) {
@@ -866,17 +964,20 @@ function extractEducation(sections) {
     const line = lines[i].trim()
     if (!line) continue
 
-    const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
-    if (clean.toLowerCase().startsWith('core coursework:')) {
-      if (current) current.coursework = clean
+    const isBulletStart = /^[•\-\*◦▪▫–—]\s*/.test(line)
+    const clean = line.replace(/^[•\-\*◦▪▫–—]\s*/, '').trim()
+    if (clean.toLowerCase().startsWith('core coursework:') || clean.toLowerCase().startsWith('coursework:')) {
+      if (current) current.coursework = clean.replace(/^(?:core coursework|coursework)\s*:\s*/i, '').trim()
       continue
     }
 
-    const dateMatch = clean.match(/\b(20\d{2})\s*[-–—]\s*(20\d{2})\b/)
+    const dateMatch = clean.match(/\b(20\d{2})\s*[-–—]\s*(20\d{2}|Present)\b/i)
 
     const isSchoolHeader =
-      !clean.toLowerCase().includes('pre-university') &&
-      (line.startsWith('•') ||
+      !clean.toLowerCase().includes('pre-university course') &&
+      !clean.toLowerCase().includes('bachelor of') &&
+      !clean.toLowerCase().includes('master of') &&
+      (isBulletStart ||
       clean.toLowerCase().includes('institute') ||
       clean.toLowerCase().includes('university') ||
       clean.toLowerCase().includes('college') ||
@@ -890,13 +991,21 @@ function extractEducation(sections) {
 
       let inst = clean
       let loc = ''
+      let sDate = ''
+      let eDate = ''
+
+      if (dateMatch) {
+        sDate = dateMatch[1]
+        eDate = dateMatch[2]
+        inst = inst.replace(dateMatch[0], '').trim()
+      }
 
       const locKeywords = ['Tumakuru', 'Hosapete', 'Karnataka', 'India', 'Bangalore', 'Bengaluru']
       for (const kw of locKeywords) {
-        if (clean.includes(` ${kw}`)) {
-          const idx = clean.indexOf(` ${kw}`)
-          inst = clean.substring(0, idx).trim()
-          loc = clean.substring(idx).trim()
+        if (inst.includes(` ${kw}`)) {
+          const idx = inst.indexOf(` ${kw}`)
+          loc = inst.substring(idx).trim()
+          inst = inst.substring(0, idx).trim()
           break
         }
       }
@@ -906,8 +1015,8 @@ function extractEducation(sections) {
         location: loc,
         degree: '',
         field: '',
-        startDate: '',
-        endDate: '',
+        startDate: sDate,
+        endDate: eDate,
         coursework: '',
       }
     } else if (current) {
@@ -916,19 +1025,34 @@ function extractEducation(sections) {
         current.endDate = dateMatch[2]
       }
 
-      const degField = clean
+      let degField = clean
         .replace(/;\s*CGPA:.*$/i, '')
         .replace(/,\s*CGPA\s*[-:]\s*[\d.]+/i, '')
-        .replace(/\b20\d{2}\s*[-–—]\s*20\d{2}\b/, '')
+        .replace(/\b20\d{2}\s*[-–—]\s*(20\d{2}|Present)\b/i, '')
         .trim()
+
+      const locKeywords = ['Tumakuru', 'Hosapete', 'Karnataka', 'India', 'Bangalore', 'Bengaluru']
+      for (const kw of locKeywords) {
+        if (degField.includes(` ${kw}`) || degField.endsWith(`, ${kw}`)) {
+          const idx = degField.indexOf(` ${kw}`) !== -1 ? degField.indexOf(` ${kw}`) : degField.indexOf(`, ${kw}`)
+          if (!current.location) current.location = degField.substring(idx).replace(/^,\s*/, '').trim()
+          degField = degField.substring(0, idx).trim()
+          break
+        }
+      }
+
+      if (degField.includes('Object-Oriented') || degField.includes('Data Structures') || degField.includes('Operating Systems')) {
+        current.coursework = degField
+        continue
+      }
 
       if (degField && !current.degree) {
         if (degField.includes(' in ')) {
           const [d, f] = degField.split(/\bin\b/i)
           current.degree = d.trim()
           current.field = f.trim()
-        } else if (degField.includes('-')) {
-          const [d, f] = degField.split('-')
+        } else if (degField.includes(' - ') && !degField.includes('Pre-University')) {
+          const [d, f] = degField.split(' - ')
           current.degree = d.trim()
           current.field = f.trim()
         } else {
@@ -954,8 +1078,14 @@ function extractCertifications(sections) {
     const line = lines[i].trim()
     if (!line) continue
 
-    const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
-    result.push(clean)
+    const isBulletStart = /^[•\-\*◦▪▫–—]\s*/.test(line)
+    const clean = line.replace(/^[•\-\*◦▪▫–—]\s*/, '').trim()
+
+    if (result.length > 0 && !isBulletStart && (clean.startsWith('Completed') || clean.startsWith('Developed') || clean.startsWith('Built'))) {
+      result[result.length - 1] += ' - ' + clean
+    } else {
+      result.push(clean)
+    }
   }
   return result
 }
@@ -969,8 +1099,14 @@ function extractAchievements(sections) {
     const line = lines[i].trim()
     if (!line) continue
 
-    const clean = line.replace(/^[•\-\*◦]\s*/, '').trim()
-    result.push(clean)
+    const isBulletStart = /^[•\-\*◦▪▫–—]\s*/.test(line)
+    const clean = line.replace(/^[•\-\*◦▪▫–—]\s*/, '').trim()
+
+    if (result.length > 0 && !isBulletStart) {
+      result[result.length - 1] += ' ' + clean
+    } else {
+      result.push(clean)
+    }
   }
   return result
 }
@@ -1008,14 +1144,57 @@ function sanitizeParsedData(data) {
         }))
       : [{ title: '', company: '', location: '', startDate: '', endDate: '', bullets: [''] }],
     projects: Array.isArray(data?.projects) && data.projects.length > 0
-      ? data.projects.map((p) => ({
-          name: p.name || '',
-          technologies: p.technologies || '',
-          date: p.date || '',
-          bullets: Array.isArray(p.bullets) && p.bullets.length > 0 ? p.bullets : [''],
-          liveLink: ensureUrl(p.liveLink),
-          githubLink: ensureUrl(p.githubLink),
-        }))
+      ? data.projects.map((p) => {
+          let technologies = (p.technologies || '').trim()
+          let liveLink = ensureUrl(p.liveLink)
+          let githubLink = ensureUrl(p.githubLink)
+          const cleanBullets = []
+
+          for (const b of (p.bullets || [])) {
+            if (!b || typeof b !== 'string') continue
+            const trimmed = b.trim()
+            if (!trimmed) continue
+
+            const techMatch = trimmed.match(/^(?:tech|technologies|tech stack)\s*:\s*(.*)$/i)
+            if (techMatch) {
+              if (!technologies) technologies = techMatch[1].trim()
+              continue
+            }
+
+            if (technologies && trimmed.toLowerCase() === technologies.toLowerCase()) {
+              continue
+            }
+
+            const liveMatch = trimmed.match(/live:\s*([^\s,|]+)/i)
+            if (liveMatch && !liveLink) {
+              liveLink = ensureUrl(liveMatch[1].trim())
+            }
+
+            const githubMatch = trimmed.match(/github:\s*([^\s,|]+)/i)
+            if (githubMatch && !githubLink) {
+              githubLink = ensureUrl(githubMatch[1].trim())
+            }
+
+            if (/^(?:live|github|demo|repo)\s*:\s*/i.test(trimmed)) {
+              continue
+            }
+
+            if (STANDALONE_LINK_REGEX.test(trimmed)) {
+              continue
+            }
+
+            cleanBullets.push(trimmed)
+          }
+
+          return {
+            name: p.name || '',
+            technologies,
+            date: p.date || '',
+            bullets: cleanBullets.length > 0 ? cleanBullets : [''],
+            liveLink,
+            githubLink,
+          }
+        })
       : [{ name: '', technologies: '', date: '', bullets: [''], liveLink: '', githubLink: '' }],
     education: Array.isArray(data?.education) && data.education.length > 0
       ? data.education.map((ed) => ({
@@ -1029,10 +1208,10 @@ function sanitizeParsedData(data) {
         }))
       : [{ institution: '', location: '', degree: '', field: '', startDate: '', endDate: '', coursework: '' }],
     certifications: Array.isArray(data?.certifications) && data.certifications.length > 0
-      ? data.certifications.filter(Boolean)
+      ? data.certifications.map((c) => (typeof c === 'string' ? c.trim() : (c?.name ? [c.name, c.issuer, c.date].filter(Boolean).join(' - ') : ''))).filter(Boolean)
       : [''],
     achievements: Array.isArray(data?.achievements) && data.achievements.length > 0
-      ? data.achievements.filter(Boolean)
+      ? data.achievements.map((a) => (typeof a === 'string' ? a.trim() : '')).filter(Boolean)
       : [''],
   }
 }

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SEO from '../components/SEO'
@@ -21,7 +22,7 @@ const About = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 animate-fade-in-down">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 gradient-text">
-              About LaTexume & Jake's Resume Template
+              About LaTexume &amp; Jake's Resume Template
             </h1>
             <p className="text-gray-400 text-sm sm:text-lg">
               Empowering engineers and tech professionals with publication-quality LaTeX resumes
@@ -81,11 +82,11 @@ const About = () => {
               <p className="text-gray-300 mb-6">
                 Join thousands of engineers who created their interview-ready resume with LaTexume
               </p>
-              <a href="/builder">
-                <button className="bg-[#A6FF5D] hover:bg-[#A6FF5D]/90 text-gray-800 font-semibold px-8 py-4 rounded-full text-lg transition-smooth hover:scale-105 hover:shadow-lg hover:shadow-[#A6FF5D]/30 cursor-pointer">
-                  Create Your Resume Now
+              <Link to="/builder">
+                <button className="bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold px-8 py-4 rounded-full text-base transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-[#A6FF5D]/25 cursor-pointer border border-[#A6FF5D]">
+                  Create Your Resume Now →
                 </button>
-              </a>
+              </Link>
             </div>
           </div>
         </div>

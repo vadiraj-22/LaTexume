@@ -17,6 +17,7 @@ const TEMPLATES = [
     atsScore: '99/100 ATS Match',
     font: 'Helvetica / Sans-Serif',
     accent: 'Monochrome Black & White',
+    swatches: ['#09090b', '#71717a', '#f4f4f5'],
     features: ['Monochrome ATS Typography', 'Optimized for 1-Page Format', 'Ideal for SWE & DevOps'],
     bgGradient: 'from-emerald-900/20 to-zinc-950',
     borderColor: 'border-emerald-500/30 hover:border-emerald-400',
@@ -32,6 +33,7 @@ const TEMPLATES = [
     atsScore: '98/100 ATS Match',
     font: 'Computer Modern / Sans',
     accent: 'Royal Blue & Navy Headers',
+    swatches: ['#2563eb', '#1e3a8a', '#f4f4f5'],
     features: ['Colored Section Titles (\\color{BlueViolet})', 'Compact Spacing', 'Great for Fullstack & Data Engineers'],
     bgGradient: 'from-blue-900/20 to-zinc-950',
     borderColor: 'border-blue-500/30 hover:border-blue-400',
@@ -47,6 +49,7 @@ const TEMPLATES = [
     atsScore: '97/100 ATS Match',
     font: 'Charter Serif',
     accent: 'Classic Dark Gray Serif',
+    swatches: ['#18181b', '#d97706', '#fef3c7'],
     features: ['Charter Serif Typography', 'Executive Single-Column Spacing', 'Perfect for Senior Leads & Managers'],
     bgGradient: 'from-amber-900/20 to-zinc-950',
     borderColor: 'border-amber-500/30 hover:border-amber-400',
@@ -64,7 +67,7 @@ const SAMPLE_RESUME_DATA = {
     location: 'San Francisco, CA',
   },
   objective: 'Senior Full Stack Engineer with 6+ years of experience architecting scalable cloud microservices, real-time web applications, and AI platforms. Proven track record driving performance optimizations for high-throughput distributed systems.',
-  sectionOrder: ['skills', 'experience', 'projects', 'education', 'certifications'],
+  sectionOrder: ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications'],
   skills: [
     { label: 'Languages', skills: 'TypeScript, JavaScript, Python, Go, Java, SQL, HTML5/CSS3' },
     { label: 'Frontend', skills: 'React, Next.js, Redux, TailwindCSS, Vue.js, GraphQL, REST APIs' },
@@ -141,6 +144,9 @@ const SAMPLE_RESUME_DATA = {
       issuer: 'Cloud Native Computing Foundation',
       date: '2022',
     },
+  ],
+  achievements: [
+    'Winner – Global Cloud Hackathon 2023: Built real-time collaborative workspace tool (1st place out of 450+ teams)',
   ],
 }
 
@@ -257,7 +263,7 @@ export default function Templates() {
               </span>
             </div>
 
-            {/* Vertical Stack of Text-Only Template Cards (One Below the Other) */}
+            {/* Vertical Stack of Template Cards */}
             <div className="flex flex-col gap-3">
               {TEMPLATES.map((tmpl) => {
                 const isSelected = selectedTemplateId === tmpl.id
@@ -265,7 +271,7 @@ export default function Templates() {
                   <div
                     key={tmpl.id}
                     onClick={() => setSelectedTemplateId(tmpl.id)}
-                    className={`bg-zinc-950/80 backdrop-blur-xl p-4 sm:p-5 rounded-3xl border transition-all duration-300 shadow-xl cursor-pointer relative group flex flex-col gap-2 ${
+                    className={`bg-zinc-950/80 backdrop-blur-xl p-4 sm:p-5 rounded-3xl border transition-all duration-300 shadow-xl cursor-pointer relative group flex flex-col gap-2.5 ${
                       isSelected
                         ? 'border-[#A6FF5D] ring-2 ring-[#A6FF5D]/40 bg-zinc-900/90 shadow-[0_0_25px_rgba(166,255,93,0.2)] scale-[1.01]'
                         : 'border-zinc-800/80 hover:border-[#A6FF5D]/40 hover:shadow-[0_0_20px_rgba(166,255,93,0.12)] bg-zinc-950/80 hover:bg-zinc-900/60'
@@ -294,10 +300,36 @@ export default function Templates() {
                       </div>
                     </div>
 
-                    {/* Text-Only ~10-word Explanation */}
+                    {/* Color Swatches and Font Tag */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        {tmpl.swatches?.map((c, i) => (
+                          <span
+                            key={i}
+                            className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-sm"
+                            style={{ backgroundColor: c }}
+                            title={c}
+                          />
+                        ))}
+                        <span className="text-[11px] text-zinc-400 font-mono ml-1">{tmpl.font}</span>
+                      </div>
+                    </div>
+
+                    {/* Text Explanation */}
                     <p className="text-xs text-zinc-400 leading-relaxed font-normal">
                       {tmpl.shortExplanation}
                     </p>
+
+                    {/* Feature tags (Shown when selected) */}
+                    {isSelected && (
+                      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-zinc-800/60">
+                        {tmpl.features.map((feat, fIdx) => (
+                          <span key={fIdx} className="text-[10px] bg-zinc-900 text-zinc-300 border border-zinc-800 px-2 py-0.5 rounded-md">
+                            ✓ {feat}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -317,14 +349,27 @@ export default function Templates() {
 
           {/* RIGHT: Live PDF Preview Viewer (7 Columns) */}
           <div className="lg:col-span-7 bg-zinc-950/90 backdrop-blur-xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.12)] hover:border-[#A6FF5D]/50 rounded-3xl p-5 transition-all duration-300 flex flex-col h-[780px] lg:sticky lg:top-24">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3 px-2">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3 px-2 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#A6FF5D] animate-ping" />
                 <h3 className="text-sm font-bold text-white">Live Style Preview: <span className="text-[#A6FF5D]">{selectedTemplate.name}</span></h3>
               </div>
-              <span className="text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full">
-                {selectedTemplate.atsScore}
-              </span>
+              <div className="flex items-center gap-2">
+                {previewPdfUrl && (
+                  <a
+                    href={previewPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1 rounded-full transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Open PDF</span>
+                    <span>↗</span>
+                  </a>
+                )}
+                <span className="text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full font-mono">
+                  {selectedTemplate.atsScore}
+                </span>
+              </div>
             </div>
 
             <div className="flex-1 bg-zinc-900 rounded-2xl overflow-hidden relative flex flex-col justify-center items-center border border-zinc-800">
@@ -352,7 +397,7 @@ export default function Templates() {
                   <button
                     type="button"
                     onClick={fetchSamplePdf}
-                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold border border-zinc-700 transition"
+                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold border border-zinc-700 transition cursor-pointer"
                   >
                     🔄 Retry Live Preview
                   </button>

@@ -72,7 +72,7 @@ export const PREAMBLE = `\\documentclass[a4paper,10pt]{article}
 `
 
 export function buildTemplate({ header, sectionOrder, ...sectionMap }) {
-  const defaultOrder = ['skills', 'education', 'experience', 'projects', 'achievements', 'certifications', 'objective']
+  const defaultOrder = ['objective', 'skills', 'experience', 'projects', 'education', 'achievements', 'certifications']
   const order = Array.isArray(sectionOrder) && sectionOrder.length > 0 ? sectionOrder : defaultOrder
 
   const bodyContent = order

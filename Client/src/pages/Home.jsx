@@ -1,6 +1,7 @@
 import React from 'react'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
+import TrustedBy from '../components/TrustedBy'
 import ResumePreview from '../components/ResumePreview'
 import Features from '../components/Features'
 import FAQ from '../components/FAQ'
@@ -25,6 +26,11 @@ const Home = () => {
       </header>
 
       <main>
+        {/* Social Proof Marquee */}
+        <section className="py-6 border-y border-white/5 bg-zinc-950/40 backdrop-blur-md">
+          <TrustedBy />
+        </section>
+
         <ResumePreview />
         
         <Features />
