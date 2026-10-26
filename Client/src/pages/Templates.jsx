@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SEO from '../components/SEO'
+import PdfCanvasViewer from '../components/PdfCanvasViewer'
 import { API_URL } from '../config/api'
 
 const TEMPLATES = [
@@ -336,7 +337,7 @@ export default function Templates() {
             </div>
 
             {/* Launch Builder Action */}
-            <div className="pt-1">
+            <div className="pt-1 flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => handleUseTemplate(selectedTemplateId)}
@@ -344,11 +345,17 @@ export default function Templates() {
               >
                 <span>Use {selectedTemplate.name} in Builder →</span>
               </button>
+              <a
+                href="#preview-viewer"
+                className="lg:hidden w-full text-center py-2 px-4 rounded-xl text-xs text-[#A6FF5D] bg-[#A6FF5D]/10 border border-[#A6FF5D]/30 font-semibold"
+              >
+                ↓ Jump to Live PDF Preview
+              </a>
             </div>
           </div>
 
           {/* RIGHT: Live PDF Preview Viewer (7 Columns) */}
-          <div className="lg:col-span-7 bg-zinc-950/90 backdrop-blur-xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.12)] hover:border-[#A6FF5D]/50 rounded-3xl p-5 transition-all duration-300 flex flex-col h-[780px] lg:sticky lg:top-24">
+          <div id="preview-viewer" className="lg:col-span-7 bg-zinc-950/90 backdrop-blur-xl border border-[#A6FF5D]/30 shadow-[0_0_30px_rgba(166,255,93,0.12)] hover:border-[#A6FF5D]/50 rounded-3xl p-3 sm:p-5 transition-all duration-300 flex flex-col h-[650px] sm:h-[780px] lg:sticky lg:top-24">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3 px-2 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#A6FF5D] animate-ping" />
@@ -373,36 +380,12 @@ export default function Templates() {
             </div>
 
             <div className="flex-1 bg-zinc-900 rounded-2xl overflow-hidden relative flex flex-col justify-center items-center border border-zinc-800">
-              {loadingPreview ? (
-                <div className="absolute inset-0 z-10 bg-zinc-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
-                  <div className="w-8 h-8 border-2 border-[#A6FF5D] border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-zinc-300 font-medium animate-pulse">
-                    Compiling {selectedTemplate.name} sample PDF...
-                  </p>
-                </div>
-              ) : previewPdfUrl ? (
-                <div className="w-full h-full rounded-xl overflow-hidden relative bg-zinc-900 flex justify-center items-center">
-                  <iframe
-                    src={`${previewPdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                    className="min-w-[calc(100%+32px)] w-[calc(100%+32px)] -mr-[32px] h-full border-0 bg-zinc-900"
-                    title="Template Sample PDF Preview"
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
-                  <span className="text-2xl">⚠️</span>
-                  <p className="text-xs text-zinc-400 font-medium">
-                    Unable to load online preview right now
-                  </p>
-                  <button
-                    type="button"
-                    onClick={fetchSamplePdf}
-                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold border border-zinc-700 transition cursor-pointer"
-                  >
-                    🔄 Retry Live Preview
-                  </button>
-                </div>
-              )}
+              <PdfCanvasViewer
+                pdfUrl={previewPdfUrl}
+                loading={loadingPreview}
+                error={previewError ? 'Failed to compile template sample preview' : ''}
+                onRetry={fetchSamplePdf}
+              />
             </div>
           </div>
         </div>

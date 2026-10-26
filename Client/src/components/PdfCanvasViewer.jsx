@@ -1,26 +1,45 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.js?url'
 
-// Set PDF.js worker URL matching version 3.11.174
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+// Configure PDF.js worker: use locally bundled Vite asset first, fallback to CDN
+try {
+  if (pdfWorker) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+  } else {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+  }
+} catch (_) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+}
 
 export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
   const containerRef = useRef(null)
-  const [containerWidth, setContainerWidth] = useState(0)
+  const lastWidthRef = useRef(0)
+  const [containerWidth, setContainerWidth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return Math.min(window.innerWidth - 32, 750)
+    }
+    return 550
+  })
   const [numPages, setNumPages] = useState(0)
   const [rendering, setRendering] = useState(false)
   const [renderError, setRenderError] = useState('')
-  const [pages, setPages] = useState([]) // Array of rendered page canvas data or element refs
+  const [pages, setPages] = useState([])
+  const [zoomScale, setZoomScale] = useState(1.0)
   const pdfDocRef = useRef(null)
 
-  // Track container width accurately with ResizeObserver
+  // Track container width accurately with ResizeObserver (debounced threshold)
   useEffect(() => {
     if (!containerRef.current) return
 
     const updateWidth = () => {
       if (containerRef.current) {
         const w = containerRef.current.clientWidth
-        if (w > 0) setContainerWidth(w)
+        if (w > 0 && Math.abs(w - lastWidthRef.current) > 8) {
+          lastWidthRef.current = w
+          setContainerWidth(w)
+        }
       }
     }
 
@@ -29,7 +48,8 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
     const handleResize = (entries) => {
       for (const entry of entries) {
         const width = entry.contentRect?.width || containerRef.current?.clientWidth
-        if (width && width > 0) {
+        if (width && width > 0 && Math.abs(width - lastWidthRef.current) > 8) {
+          lastWidthRef.current = width
           setContainerWidth(width)
         }
       }
@@ -60,7 +80,22 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
 
     const loadPdf = async () => {
       try {
-        const loadingTask = pdfjsLib.getDocument({ url: pdfUrl })
+        let loadingTask
+
+        // If pdfUrl is a blob: or data: URL, fetch the binary buffer on the main thread.
+        // This avoids the common WebKit / mobile Safari issue where Web Workers
+        // fail when attempting to fetch main-thread blob: URLs.
+        if (typeof pdfUrl === 'string' && (pdfUrl.startsWith('blob:') || pdfUrl.startsWith('data:'))) {
+          const resp = await fetch(pdfUrl)
+          const arrayBuffer = await resp.arrayBuffer()
+          const data = new Uint8Array(arrayBuffer)
+          loadingTask = pdfjsLib.getDocument({ data })
+        } else if (pdfUrl instanceof ArrayBuffer || pdfUrl instanceof Uint8Array) {
+          loadingTask = pdfjsLib.getDocument({ data: pdfUrl })
+        } else {
+          loadingTask = pdfjsLib.getDocument({ url: pdfUrl })
+        }
+
         const pdfDoc = await loadingTask.promise
         if (!isMounted) return
 
@@ -85,6 +120,10 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
       isMounted = false
     }
   }, [pdfUrl])
+
+  const handleZoomIn = () => setZoomScale((prev) => Math.min(prev + 0.15, 2.2))
+  const handleZoomOut = () => setZoomScale((prev) => Math.max(prev - 0.15, 0.6))
+  const handleZoomReset = () => setZoomScale(1.0)
 
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-start overflow-y-auto relative bg-zinc-950 p-2 sm:p-4">
@@ -121,14 +160,23 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
               </button>
             )}
             {pdfUrl && (
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs bg-[#A6FF5D] text-gray-950 font-bold px-4 py-2 rounded-xl hover:bg-[#b8ff7a] transition shadow-md inline-flex items-center gap-1"
-              >
-                <span>↗ Open PDF directly</span>
-              </a>
+              <>
+                <a
+                  href={pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs bg-[#A6FF5D] text-gray-950 font-bold px-4 py-2 rounded-xl hover:bg-[#b8ff7a] transition shadow-md inline-flex items-center gap-1"
+                >
+                  <span>↗ Open PDF directly</span>
+                </a>
+                <a
+                  href={pdfUrl}
+                  download="resume.pdf"
+                  className="text-xs bg-zinc-800 text-zinc-200 hover:text-white font-semibold px-3 py-2 rounded-xl transition border border-zinc-700 inline-flex items-center gap-1"
+                >
+                  <span>📥 Download</span>
+                </a>
+              </>
             )}
           </div>
         </div>
@@ -156,21 +204,68 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
               pdfDoc={pdfDocRef.current}
               pageNum={pageNum}
               containerWidth={containerWidth}
+              zoomScale={zoomScale}
             />
           ))}
-          {/* Quick Action Toolbar underneath canvas */}
-          <div className="sticky bottom-2 z-10 bg-zinc-900/90 backdrop-blur-md px-4 py-2 rounded-full border border-zinc-800 shadow-xl flex items-center gap-3 text-xs">
-            <span className="text-zinc-400 text-[11px] font-medium">
+
+          {/* Quick Action & Zoom Toolbar underneath canvas */}
+          <div className="sticky bottom-2 z-10 bg-zinc-900/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-zinc-800 shadow-xl flex items-center gap-2 sm:gap-3 text-xs max-w-full overflow-x-auto">
+            {/* Zoom Controls */}
+            <div className="flex items-center bg-zinc-950 rounded-lg p-0.5 border border-zinc-800">
+              <button
+                type="button"
+                onClick={handleZoomOut}
+                disabled={zoomScale <= 0.65}
+                className="w-6 h-6 rounded flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-40 transition font-bold"
+                title="Zoom Out"
+                aria-label="Zoom Out"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                onClick={handleZoomReset}
+                className="px-1.5 text-[10px] text-zinc-400 hover:text-white font-mono"
+                title="Reset Zoom to 100%"
+              >
+                {Math.round(zoomScale * 100)}%
+              </button>
+              <button
+                type="button"
+                onClick={handleZoomIn}
+                disabled={zoomScale >= 2.1}
+                className="w-6 h-6 rounded flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-40 transition font-bold"
+                title="Zoom In"
+                aria-label="Zoom In"
+              >
+                +
+              </button>
+            </div>
+
+            <span className="text-zinc-600 hidden sm:inline">•</span>
+
+            <span className="text-zinc-400 text-[11px] font-medium hidden sm:inline whitespace-nowrap">
               Page 1 of {numPages}
             </span>
-            <span className="text-zinc-700">•</span>
+
+            <span className="text-zinc-600">•</span>
+
             <a
               href={pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#A6FF5D] font-bold hover:underline inline-flex items-center gap-1"
+              className="text-[#A6FF5D] font-bold hover:underline inline-flex items-center gap-1 whitespace-nowrap text-xs"
             >
-              <span>↗ Open PDF</span>
+              <span>↗ Open</span>
+            </a>
+
+            <a
+              href={pdfUrl}
+              download="resume.pdf"
+              className="text-zinc-300 hover:text-white inline-flex items-center gap-1 whitespace-nowrap text-xs"
+              title="Download Resume PDF"
+            >
+              <span>📥 Download</span>
             </a>
           </div>
         </div>
@@ -179,7 +274,7 @@ export default function PdfCanvasViewer({ pdfUrl, loading, error, onRetry }) {
   )
 }
 
-function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
+function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth, zoomScale = 1.0 }) {
   const canvasRef = useRef(null)
   const renderTaskRef = useRef(null)
   const [rendered, setRendered] = useState(false)
@@ -201,17 +296,20 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
         const page = await pdfDoc.getPage(pageNum)
         if (isCancelled || !canvasRef.current) return
 
-        // Compute scale to fit container width smoothly (responsive on mobile screens)
+        // Compute responsive scale to fit container width smoothly on mobile and desktop
         const unscaledViewport = page.getViewport({ scale: 1.0 })
         const effectiveContainerW = containerWidth > 0
           ? containerWidth
           : (typeof window !== 'undefined' ? window.innerWidth - 32 : 550)
+        
+        // Base fit width capped between 160px and 750px
         const availableWidth = Math.max(160, Math.min(effectiveContainerW - 16, 750))
-        const cssScale = Math.min(1.4, availableWidth / unscaledViewport.width)
+        const fitScale = availableWidth / unscaledViewport.width
+        const cssScale = Math.min(2.5, Math.max(0.35, fitScale * zoomScale))
         const displayViewport = page.getViewport({ scale: cssScale })
 
-        // High-DPI super-sampling factor (at least 2x or screen devicePixelRatio)
-        const dpr = Math.max(window.devicePixelRatio || 1, 2)
+        // High-DPI super-sampling factor (capped at 2.5 for mobile GPU memory efficiency)
+        const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2), 2.5)
         const renderViewport = page.getViewport({ scale: cssScale * dpr })
 
         const canvas = canvasRef.current
@@ -256,10 +354,10 @@ function PdfSinglePageCanvas({ pdfDoc, pageNum, containerWidth }) {
         renderTaskRef.current = null
       }
     }
-  }, [pdfDoc, pageNum, containerWidth])
+  }, [pdfDoc, pageNum, containerWidth, zoomScale])
 
   return (
-    <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-zinc-700/50 max-w-full transition-all duration-200 flex justify-center">
+    <div className="bg-white rounded-lg shadow-2xl overflow-hidden border border-zinc-700/50 max-w-full transition-all duration-200 flex justify-center p-0.5">
       <canvas ref={canvasRef} className="block mx-auto max-w-full h-auto" />
     </div>
   )

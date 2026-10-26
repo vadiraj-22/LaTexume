@@ -271,6 +271,7 @@ const Builder = () => {
   const [currentResumeTitle, setCurrentResumeTitle] = useState('')
   const [isSavedResumesOpen, setIsSavedResumesOpen] = useState(false)
   const [isPreviewDrawerOpen, setIsPreviewDrawerOpen] = useState(false)
+  const [mobileViewTab, setMobileViewTab] = useState('editor') // 'editor' | 'preview'
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false)
   const templateDropdownRef = useRef(null)
   const [searchParams] = useSearchParams()
@@ -721,11 +722,13 @@ const Builder = () => {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `${formData.header.name.replace(/\s+/g, '_')}_Resume.pdf`
+        const cleanName = (formData?.header?.name || 'Resume').trim().replace(/\s+/g, '_')
+        a.download = `${cleanName || 'Resume'}.pdf`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
+        setMobileViewTab('preview')
       } else {
         const error = await response.json()
         alert(`Failed to generate resume: ${error.message}`)
@@ -981,13 +984,64 @@ const Builder = () => {
               <span>🗑️</span>
               <span className="hidden sm:inline">Clear</span>
             </button>
+
+            {/* Mobile View Mode Quick Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                const next = mobileViewTab === 'editor' ? 'preview' : 'editor'
+                setMobileViewTab(next)
+                if (next === 'preview') window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              className="lg:hidden bg-[#A6FF5D] hover:bg-[#b8ff7a] text-black font-extrabold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 text-xs shadow-md border border-[#A6FF5D] cursor-pointer hover:scale-105 active:scale-95"
+              aria-label="Toggle between Form Editor and Live Preview"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-black"></span>
+              </span>
+              <span>{mobileViewTab === 'preview' ? '✏️ Edit Form' : '👁️ Preview'}</span>
+            </button>
           </div>
         </div>
 
-        {/* TRUE SIDE-BY-SIDE SPLIT VIEW */}
+        {/* Mobile View Switcher Segmented Tabs */}
+        <div className="lg:hidden flex items-center justify-center p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl mb-5 shadow-xl backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => setMobileViewTab('editor')}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              mobileViewTab === 'editor'
+                ? 'bg-[#A6FF5D] text-black shadow-lg font-extrabold border border-[#A6FF5D]'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <span>✏️ Form Editor</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMobileViewTab('preview')
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              mobileViewTab === 'preview'
+                ? 'bg-[#A6FF5D] text-black shadow-lg font-extrabold border border-[#A6FF5D]'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
+            </span>
+            <span>👁️ Live Preview</span>
+          </button>
+        </div>
+
+        {/* TRUE SIDE-BY-SIDE SPLIT VIEW ON DESKTOP, RESPONSIVE TABS ON MOBILE */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-          {/* LEFT COLUMN: FORM INPUTS & REORDERABLE SECTIONS (Independently Scrollable) */}
-          <div className="w-full lg:w-[54%] xl:w-[56%] space-y-6 overflow-y-auto lg:max-h-[calc(100vh-80px)] pr-2 pb-6">
+          {/* LEFT COLUMN: FORM INPUTS & REORDERABLE SECTIONS */}
+          <div className={`${mobileViewTab === 'preview' ? 'hidden lg:block' : 'block'} w-full lg:w-[54%] xl:w-[56%] space-y-6 overflow-y-auto lg:max-h-[calc(100vh-80px)] pr-2 pb-6`}>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Header Information (Fixed at top) */}
               <div className={cardCls + " animate-fade-in-up animate-delay-100"}>
@@ -1633,8 +1687,8 @@ const Builder = () => {
         </div>
 
         {/* RIGHT COLUMN: STICKY REAL-TIME PDF & LATEX PREVIEW */}
-        <div className="w-full lg:w-[46%] xl:w-[44%] sticky top-24 self-start">
-          <RightPreviewPane formData={formData} />
+        <div className={`${mobileViewTab === 'preview' ? 'block' : 'hidden lg:block'} w-full lg:w-[46%] xl:w-[44%] lg:sticky lg:top-24 self-start`}>
+          <RightPreviewPane formData={formData} onBackToEditor={() => setMobileViewTab('editor')} />
         </div>
       </div>
     </main>
@@ -1674,22 +1728,40 @@ const Builder = () => {
         formData={formData}
       />
 
-      {/* Mobile Floating Live Preview Button */}
+      {/* Mobile Floating Action Button (1-tap Switch between Form & Live Preview) */}
       <button
         type="button"
-        onClick={() => setIsPreviewDrawerOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 z-40 bg-[#A6FF5D] hover:bg-[#b8ff7a] text-gray-950 font-extrabold px-5 py-3 rounded-full shadow-[0_0_25px_rgba(166,255,93,0.45)] border border-[#A6FF5D] transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2.5 cursor-pointer"
-        aria-label="Open Live Resume Preview"
+        onClick={() => {
+          if (mobileViewTab === 'editor') {
+            setMobileViewTab('preview')
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          } else {
+            setMobileViewTab('editor')
+          }
+        }}
+        className="lg:hidden fixed bottom-6 right-6 z-40 bg-[#A6FF5D] hover:bg-[#b8ff7a] text-gray-950 font-extrabold px-4 sm:px-5 py-3 rounded-full shadow-[0_0_25px_rgba(166,255,93,0.45)] border border-[#A6FF5D] transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer"
+        aria-label={mobileViewTab === 'preview' ? 'Back to Form Editor' : 'Open Live Resume Preview'}
       >
-        <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-950 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-950"></span>
-        </span>
-        <svg className="w-5 h-5 text-gray-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-        </svg>
-        <span className="text-xs font-black uppercase tracking-wider">Live Preview</span>
+        {mobileViewTab === 'preview' ? (
+          <>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span className="text-xs font-black uppercase tracking-wider">Edit Form</span>
+          </>
+        ) : (
+          <>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-950 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gray-950"></span>
+            </span>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span className="text-xs font-black uppercase tracking-wider">Live Preview</span>
+          </>
+        )}
       </button>
     </div>
   )
